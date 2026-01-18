@@ -1,0 +1,151 @@
+
+import React, { useState, useRef, useEffect } from 'react';
+import { chatWithDataStream } from '../services/geminiService';
+import { VehicleTableData } from '../types';
+
+interface AiChatProps {
+    currentData: VehicleTableData[];
+    comparisonData: VehicleTableData[];
+    selectedYear: string;
+    comparisonYear: string;
+}
+
+const AiChat: React.FC<AiChatProps> = ({ currentData, comparisonData, selectedYear, comparisonYear }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [input, setInput] = useState('');
+    const [messages, setMessages] = useState<{ role: 'user' | 'ai'; content: string }[]>([]);
+    const [isTyping, setIsTyping] = useState(false);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(() => {
+        if (isOpen) {
+            scrollToBottom();
+        }
+    }, [messages, isOpen]);
+
+    const handleSend = async () => {
+        if (!input.trim() || isTyping) return;
+
+        const userMessage = input.trim();
+        setInput('');
+        setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+        setIsTyping(true);
+
+        try {
+            let aiResponse = '';
+            setMessages(prev => [...prev, { role: 'ai', content: '' }]);
+            
+            const stream = chatWithDataStream(
+                userMessage,
+                currentData,
+                comparisonData,
+                { selected: selectedYear, comparison: comparisonYear }
+            );
+
+            for await (const chunk of stream) {
+                aiResponse += chunk;
+                setMessages(prev => {
+                    const newMessages = [...prev];
+                    newMessages[newMessages.length - 1].content = aiResponse;
+                    return newMessages;
+                });
+            }
+        } catch (error) {
+            console.error("Chat error:", error);
+            setMessages(prev => [...prev, { role: 'ai', content: 'عذراً، حدث خطأ أثناء الاتصال بالمحرك السريع.' }]);
+        } finally {
+            setIsTyping(false);
+        }
+    };
+
+    return (
+        <div className="fixed bottom-6 left-6 z-50 flex flex-col items-end font-sans">
+            {/* Chat Window */}
+            {isOpen && (
+                <div className="w-85 md:w-96 h-[550px] bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-200 flex flex-col overflow-hidden mb-5 animate-in slide-in-from-bottom-10 duration-500 ease-out">
+                    <div className="bg-gradient-to-r from-indigo-600 via-blue-600 to-sky-500 p-5 text-white flex justify-between items-center shadow-md">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm animate-pulse">
+                                <span className="text-xl">⚡</span>
+                            </div>
+                            <div>
+                                <span className="font-bold block text-sm">المساعد اللحظي</span>
+                                <span className="text-[10px] text-blue-100 flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span>
+                                    متصل بأقصى سرعة
+                                </span>
+                            </div>
+                        </div>
+                        <button onClick={() => setIsOpen(false)} className="hover:bg-white/20 rounded-full p-2 transition-all active:scale-90">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-slate-50/50">
+                        {messages.length === 0 && (
+                            <div className="text-center mt-12 px-4">
+                                <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                    <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                </div>
+                                <h4 className="text-slate-800 font-bold mb-2">كيف يمكنني مساعدتك؟</h4>
+                                <p className="text-slate-500 text-xs mb-6">اسأل عن المقارنات السنوية، كفاءة السائقين، أو استهلاك الوقود.</p>
+                                <div className="grid grid-cols-1 gap-2">
+                                    <button onClick={() => { setInput("لخص أداء الأسطول في جملتين"); handleSend(); }} className="text-[11px] bg-white border border-slate-200 p-2.5 rounded-xl hover:border-blue-400 hover:text-blue-600 transition-all text-right shadow-sm">⚡ ملخص سريع لأداء الأسطول</button>
+                                    <button onClick={() => { setInput("ما هي أكثر مركبة موفرة للوقود؟"); handleSend(); }} className="text-[11px] bg-white border border-slate-200 p-2.5 rounded-xl hover:border-blue-400 hover:text-blue-600 transition-all text-right shadow-sm">⛽ أكثر مركبة موفرة للوقود</button>
+                                    <button onClick={() => { setInput("قارن إجمالي الأوزان بين السنتين"); handleSend(); }} className="text-[11px] bg-white border border-slate-200 p-2.5 rounded-xl hover:border-blue-400 hover:text-blue-600 transition-all text-right shadow-sm">📊 مقارنة الأوزان بين السنوات</button>
+                                </div>
+                            </div>
+                        )}
+                        {messages.map((msg, idx) => (
+                            <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'}`}>
+                                <div className={`max-w-[88%] p-3.5 rounded-2xl text-[13px] leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-white text-slate-700 border border-slate-100 rounded-bl-none'}`}>
+                                    {msg.content || (isTyping && idx === messages.length - 1 ? 'جاري التحليل...' : '')}
+                                </div>
+                            </div>
+                        ))}
+                        <div ref={messagesEndRef} />
+                    </div>
+
+                    <div className="p-4 bg-white border-t border-slate-100 flex gap-2">
+                        <input
+                            type="text"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                            placeholder="اسألني عن أي شيء..."
+                            className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all"
+                        />
+                        <button
+                            onClick={handleSend}
+                            disabled={isTyping || !input.trim()}
+                            className="bg-indigo-600 text-white p-3 rounded-2xl hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 transition-all active:scale-90 shadow-lg shadow-indigo-100"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Floating Toggle Button */}
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-500 ${isOpen ? 'bg-slate-800 text-white rotate-180' : 'bg-gradient-to-br from-indigo-600 to-blue-700 text-white hover:shadow-indigo-200'}`}
+            >
+                {isOpen ? (
+                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                ) : (
+                    <div className="relative">
+                        <svg className="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                        <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white"></span>
+                    </div>
+                )}
+            </button>
+        </div>
+    );
+};
+
+export default AiChat;
