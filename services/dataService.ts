@@ -43,6 +43,7 @@ function splitCsvLine(line: string): string[] {
 /**
  * Isolated worker data loader using the specific workers GID.
  * Handles cleaning of Arabic salary strings and deduplicates worker entries.
+ * UPDATED: Multiplies monthly salary by 12 to provide annual figures.
  */
 export async function loadWorkersData(): Promise<Worker[]> {
     const url = CONFIG.workers;
@@ -65,12 +66,15 @@ export async function loadWorkersData(): Promise<Worker[]> {
                         
                         // Clean salary string from currency symbols, commas, etc.
                         const rawSalary = row["الراتب"];
-                        let salary = Number(
+                        let monthlySalary = Number(
                             String(rawSalary)
                                 .replace(/[^\d.]/g, "")
                         );
 
-                        if (isNaN(salary)) salary = 0;
+                        if (isNaN(monthlySalary)) monthlySalary = 0;
+                        
+                        // Convert to Annual Salary
+                        const salary = monthlySalary * 12;
 
                         if (name && role && name !== "الاسم") {
                             // Deduplication: Keep the entry with highest salary if duplicates exist
@@ -81,7 +85,7 @@ export async function loadWorkersData(): Promise<Worker[]> {
                     });
 
                     const workers = Array.from(workerMap.values());
-                    console.log(`Loaded ${workers.length} unique workers from GID=386592046.`);
+                    console.log(`Loaded ${workers.length} unique workers. Salaries converted to Annual.`);
                     resolve(workers);
                 },
                 error: (err: any) => {

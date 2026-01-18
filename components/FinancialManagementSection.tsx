@@ -37,7 +37,7 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
             totalTons,
             costPerTonOverall,
             allocation: [
-                { name: 'الرواتب والأجور', value: totalSalaries },
+                { name: 'الرواتب السنوية', value: totalSalaries },
                 { name: 'كلفة الوقود', value: totalFuel },
                 { name: 'كلفة الصيانة', value: totalMaint }
             ]
@@ -83,19 +83,19 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
     const formatCurrency = (val: number) => formatNumber(Math.round(val)) + ' د.أ';
 
     return (
-        <CollapsibleSection title={`الإدارة المالية والتدقيق - سنة ${selectedYear}`} defaultOpen={true}>
+        <CollapsibleSection title={`الإدارة المالية والتدقيق السنوي - سنة ${selectedYear}`} defaultOpen={true}>
             {/* المالية الكلية - KPIs */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
                 <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 p-6 rounded-3xl shadow-lg text-white">
-                    <div className="text-emerald-100 text-xs font-bold mb-2 opacity-80 text-right">إجمالي المصاريف المالية</div>
+                    <div className="text-emerald-100 text-xs font-bold mb-2 opacity-80 text-right">إجمالي المصاريف السنوية</div>
                     <div className="text-3xl font-black">{formatCurrency(financialSummary.grandTotal)}</div>
-                    <div className="mt-4 text-[10px] bg-white/20 p-2 rounded-xl text-center">تشمل الرواتب والوقود والصيانة</div>
+                    <div className="mt-4 text-[10px] bg-white/20 p-2 rounded-xl text-center">تشمل الرواتب السنوية والوقود والصيانة</div>
                 </div>
                 
                 <div className="bg-white p-6 rounded-3xl shadow-md border-b-4 border-blue-500">
                     <div className="text-slate-400 text-xs font-bold mb-2 text-right">كلفة الطن المالية (شاملة)</div>
                     <div className="text-3xl font-black text-blue-600">{formatNumber(financialSummary.costPerTonOverall, 2)} <span className="text-sm font-normal text-slate-400">د.أ/طن</span></div>
-                    <div className="mt-2 text-[10px] text-slate-500">إجمالي الميزانية ÷ إجمالي الأطنان</div>
+                    <div className="mt-2 text-[10px] text-slate-500">إجمالي الميزانية السنوية ÷ إجمالي الأطنان</div>
                 </div>
 
                 <div className="bg-white p-6 rounded-3xl shadow-md border-b-4 border-amber-500">
@@ -107,7 +107,7 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                 </div>
 
                 <div className="bg-white p-6 rounded-3xl shadow-md border-b-4 border-indigo-500">
-                    <div className="text-slate-400 text-xs font-bold mb-2 text-right">كلفة الكادر البشري</div>
+                    <div className="text-slate-400 text-xs font-bold mb-2 text-right">كلفة الكادر (سنوي)</div>
                     <div className="text-3xl font-black text-indigo-600">{formatCurrency(financialSummary.totalSalaries)}</div>
                     <div className="mt-2 text-[10px] text-slate-500 text-center font-bold">
                         {Math.round((financialSummary.totalSalaries / financialSummary.grandTotal) * 100)}% من الميزانية
@@ -119,7 +119,7 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                 {/* توزيع الميزانية */}
                 <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100 shadow-inner">
                     <h4 className="text-sm font-black text-slate-700 mb-6 text-right flex items-center justify-end gap-2">
-                        توزيع بنود الميزانية المالية
+                        توزيع بنود الميزانية السنوية
                         <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
                     </h4>
                     <div className="h-64 w-full">
@@ -147,7 +147,7 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
 
                 {/* كلفة المناطق */}
                 <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100 shadow-inner">
-                    <h4 className="text-sm font-black text-slate-700 mb-6 text-right">مقارنة التكاليف المالية حسب المناطق</h4>
+                    <h4 className="text-sm font-black text-slate-700 mb-6 text-right">مقارنة التكاليف السنوية حسب المناطق</h4>
                     <div className="h-64 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={areaFinancials.slice(0, 5)} layout="vertical">
@@ -168,9 +168,9 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                     <thead className="bg-slate-50">
                         <tr>
                             <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase text-right pr-10">المنطقة</th>
-                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">رواتب الكادر</th>
-                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">تشغيل (وقود+صيانة)</th>
-                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">إجمالي الإنفاق</th>
+                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">رواتب سنوية</th>
+                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">تشغيل سنوي</th>
+                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">إجمالي الإنفاق السنوي</th>
                             <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">الكلفة لكل طن</th>
                         </tr>
                     </thead>
@@ -190,11 +190,11 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
 
             <div className="mt-6 flex justify-end">
                 <button 
-                    onClick={() => printTable(tableContainerRef, 'التقرير المالي التفصيلي للمناطق', { vehicles: new Set(), months: new Set() })}
+                    onClick={() => printTable(tableContainerRef, 'التقرير المالي السنوي التفصيلي للمناطق', { vehicles: new Set(), months: new Set() })}
                     className="flex items-center gap-2 bg-slate-800 text-white px-6 py-2 rounded-xl text-xs font-bold hover:bg-slate-900 transition-all shadow-md"
                 >
                     <span>🖨️</span>
-                    طباعة التقرير المالي
+                    طباعة التقرير المالي السنوي
                 </button>
             </div>
         </CollapsibleSection>

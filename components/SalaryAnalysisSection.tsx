@@ -45,7 +45,7 @@ const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers }
         })).sort((a, b) => b.total - a.total);
     }, [filteredWorkers]);
 
-    // Area Stats - Updated to include role distribution per area
+    // Area Stats
     const areaStats = useMemo(() => {
         const map = new Map<string, { count: number; total: number; roles: Map<string, number> }>();
         filteredWorkers.forEach(w => {
@@ -86,9 +86,9 @@ const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers }
 
     const handlePrint = () => {
         const titles = {
-            all: 'كشف الأجور التفصيلي للموظفين',
-            job: 'تحليل الأجور حسب المسمى الوظيفي',
-            area: 'تحليل الأجور حسب المنطقة'
+            all: 'كشف الأجور السنوي التفصيلي',
+            job: 'تحليل الأجور السنوية حسب الوظيفة',
+            area: 'تحليل الأجور السنوية حسب المنطقة'
         };
         printTable(tableContainerRef, titles[analysisMode], { vehicles: new Set(), months: new Set() });
     };
@@ -96,7 +96,7 @@ const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers }
     if (workers.length === 0) return null;
 
     return (
-        <CollapsibleSection title="تحليل الأجور المالية" defaultOpen={true}>
+        <CollapsibleSection title="تحليل الميزانية السنوية للأجور" defaultOpen={true}>
             {/* Controls */}
             <div className="flex flex-wrap gap-4 mb-8 bg-slate-50 p-6 rounded-3xl border border-slate-100 items-end shadow-inner text-right">
                 <div className="flex flex-col gap-1.5">
@@ -129,7 +129,7 @@ const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers }
                         className="px-8 py-3 bg-slate-800 text-white rounded-2xl text-sm font-bold shadow-lg hover:bg-slate-900 transition-all active:scale-95 flex items-center gap-2"
                     >
                         <span>🖨️</span>
-                        طباعة الكشف المالي
+                        طباعة الكشف السنوي
                     </button>
                 </div>
             </div>
@@ -144,14 +144,14 @@ const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers }
                     </div>
                 </div>
                 <div className="bg-white p-7 rounded-3xl shadow-xl border-r-8 border-emerald-500 transition-all hover:shadow-2xl hover:-translate-y-1 group">
-                    <div className="text-slate-400 text-[10px] font-black uppercase mb-3 tracking-widest group-hover:text-emerald-600 transition-colors text-right">إجمالي فاتورة الرواتب</div>
+                    <div className="text-slate-400 text-[10px] font-black uppercase mb-3 tracking-widest group-hover:text-emerald-600 transition-colors text-right">إجمالي الميزانية السنوية</div>
                     <div className="text-5xl font-black text-emerald-600 flex items-baseline gap-2 justify-end">
                         <span className="text-sm font-normal text-slate-400 italic">د.أ</span>
                         {formatCurrency(overallStats.total)}
                     </div>
                 </div>
                 <div className="bg-white p-7 rounded-3xl shadow-xl border-r-8 border-blue-500 transition-all hover:shadow-2xl hover:-translate-y-1 group">
-                    <div className="text-slate-400 text-[10px] font-black uppercase mb-3 tracking-widest group-hover:text-blue-600 transition-colors text-right">متوسط الراتب الشهري</div>
+                    <div className="text-slate-400 text-[10px] font-black uppercase mb-3 tracking-widest group-hover:text-blue-600 transition-colors text-right">متوسط الراتب السنوي</div>
                     <div className="text-5xl font-black text-blue-600 flex items-baseline gap-2 justify-end">
                         <span className="text-sm font-normal text-slate-400 italic">د.أ</span>
                         {formatCurrency(overallStats.avg)}
@@ -164,7 +164,7 @@ const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers }
                 <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100 mb-10 shadow-inner">
                     <h4 className="text-sm font-black text-slate-700 mb-8 flex items-center gap-2 text-right">
                         <span className="w-3 h-3 bg-emerald-500 rounded-full"></span>
-                        {analysisMode === 'job' ? 'توزيع الميزانية الحالية حسب الوظائف' : 'توزيع الميزانية الحالية حسب المناطق'}
+                        {analysisMode === 'job' ? 'توزيع الميزانية السنوية حسب الوظائف' : 'توزيع الميزانية السنوية حسب المناطق'}
                     </h4>
                     <div className="h-80 w-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -199,21 +199,21 @@ const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers }
                                 <th className="p-5 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest text-right pr-14">اسم الموظف</th>
                                 <th className="p-5 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest">المسمى الوظيفي</th>
                                 <th className="p-5 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest">المنطقة</th>
-                                <th className="p-5 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest">الراتب الشهري (د.أ)</th>
+                                <th className="p-5 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest">الراتب السنوي (د.أ)</th>
                             </tr>
                         ) : analysisMode === 'job' ? (
                             <tr>
                                 <th className="p-5 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest text-right pr-14">المسمى الوظيفي</th>
                                 <th className="p-5 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest">عدد الموظفين</th>
-                                <th className="p-5 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest">إجمالي الرواتب</th>
-                                <th className="p-5 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest">متوسط الأجر</th>
+                                <th className="p-5 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest">إجمالي الرواتب السنوية</th>
+                                <th className="p-5 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest">متوسط الأجر السنوي</th>
                             </tr>
                         ) : (
                             <tr>
                                 <th className="p-5 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest text-right pr-14">المنطقة</th>
                                 <th className="p-5 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest">عدد العمال</th>
                                 <th className="p-5 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest text-right">المسميات الوظيفية</th>
-                                <th className="p-5 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest">إجمالي الرواتب</th>
+                                <th className="p-5 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest">إجمالي الرواتب السنوية</th>
                             </tr>
                         )}
                     </thead>
@@ -263,7 +263,7 @@ const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers }
             </div>
 
             <div className="mt-8 p-6 bg-blue-50/50 rounded-3xl border-r-8 border-blue-400 text-[12px] text-blue-900 leading-relaxed font-bold text-right shadow-sm">
-                * جميع البيانات الحالية تعتمد بشكل مباشر على كشف الرواتب الموحد لبلدية مؤتة والمزار (GID=386592046). يوضح التحليل توزيع القوى العاملة والتكاليف المالية حسب المناطق والمسميات الوظيفية الفعلية.
+                * جميع الرواتب المعروضة هي رواتب سنوية (إجمالي 12 شهراً). يعتمد التحليل على كشف الرواتب الموحد لبلدية مؤتة والمزار (GID=386592046) مع تحويل القيم الشهرية إلى سنوية لضمان دقة التقارير الإجمالية وكفاءة الإنفاق لكل طن.
             </div>
         </CollapsibleSection>
     );
