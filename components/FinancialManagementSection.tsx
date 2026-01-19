@@ -83,7 +83,7 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
     const formatCurrency = (val: number) => formatNumber(Math.round(val)) + ' د.أ';
 
     return (
-        <CollapsibleSection title={`الإدارة المالية والتدقيق السنوي - سنة ${selectedYear}`} defaultOpen={true}>
+        <CollapsibleSection title={`الإدارة المالية والتدقيق السنوي - سنة ${selectedYear}`} defaultOpen={false}>
             {/* المالية الكلية - KPIs */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
                 <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 p-6 rounded-3xl shadow-lg text-white">

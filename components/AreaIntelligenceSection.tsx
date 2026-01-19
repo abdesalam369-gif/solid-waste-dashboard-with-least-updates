@@ -121,7 +121,7 @@ const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ worke
     const formatCurrency = (val: number) => formatNumber(Math.round(val)) + ' د.أ';
 
     return (
-        <CollapsibleSection title={`تقرير مناطق بلدية مؤته والمزار - تحليل شامل ${selectedYear}`} defaultOpen={true}>
+        <CollapsibleSection title={`تقرير مناطق بلدية مؤته والمزار - تحليل شامل ${selectedYear}`} defaultOpen={false}>
             {/* بطاقات التميز في المناطق */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="bg-white p-6 rounded-3xl shadow-xl border-r-8 border-indigo-500 relative overflow-hidden group">

@@ -30,6 +30,14 @@ const PopulationAnalysisSection: React.FC<PopulationAnalysisSectionProps> = ({ t
         return sorted;
     }, [tableData, sortBy]);
 
+    const totals = useMemo(() => {
+        if (sortedData.length === 0) return null;
+        const totalPop = sortedData.reduce((sum, row) => sum + row.population, 0);
+        const totalTons = sortedData.reduce((sum, row) => sum + row.totalTons, 0);
+        const avgKg = totalPop > 0 ? (totalTons * 1000) / totalPop : 0;
+        return { totalPop, totalTons, avgKg };
+    }, [sortedData]);
+
     const handlePrint = () => {
         printTable(tableContainerRef, 'تحليل كثافة النفايات حسب التعداد السكاني', filters);
     };
@@ -66,15 +74,25 @@ const PopulationAnalysisSection: React.FC<PopulationAnalysisSectionProps> = ({ t
                     </thead>
                     <tbody>
                         {sortedData.map((row, idx) => (
-                            <tr key={`${row.area}-${idx}`} className="hover:bg-slate-50">
-                                <td className="p-2 border-b border-slate-200 font-bold">{row.area}</td>
-                                <td className="p-2 border-b border-slate-200">{formatNumber(row.population)}</td>
-                                <td className="p-2 border-b border-slate-200">{formatNumber(row.totalTons, 1)}</td>
-                                <td className="p-2 border-b border-slate-200 font-semibold text-indigo-600">
+                            <tr key={`${row.area}-${idx}`} className="hover:bg-slate-50 transition-colors">
+                                <td className="p-3 border-b border-slate-200 font-bold">{row.area}</td>
+                                <td className="p-3 border-b border-slate-200">{formatNumber(row.population)}</td>
+                                <td className="p-3 border-b border-slate-200">{formatNumber(row.totalTons, 1)}</td>
+                                <td className="p-3 border-b border-slate-200 font-semibold text-indigo-600">
                                     {formatNumber(row.kgPerCapita, 3)}
                                 </td>
                             </tr>
                         ))}
+                        {totals && (
+                            <tr className="bg-slate-200 font-black text-slate-800">
+                                <td className="p-3 border-t-2 border-slate-300">المجموع / المتوسط</td>
+                                <td className="p-3 border-t-2 border-slate-300">{formatNumber(totals.totalPop)}</td>
+                                <td className="p-3 border-t-2 border-slate-300">{formatNumber(totals.totalTons, 1)}</td>
+                                <td className="p-3 border-t-2 border-slate-300 text-indigo-800">
+                                    {formatNumber(totals.avgKg, 3)}
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
             </div>
