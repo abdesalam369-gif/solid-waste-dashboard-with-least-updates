@@ -57,7 +57,7 @@ const AiAnalysisSection: React.FC<AiAnalysisSectionProps> = ({ vehicles, onGener
     };
 
     return (
-        <CollapsibleSection title="تحليل الأسطول بالذكاء الاصطناعي" defaultOpen={false}>
+        <CollapsibleSection title="تحليل الأسطول بالذكاء الاصطناعي">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Controls */}
                 <div className="md:col-span-1 space-y-4">

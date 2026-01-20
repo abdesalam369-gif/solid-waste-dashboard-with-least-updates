@@ -18,6 +18,7 @@ import PopulationAnalysisSection from './components/PopulationAnalysisSection';
 import SalaryAnalysisSection from './components/SalaryAnalysisSection';
 import FinancialManagementSection from './components/FinancialManagementSection';
 import AiChat from './components/AiChat';
+import Sidebar from './components/Sidebar';
 
 const App: React.FC = () => {
     const [loading, setLoading] = useState(true);
@@ -31,6 +32,8 @@ const App: React.FC = () => {
     
     const [selectedYear, setSelectedYear] = useState<string>('');
     const [comparisonYear, setComparisonYear] = useState<string>('');
+    const [activeTab, setActiveTab] = useState<string>('kpi');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const [filters, setFilters] = useState<{ vehicles: Set<string>; months: Set<string> }>({
         vehicles: new Set(),
@@ -58,7 +61,6 @@ const App: React.FC = () => {
                 setPopulationData(population || []);
                 setWorkersData(workers || []);
 
-                // استخراج السنوات المتاحة واختيار الأحدث تلقائياً
                 const years = [...new Set(trips.map(t => t['السنة']).filter(Boolean))].sort().reverse();
                 if (years.length > 0) {
                     setSelectedYear(years[0]);
@@ -263,7 +265,7 @@ const App: React.FC = () => {
         const tonsByArea: { [key: string]: number } = {};
         filteredTrips.forEach(trip => {
             const vehicleId = (trip['رقم المركبة'] || '').trim();
-            const area = vehAreaMap.get(vehicleId) || 'غير محدد';
+            const area = vehAreaMap.get(vehicleId) || 'غير مححدد';
             tonsByArea[area] = (tonsByArea[area] || 0) + (Number(trip['صافي التحميل'] || 0) / 1000);
         });
 
@@ -271,7 +273,6 @@ const App: React.FC = () => {
             const areaName = pop.area.trim();
             const tons = tonsByArea[areaName] || 0;
             const population = pop.population || 0;
-            // تحويل الأطنان إلى كيلوغرامات (طن * 1000) لحساب نصيب الفرد بالكغم
             const kgPerCapita = population > 0 ? (tons * 1000) / population : 0;
             return {
                 area: areaName,
@@ -302,93 +303,156 @@ const App: React.FC = () => {
         }
     };
 
-
     if (loading) {
         return <Loader />;
     }
 
+    const renderActiveContent = () => {
+        switch (activeTab) {
+            case 'kpi':
+                return (
+                    <div className="animate-in fade-in duration-500">
+                        <KpiGrid 
+                            filteredTrips={filteredTrips} 
+                            comparisonTrips={comparisonTrips}
+                            fuelData={fuelData} 
+                            maintData={maintData} 
+                            filters={filters}
+                            selectedYear={selectedYear}
+                            comparisonYear={comparisonYear}
+                            vehicleTableData={filteredVehicleTableData}
+                            comparisonVehicleTableData={comparisonVehicleTableData}
+                            totalPopulation={totalPopulation}
+                            workers={workersData}
+                        />
+                    </div>
+                );
+            case 'charts':
+                return (
+                    <div className="animate-in slide-in-from-left-5 duration-500">
+                        <ChartSection 
+                            data={filteredTrips} 
+                            comparisonData={comparisonTrips}
+                            isLoading={isFiltering} 
+                            filters={filters} 
+                            selectedYear={selectedYear}
+                            comparisonYear={comparisonYear}
+                            chartRef={lineChartRef} 
+                        />
+                    </div>
+                );
+            case 'financial':
+                return (
+                    <div className="animate-in slide-in-from-left-5 duration-500">
+                        <FinancialManagementSection 
+                            workers={workersData} 
+                            vehicleData={filteredVehicleTableData} 
+                            selectedYear={selectedYear} 
+                        />
+                    </div>
+                );
+            case 'intelligence':
+                return (
+                    <div className="animate-in slide-in-from-left-5 duration-500">
+                        <AreaIntelligenceSection 
+                            workers={workersData} 
+                            vehicleData={filteredVehicleTableData} 
+                            population={populationData}
+                            selectedYear={selectedYear}
+                        />
+                    </div>
+                );
+            case 'distribution':
+                return (
+                    <div className="animate-in slide-in-from-left-5 duration-500">
+                        <AreaChartSection data={areaDistributionData} isLoading={isFiltering} filters={filters} chartRef={pieChartRef} />
+                    </div>
+                );
+            case 'population':
+                return (
+                    <div className="animate-in slide-in-from-left-5 duration-500">
+                        <PopulationAnalysisSection tableData={areaPopulationStats} filters={filters} />
+                    </div>
+                );
+            case 'salaries':
+                return (
+                    <div className="animate-in slide-in-from-left-5 duration-500">
+                        <SalaryAnalysisSection workers={workersData} />
+                    </div>
+                );
+            case 'vehicles':
+                return (
+                    <div className="animate-in slide-in-from-left-5 duration-500 space-y-6">
+                        <TableSection tableData={filteredVehicleTableData} filters={filters} title={`كفاءة المركبات - سنة ${selectedYear}`} />
+                        {comparisonYear && (
+                            <TableSection tableData={comparisonVehicleTableData} filters={filters} title={`كفاءة المركبات - سنة ${comparisonYear} (للمقارنة)`} />
+                        )}
+                    </div>
+                );
+            case 'drivers':
+                return (
+                    <div className="animate-in slide-in-from-left-5 duration-500">
+                        <DriverStatsSection tableData={driverStatsData} filters={filters} />
+                    </div>
+                );
+            case 'ai':
+                return (
+                    <div className="animate-in slide-in-from-left-5 duration-500">
+                        <AiAnalysisSection
+                            vehicles={allVehiclesList}
+                            onGenerateReport={handleGenerateReport}
+                            report={aiReport}
+                            isLoading={aiLoading}
+                            error={aiError}
+                            filters={filters}
+                        />
+                    </div>
+                );
+            case 'utilization':
+                return (
+                    <div className="animate-in slide-in-from-left-5 duration-500">
+                        <UtilizationSection tableData={filteredVehicleTableData} filters={filters} />
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
+
     return (
-        <div className="bg-slate-50 text-slate-800 min-h-screen">
-            <Header
-                tripsData={tripsData}
-                filters={filters}
-                selectedYear={selectedYear}
-                comparisonYear={comparisonYear}
-                onYearChange={handleYearChange}
-                onComparisonYearChange={handleComparisonYearChange}
-                onFilterToggle={handleFilterToggle}
-                onResetFilters={resetFilters}
+        <div className="bg-slate-50 text-slate-800 min-h-screen flex overflow-hidden">
+            {/* Sidebar */}
+            <Sidebar 
+                activeTab={activeTab} 
+                setActiveTab={setActiveTab} 
+                isOpen={isSidebarOpen} 
+                setIsOpen={setIsSidebarOpen}
             />
-            <main className="container mx-auto p-4 md:p-6 pb-24 text-right">
-                <KpiGrid 
-                    filteredTrips={filteredTrips} 
-                    comparisonTrips={comparisonTrips}
-                    fuelData={fuelData} 
-                    maintData={maintData} 
+
+            {/* Main Content */}
+            <div className={`flex-1 flex flex-col h-screen transition-all duration-300 ${isSidebarOpen ? 'mr-72' : 'mr-20'} overflow-y-auto`}>
+                <Header
+                    tripsData={tripsData}
                     filters={filters}
                     selectedYear={selectedYear}
                     comparisonYear={comparisonYear}
-                    vehicleTableData={filteredVehicleTableData}
-                    comparisonVehicleTableData={comparisonVehicleTableData}
-                    totalPopulation={totalPopulation}
-                    workers={workersData}
+                    onYearChange={handleYearChange}
+                    onComparisonYearChange={handleComparisonYearChange}
+                    onFilterToggle={handleFilterToggle}
+                    onResetFilters={resetFilters}
                 />
                 
-                <ChartSection 
-                    data={filteredTrips} 
-                    comparisonData={comparisonTrips}
-                    isLoading={isFiltering} 
-                    filters={filters} 
-                    selectedYear={selectedYear}
-                    comparisonYear={comparisonYear}
-                    chartRef={lineChartRef} 
-                />
-
-                {/* مركز الإدارة المالية المتكامل */}
-                <FinancialManagementSection 
-                    workers={workersData} 
-                    vehicleData={filteredVehicleTableData} 
+                <main className="container mx-auto p-4 md:p-6 pb-24 text-right">
+                    {renderActiveContent()}
+                </main>
+                
+                <AiChat 
+                    currentData={filteredVehicleTableData} 
+                    comparisonData={comparisonVehicleTableData} 
                     selectedYear={selectedYear} 
+                    comparisonYear={comparisonYear} 
                 />
-
-                {/* مركز استخبارات المناطق */}
-                <AreaIntelligenceSection 
-                    workers={workersData} 
-                    vehicleData={filteredVehicleTableData} 
-                    population={populationData}
-                    selectedYear={selectedYear}
-                />
-                
-                <AreaChartSection data={areaDistributionData} isLoading={isFiltering} filters={filters} chartRef={pieChartRef} />
-                
-                <PopulationAnalysisSection tableData={areaPopulationStats} filters={filters} />
-
-                <SalaryAnalysisSection workers={workersData} />
-
-                <TableSection tableData={filteredVehicleTableData} filters={filters} title={`كفاءة المركبات - سنة ${selectedYear}`} />
-                
-                {comparisonYear && (
-                    <TableSection tableData={comparisonVehicleTableData} filters={filters} title={`كفاءة المركبات - سنة ${comparisonYear} (للمقارنة)`} />
-                )}
-
-                <DriverStatsSection tableData={driverStatsData} filters={filters} />
-                <AiAnalysisSection
-                    vehicles={allVehiclesList}
-                    onGenerateReport={handleGenerateReport}
-                    report={aiReport}
-                    isLoading={aiLoading}
-                    error={aiError}
-                    filters={filters}
-                />
-                <UtilizationSection tableData={filteredVehicleTableData} filters={filters} />
-            </main>
-            
-            <AiChat 
-                currentData={filteredVehicleTableData} 
-                comparisonData={comparisonVehicleTableData} 
-                selectedYear={selectedYear} 
-                comparisonYear={comparisonYear} 
-            />
+            </div>
         </div>
     );
 };

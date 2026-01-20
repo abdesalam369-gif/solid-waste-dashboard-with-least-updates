@@ -7,7 +7,7 @@ interface CollapsibleSectionProps {
     defaultOpen?: boolean;
 }
 
-const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children, defaultOpen = false }) => {
+const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children, defaultOpen = true }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (

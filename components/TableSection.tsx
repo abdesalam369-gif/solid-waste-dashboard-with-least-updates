@@ -61,7 +61,7 @@ const TableSection: React.FC<TableSectionProps> = ({ tableData, filters, title =
     if (tableData.length === 0) return null;
 
     return (
-        <CollapsibleSection title={title} defaultOpen={false}>
+        <CollapsibleSection title={title}>
              <div className="flex items-center gap-4 mb-4 text-sm">
                 <div>
                     <label htmlFor="tableSort" className="ml-2 font-semibold">ترتيب حسب:</label>

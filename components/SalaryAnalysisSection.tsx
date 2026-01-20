@@ -96,7 +96,7 @@ const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers }
     if (workers.length === 0) return null;
 
     return (
-        <CollapsibleSection title="تحليل الميزانية السنوية للأجور" defaultOpen={false}>
+        <CollapsibleSection title="تحليل الميزانية السنوية للأجور">
             {/* Controls */}
             <div className="flex flex-wrap gap-4 mb-8 bg-slate-50 p-6 rounded-3xl border border-slate-100 items-end shadow-inner text-right">
                 <div className="flex flex-col gap-1.5">
