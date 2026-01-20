@@ -238,7 +238,7 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
     return (
         <header className="bg-gradient-to-l from-blue-600 to-sky-500 text-white p-5 shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
-                <h1 className="text-xl md:text-2xl font-bold leading-tight">بيانات نقل النفايات</h1>
+                <h1 className="text-xl md:text-2xl font-bold leading-tight">لوحة مؤشرات الأداء لإدارة النفايات الصلبة</h1>
                 <h2 className="text-lg md:text-xl font-semibold">بلدية مؤتة والمزار</h2>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2">
