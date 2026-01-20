@@ -85,11 +85,11 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
     const years = useMemo(() => [...new Set(tripsData.map(r => r['السنة']).filter(Boolean))].sort().reverse(), [tripsData]);
 
     const printKPIs = () => {
-        const kpiElement = document.getElementById('kpi-grid');
-        if (kpiElement) {
+        const kpiGrid = document.getElementById('kpi-grid');
+        if (kpiGrid) {
             const printWindow = window.open('', '', 'height=800,width=1000');
             if (!printWindow) {
-                alert('Please allow popups to print the report.');
+                alert('يرجى السماح بالنوافذ المنبثقة لطباعة التقرير.');
                 return;
             }
 
@@ -99,43 +99,58 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                 day: 'numeric'
             });
 
-            const kpiCardNodes = Array.from(kpiElement.children);
-            let cardsHtml = '';
-            kpiCardNodes.forEach(cardNode => {
-                const valueNode = cardNode.querySelector('div:first-child');
-                const labelNode = cardNode.querySelector('div:last-child');
-                const iconNode = labelNode?.querySelector('span');
-    
-                const value = valueNode?.textContent || '';
-                const icon = iconNode?.textContent || '';
-                
-                let label = '';
-                if (labelNode) {
-                    const labelClone = labelNode.cloneNode(true) as HTMLElement;
-                    const iconClone = labelClone.querySelector('span');
-                    if (iconClone) {
-                        labelClone.removeChild(iconClone);
-                    }
-                    label = labelClone.textContent?.trim() || '';
-                }
-    
-                const colorClass = valueNode?.className.split(' ').find(c => c.startsWith('text-')) || 'text-slate-800';
-    
-                cardsHtml += `
-                    <div class="kpi-card">
-                        <div class="kpi-value ${colorClass}">${value}</div>
-                        <div class="kpi-label">
-                            <span>${icon}</span>
-                            ${label}
+            // الحصول على كافة الأقسام
+            const sections = kpiGrid.querySelectorAll('div.space-y-6');
+            let fullHtml = '';
+
+            sections.forEach(section => {
+                const titleNode = section.querySelector('h3');
+                const title = titleNode?.textContent || '';
+                const cardNodes = section.querySelectorAll('div.group');
+
+                let sectionCardsHtml = '';
+                cardNodes.forEach(card => {
+                    // استخراج الأيقونة
+                    const iconSpan = card.querySelector('span.text-3xl');
+                    const icon = iconSpan?.textContent || '';
+
+                    // استخراج القيمة (تحمل كلاسات الألوان)
+                    const valueNode = card.querySelector('div.text-2xl.font-black');
+                    const value = valueNode?.textContent || '';
+                    const colorClass = Array.from(valueNode?.classList || []).find(c => c.startsWith('text-')) || 'text-slate-800';
+
+                    // استخراج التسمية
+                    const labelNode = card.querySelector('div.text-\\[11px\\]');
+                    const label = labelNode?.textContent || '';
+
+                    // استخراج المقارنة إن وجدت
+                    const compNode = card.querySelector('div.text-\\[10px\\] span.text-slate-600');
+                    const compValue = compNode?.textContent || '';
+
+                    sectionCardsHtml += `
+                        <div class="kpi-card">
+                            <div class="kpi-icon">${icon}</div>
+                            <div class="kpi-value ${colorClass}">${value}</div>
+                            <div class="kpi-label">${label}</div>
+                            ${compValue ? `<div class="kpi-comparison">السنة السابقة: ${compValue}</div>` : ''}
+                        </div>
+                    `;
+                });
+
+                fullHtml += `
+                    <div class="print-section">
+                        <h2 class="section-title">${title}</h2>
+                        <div class="kpi-grid-container">
+                            ${sectionCardsHtml}
                         </div>
                     </div>
                 `;
             });
-    
+
             const printContent = `
                 <html>
                 <head>
-                    <title>طباعة مؤشرات الأداء الرئيسية - ${selectedYear}</title>
+                    <title>تقرير مؤشرات الأداء - ${selectedYear}</title>
                     <link rel="preconnect" href="https://fonts.googleapis.com">
                     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
                     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
@@ -143,58 +158,77 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                         body {
                             font-family: 'Cairo', sans-serif;
                             direction: rtl;
-                            margin: 20px;
+                            margin: 30px;
                             background-color: #fff;
+                            color: #1e293b;
                             -webkit-print-color-adjust: exact !important;
                             print-color-adjust: exact !important;
                         }
                         .print-header {
                             text-align: center;
-                            margin-bottom: 25px;
-                            border-bottom: 2px solid #333;
-                            padding-bottom: 15px;
+                            margin-bottom: 40px;
+                            border-bottom: 3px double #334155;
+                            padding-bottom: 20px;
                         }
                         .print-header h1 {
-                            font-size: 24px;
+                            font-size: 26px;
                             margin: 0;
                             color: #1e3a8a;
                         }
-                        .print-header h2 {
-                            font-size: 18px;
-                            margin: 5px 0 0;
-                            color: #4b5563;
+                        .print-header p {
+                            font-size: 16px;
+                            margin: 10px 0 0;
+                            color: #64748b;
+                        }
+                        .print-section {
+                            margin-bottom: 40px;
+                            page-break-inside: avoid;
+                        }
+                        .section-title {
+                            font-size: 20px;
+                            font-weight: 700;
+                            color: #1e293b;
+                            border-right: 5px solid #2563eb;
+                            padding-right: 15px;
+                            margin-bottom: 20px;
+                            background: #f8fafc;
+                            padding-top: 5px;
+                            padding-bottom: 5px;
                         }
                         .kpi-grid-container {
                             display: grid;
                             grid-template-columns: repeat(3, 1fr);
-                            gap: 20px;
-                            padding: 10px;
+                            gap: 15px;
                         }
                         .kpi-card {
-                            border: 1px solid #e5e7eb;
-                            border-radius: 12px;
-                            padding: 16px;
+                            border: 1px solid #e2e8f0;
+                            border-radius: 15px;
+                            padding: 20px;
                             text-align: center;
-                            background-color: #f9fafb;
-                            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-                            page-break-inside: avoid;
+                            background-color: #ffffff;
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                        }
+                        .kpi-icon {
+                            font-size: 24px;
+                            margin-bottom: 10px;
                         }
                         .kpi-value {
-                            font-size: 28px;
-                            font-weight: 700;
-                            margin-bottom: 8px;
+                            font-size: 26px;
+                            font-weight: 800;
+                            margin-bottom: 5px;
                         }
                         .kpi-label {
-                            font-size: 14px;
-                            font-weight: 600;
-                            color: #374151;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            gap: 8px;
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: #64748b;
+                            text-transform: uppercase;
                         }
-                        .kpi-label span {
-                            font-size: 18px;
+                        .kpi-comparison {
+                            font-size: 10px;
+                            color: #94a3b8;
+                            margin-top: 10px;
+                            border-top: 1px solid #f1f5f9;
+                            padding-top: 5px;
                         }
                         .text-blue-600 { color: #2563eb; }
                         .text-sky-500 { color: #0ea5e9; }
@@ -206,23 +240,30 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                         .text-indigo-600 { color: #4f46e5; }
                         .text-teal-500 { color: #14b8a6; }
                         .text-amber-500 { color: #f59e0b; }
+                        .text-emerald-800 { color: #064e3b; }
+                        .text-cyan-600 { color: #0891b2; }
+                        .text-rose-500 { color: #f43f5e; }
+                        .text-slate-700 { color: #334155; }
                         .text-slate-800 { color: #1e293b; }
-    
+                        .text-indigo-500 { color: #6366f1; }
+                        .text-amber-600 { color: #d97706; }
+                        .text-blue-700 { color: #1d4ed8; }
+                        .text-teal-600 { color: #0d9488; }
+                        .text-orange-600 { color: #ea580c; }
+                        .text-emerald-700 { color: #047857; }
+
                         @media print {
-                            body { margin: 0; }
-                            .print-header { margin: 20px; }
-                            .kpi-grid-container { grid-template-columns: repeat(3, 1fr); margin: 20px; }
+                            body { margin: 20px; }
+                            .kpi-grid-container { grid-template-columns: repeat(3, 1fr); }
                         }
                     </style>
                 </head>
                 <body>
                     <div class="print-header">
                         <h1>مؤشرات الأداء لأسطول إدارة النفايات - سنة ${selectedYear}</h1>
-                        <h2>بلدية مؤتة والمزار - ${today}</h2>
+                        <p>بلدية مؤتة والمزار | تاريخ التقرير: ${today}</p>
                     </div>
-                    <div class="kpi-grid-container">
-                        ${cardsHtml}
-                    </div>
+                    ${fullHtml}
                 </body>
                 </html>
             `;

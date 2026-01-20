@@ -198,9 +198,6 @@ const KpiGrid: React.FC<KpiGridProps> = ({
                                     color={kpi.color} 
                                     comparisonValue={kpi.comp}
                                 />
-                                {kpi.emphasized && (
-                                    <div className="mt-3 text-[9px] text-center font-black text-slate-400 uppercase tracking-[0.2em]">المؤشر الأساسي</div>
-                                )}
                             </div>
                         ))}
                     </div>
