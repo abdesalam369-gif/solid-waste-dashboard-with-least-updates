@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Trip } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface HeaderProps {
     tripsData: Trip[];
@@ -80,6 +81,8 @@ const FilterDropdown: React.FC<{
 };
 
 const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, comparisonYear, onYearChange, onComparisonYearChange, onFilterToggle, onResetFilters }) => {
+    const { t, language, setLanguage } = useLanguage();
+    
     const vehicles = useMemo(() => [...new Set(tripsData.map(r => r['رقم المركبة']).filter(Boolean))].sort(), [tripsData]);
     const months = useMemo(() => [...new Set(tripsData.map(r => (r['الشهر'] || '').toLowerCase()).filter(Boolean))], [tripsData]);
     const years = useMemo(() => [...new Set(tripsData.map(r => r['السنة']).filter(Boolean))].sort().reverse(), [tripsData]);
@@ -93,7 +96,7 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                 return;
             }
 
-            const today = new Date().toLocaleDateString('ar-EG-u-nu-latn', {
+            const today = new Date().toLocaleDateString(language === 'ar' ? 'ar-EG-u-nu-latn' : 'en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
@@ -132,7 +135,7 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                             <div class="kpi-icon">${icon}</div>
                             <div class="kpi-value ${colorClass}">${value}</div>
                             <div class="kpi-label">${label}</div>
-                            ${compValue ? `<div class="kpi-comparison">السنة السابقة: ${compValue}</div>` : ''}
+                            ${compValue ? `<div class="kpi-comparison">${t('comparison')}: ${compValue}</div>` : ''}
                         </div>
                     `;
                 });
@@ -150,14 +153,14 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
             const printContent = `
                 <html>
                 <head>
-                    <title>تقرير مؤشرات الأداء - ${selectedYear}</title>
+                    <title>${t('print_kpis')} - ${selectedYear}</title>
                     <link rel="preconnect" href="https://fonts.googleapis.com">
                     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
                     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
                     <style>
                         body {
                             font-family: 'Cairo', sans-serif;
-                            direction: rtl;
+                            direction: ${language === 'ar' ? 'rtl' : 'ltr'};
                             margin: 30px;
                             background-color: #fff;
                             color: #1e293b;
@@ -188,8 +191,8 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                             font-size: 20px;
                             font-weight: 700;
                             color: #1e293b;
-                            border-right: 5px solid #2563eb;
-                            padding-right: 15px;
+                            border-${language === 'ar' ? 'right' : 'left'}: 5px solid #2563eb;
+                            padding-${language === 'ar' ? 'right' : 'left'}: 15px;
                             margin-bottom: 20px;
                             background: #f8fafc;
                             padding-top: 5px;
@@ -260,8 +263,8 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                 </head>
                 <body>
                     <div class="print-header">
-                        <h1>مؤشرات الأداء لأسطول إدارة النفايات - سنة ${selectedYear}</h1>
-                        <p>بلدية مؤتة والمزار | تاريخ التقرير: ${today}</p>
+                        <h1>${t('app_title')} - ${t('year')} ${selectedYear}</h1>
+                        <p>${t('municipality_name')} | ${today}</p>
                     </div>
                     ${fullHtml}
                 </body>
@@ -276,15 +279,25 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
         }
     };
 
+    const toggleLanguage = () => {
+        setLanguage(language === 'ar' ? 'en' : 'ar');
+    };
+
     return (
         <header className="bg-gradient-to-l from-blue-600 to-sky-500 text-white p-5 shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-                <h1 className="text-xl md:text-2xl font-bold leading-tight">لوحة مؤشرات الأداء لإدارة النفايات الصلبة</h1>
-                <h2 className="text-lg md:text-xl font-semibold">بلدية مؤتة والمزار</h2>
+            <div className="text-right">
+                <h1 className="text-xl md:text-2xl font-bold leading-tight">{t('app_title')}</h1>
+                <h2 className="text-lg md:text-xl font-semibold">{t('municipality_name')}</h2>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2">
+                <button
+                    onClick={toggleLanguage}
+                    className="px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-bold transition flex items-center gap-2 border border-white/10"
+                >
+                    {language === 'ar' ? 'English 🇺🇸' : 'العربية 🇯🇴'}
+                </button>
                 <FilterDropdown
-                    buttonText="السنة"
+                    buttonText={t('year')}
                     items={years}
                     selectedItems={selectedYear}
                     onToggle={onYearChange}
@@ -292,7 +305,7 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                     activeColor="bg-blue-800"
                 />
                 <FilterDropdown
-                    buttonText="مقارنة مع"
+                    buttonText={t('compare_with')}
                     items={years}
                     selectedItems={comparisonYear}
                     onToggle={onComparisonYearChange}
@@ -301,13 +314,13 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                 />
                 <div className="w-px h-8 bg-white/30 mx-2 hidden md:block"></div>
                 <FilterDropdown
-                    buttonText="المركبات"
+                    buttonText={t('vehicles')}
                     items={vehicles}
                     selectedItems={filters.vehicles}
                     onToggle={(item) => onFilterToggle('vehicles', item)}
                 />
                 <FilterDropdown
-                    buttonText="الأشهر"
+                    buttonText={t('months')}
                     items={months}
                     selectedItems={filters.months}
                     onToggle={(item) => onFilterToggle('months', item.toLowerCase())}
@@ -316,13 +329,13 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                     onClick={onResetFilters}
                     className="px-3 py-2 border-none rounded-lg bg-red-500 text-white text-sm font-semibold cursor-pointer shadow-md transition hover:bg-red-600"
                 >
-                    إعادة تعيين
+                    {t('reset')}
                 </button>
                 <button
                     onClick={printKPIs}
                     className="px-3 py-2 border-none rounded-lg bg-emerald-500 text-white text-sm font-semibold cursor-pointer shadow-md transition hover:bg-emerald-600"
                 >
-                    طباعة المؤشرات
+                    {t('print_kpis')}
                 </button>
             </div>
         </header>

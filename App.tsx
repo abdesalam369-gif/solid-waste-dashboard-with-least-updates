@@ -19,8 +19,11 @@ import SalaryAnalysisSection from './components/SalaryAnalysisSection';
 import FinancialManagementSection from './components/FinancialManagementSection';
 import AiChat from './components/AiChat';
 import Sidebar from './components/Sidebar';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+    /* Fix: Destructure 't' from useLanguage to resolve "Cannot find name 't'" error */
+    const { language, t } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [tripsData, setTripsData] = useState<Trip[]>([]);
     const [vehiclesData, setVehiclesData] = useState<Vehicle[]>([]);
@@ -293,10 +296,10 @@ const App: React.FC = () => {
         setAiError('');
         setAiReport('');
         try {
-            const report = await generateFleetReport(filteredVehicleTableData, analysisType, options);
+            const report = await generateFleetReport(filteredVehicleTableData, analysisType, options, language);
             setAiReport(report);
         } catch (err) {
-            setAiError('حدث خطأ أثناء إنشاء التقرير. يرجى المحاولة مرة أخرى.');
+            setAiError(language === 'ar' ? 'حدث خطأ أثناء إنشاء التقرير. يرجى المحاولة مرة أخرى.' : 'Error generating report. Please try again.');
             console.error(err);
         } finally {
             setAiLoading(false);
@@ -359,6 +362,7 @@ const App: React.FC = () => {
                             vehicleData={filteredVehicleTableData} 
                             population={populationData}
                             selectedYear={selectedYear}
+                            filters={filters}
                         />
                     </div>
                 );
@@ -383,9 +387,10 @@ const App: React.FC = () => {
             case 'vehicles':
                 return (
                     <div className="animate-in slide-in-from-left-5 duration-500 space-y-6">
-                        <TableSection tableData={filteredVehicleTableData} filters={filters} title={`كفاءة المركبات - سنة ${selectedYear}`} />
+                        <TableSection tableData={filteredVehicleTableData} filters={filters} />
                         {comparisonYear && (
-                            <TableSection tableData={comparisonVehicleTableData} filters={filters} title={`كفاءة المركبات - سنة ${comparisonYear} (للمقارنة)`} />
+                            /* Fix: Access 't' from LanguageContext */
+                            <TableSection tableData={comparisonVehicleTableData} filters={filters} title={`${t('sec_veh_eff')} - ${t('year')} ${comparisonYear} (${t('comparison')})`} />
                         )}
                     </div>
                 );
@@ -419,8 +424,10 @@ const App: React.FC = () => {
         }
     };
 
+    const isRtl = language === 'ar';
+
     return (
-        <div className="bg-slate-50 text-slate-800 min-h-screen flex overflow-hidden">
+        <div className={`bg-slate-50 text-slate-800 min-h-screen flex overflow-hidden ${isRtl ? 'font-arabic' : 'font-sans'}`}>
             {/* Sidebar */}
             <Sidebar 
                 activeTab={activeTab} 
@@ -430,7 +437,7 @@ const App: React.FC = () => {
             />
 
             {/* Main Content */}
-            <div className={`flex-1 flex flex-col h-screen transition-all duration-300 ${isSidebarOpen ? 'mr-72' : 'mr-20'} overflow-y-auto`}>
+            <div className={`flex-1 flex flex-col h-screen transition-all duration-300 ${isSidebarOpen ? (isRtl ? 'mr-72' : 'ml-72') : (isRtl ? 'mr-20' : 'ml-20')} overflow-y-auto`}>
                 <Header
                     tripsData={tripsData}
                     filters={filters}
@@ -442,7 +449,7 @@ const App: React.FC = () => {
                     onResetFilters={resetFilters}
                 />
                 
-                <main className="container mx-auto p-4 md:p-6 pb-24 text-right">
+                <main className={`container mx-auto p-4 md:p-6 pb-24 ${isRtl ? 'text-right' : 'text-left'}`}>
                     {renderActiveContent()}
                 </main>
                 
@@ -454,6 +461,14 @@ const App: React.FC = () => {
                 />
             </div>
         </div>
+    );
+};
+
+const App: React.FC = () => {
+    return (
+        <LanguageProvider>
+            <AppContent />
+        </LanguageProvider>
     );
 };
 

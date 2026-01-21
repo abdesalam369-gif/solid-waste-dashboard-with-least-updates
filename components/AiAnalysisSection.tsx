@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import CollapsibleSection from './CollapsibleSection';
 import { printAiReport } from '../services/printService';
+/* Fix: Import useLanguage to get 't' and 'language' */
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface AiAnalysisSectionProps {
     vehicles: string[];
@@ -13,6 +15,8 @@ interface AiAnalysisSectionProps {
 }
 
 const AiAnalysisSection: React.FC<AiAnalysisSectionProps> = ({ vehicles, onGenerateReport, report, isLoading, error, filters }) => {
+    /* Fix: Destructure 't' and 'language' from useLanguage */
+    const { t, language } = useLanguage();
     const [analysisType, setAnalysisType] = useState('general');
     const [specificVehicle, setSpecificVehicle] = useState(vehicles[0] || '');
     const [comparisonVehicles, setComparisonVehicles] = useState<string[]>([]);
@@ -49,10 +53,13 @@ const AiAnalysisSection: React.FC<AiAnalysisSectionProps> = ({ vehicles, onGener
             alert('لا يوجد تقرير لطباعته.');
             return;
         }
+        /* Fix: Pass missing 't' and 'language' arguments to printAiReport */
         printAiReport(
             report, 
-            'تقرير تحليل الأسطول بالذكاء الاصطناعي', 
-            filters
+            language === 'ar' ? 'تقرير تحليل الأسطول بالذكاء الاصطناعي' : 'AI Fleet Analysis Report', 
+            filters,
+            t,
+            language
         );
     };
 

@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { chatWithDataStream } from '../services/geminiService';
 import { VehicleTableData } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface AiChatProps {
     currentData: VehicleTableData[];
@@ -11,6 +12,7 @@ interface AiChatProps {
 }
 
 const AiChat: React.FC<AiChatProps> = ({ currentData, comparisonData, selectedYear, comparisonYear }) => {
+    const { t, language } = useLanguage();
     const [isOpen, setIsOpen] = useState(false);
     const [input, setInput] = useState('');
     const [messages, setMessages] = useState<{ role: 'user' | 'ai'; content: string }[]>([]);
@@ -27,11 +29,12 @@ const AiChat: React.FC<AiChatProps> = ({ currentData, comparisonData, selectedYe
         }
     }, [messages, isOpen]);
 
-    const handleSend = async () => {
-        if (!input.trim() || isTyping) return;
+    const handleSend = async (customInput?: string) => {
+        const textToSend = customInput || input;
+        if (!textToSend.trim() || isTyping) return;
 
-        const userMessage = input.trim();
-        setInput('');
+        const userMessage = textToSend.trim();
+        if (!customInput) setInput('');
         setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
         setIsTyping(true);
 
@@ -43,7 +46,8 @@ const AiChat: React.FC<AiChatProps> = ({ currentData, comparisonData, selectedYe
                 userMessage,
                 currentData,
                 comparisonData,
-                { selected: selectedYear, comparison: comparisonYear }
+                { selected: selectedYear, comparison: comparisonYear },
+                language
             );
 
             for await (const chunk of stream) {
@@ -56,14 +60,14 @@ const AiChat: React.FC<AiChatProps> = ({ currentData, comparisonData, selectedYe
             }
         } catch (error) {
             console.error("Chat error:", error);
-            setMessages(prev => [...prev, { role: 'ai', content: 'عذراً، حدث خطأ أثناء الاتصال بالمحرك السريع.' }]);
+            setMessages(prev => [...prev, { role: 'ai', content: language === 'ar' ? 'عذراً، حدث خطأ أثناء الاتصال بالمحرك السريع.' : 'Sorry, an error occurred while connecting to the engine.' }]);
         } finally {
             setIsTyping(false);
         }
     };
 
     return (
-        <div className="fixed bottom-6 left-6 z-50 flex flex-col items-end font-sans">
+        <div className={`fixed bottom-6 ${language === 'ar' ? 'left-6' : 'right-6'} z-50 flex flex-col items-end`}>
             {/* Chat Window */}
             {isOpen && (
                 <div className="w-85 md:w-96 h-[550px] bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-200 flex flex-col overflow-hidden mb-5 animate-in slide-in-from-bottom-10 duration-500 ease-out">
@@ -73,10 +77,10 @@ const AiChat: React.FC<AiChatProps> = ({ currentData, comparisonData, selectedYe
                                 <span className="text-xl">⚡</span>
                             </div>
                             <div>
-                                <span className="font-bold block text-sm">المساعد اللحظي</span>
+                                <span className="font-bold block text-sm">{t('ai_agent_name')}</span>
                                 <span className="text-[10px] text-blue-100 flex items-center gap-1">
                                     <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span>
-                                    متصل بأقصى سرعة
+                                    {t('ai_agent_connected')}
                                 </span>
                             </div>
                         </div>
@@ -91,19 +95,19 @@ const AiChat: React.FC<AiChatProps> = ({ currentData, comparisonData, selectedYe
                                 <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
                                     <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                                 </div>
-                                <h4 className="text-slate-800 font-bold mb-2">كيف يمكنني مساعدتك؟</h4>
-                                <p className="text-slate-500 text-xs mb-6">اسأل عن المقارنات السنوية، كفاءة السائقين، أو استهلاك الوقود.</p>
+                                <h4 className="text-slate-800 font-bold mb-2">{t('ai_how_can_help')}</h4>
+                                <p className="text-slate-500 text-xs mb-6">{t('ai_chat_hint')}</p>
                                 <div className="grid grid-cols-1 gap-2">
-                                    <button onClick={() => { setInput("لخص أداء الأسطول في جملتين"); handleSend(); }} className="text-[11px] bg-white border border-slate-200 p-2.5 rounded-xl hover:border-blue-400 hover:text-blue-600 transition-all text-right shadow-sm">⚡ ملخص سريع لأداء الأسطول</button>
-                                    <button onClick={() => { setInput("ما هي أكثر مركبة موفرة للوقود؟"); handleSend(); }} className="text-[11px] bg-white border border-slate-200 p-2.5 rounded-xl hover:border-blue-400 hover:text-blue-600 transition-all text-right shadow-sm">⛽ أكثر مركبة موفرة للوقود</button>
-                                    <button onClick={() => { setInput("قارن إجمالي الأوزان بين السنتين"); handleSend(); }} className="text-[11px] bg-white border border-slate-200 p-2.5 rounded-xl hover:border-blue-400 hover:text-blue-600 transition-all text-right shadow-sm">📊 مقارنة الأوزان بين السنوات</button>
+                                    <button onClick={() => handleSend(t('ai_suggest_1'))} className={`text-[11px] bg-white border border-slate-200 p-2.5 rounded-xl hover:border-blue-400 hover:text-blue-600 transition-all ${language === 'ar' ? 'text-right' : 'text-left'} shadow-sm`}>⚡ {t('ai_suggest_1')}</button>
+                                    <button onClick={() => handleSend(t('ai_suggest_2'))} className={`text-[11px] bg-white border border-slate-200 p-2.5 rounded-xl hover:border-blue-400 hover:text-blue-600 transition-all ${language === 'ar' ? 'text-right' : 'text-left'} shadow-sm`}>⛽ {t('ai_suggest_2')}</button>
+                                    <button onClick={() => handleSend(t('ai_suggest_3'))} className={`text-[11px] bg-white border border-slate-200 p-2.5 rounded-xl hover:border-blue-400 hover:text-blue-600 transition-all ${language === 'ar' ? 'text-right' : 'text-left'} shadow-sm`}>📊 {t('ai_suggest_3')}</button>
                                 </div>
                             </div>
                         )}
                         {messages.map((msg, idx) => (
-                            <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'}`}>
+                            <div key={idx} className={`flex ${msg.role === 'user' ? (language === 'ar' ? 'justify-start' : 'justify-end') : (language === 'ar' ? 'justify-end' : 'justify-start')}`}>
                                 <div className={`max-w-[88%] p-3.5 rounded-2xl text-[13px] leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-white text-slate-700 border border-slate-100 rounded-bl-none'}`}>
-                                    {msg.content || (isTyping && idx === messages.length - 1 ? 'جاري التحليل...' : '')}
+                                    {msg.content || (isTyping && idx === messages.length - 1 ? (language === 'ar' ? 'جاري التحليل...' : 'Analyzing...') : '')}
                                 </div>
                             </div>
                         ))}
@@ -116,11 +120,11 @@ const AiChat: React.FC<AiChatProps> = ({ currentData, comparisonData, selectedYe
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                            placeholder="اسألني عن أي شيء..."
+                            placeholder={language === 'ar' ? 'اسألني عن أي شيء...' : 'Ask me anything...'}
                             className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all"
                         />
                         <button
-                            onClick={handleSend}
+                            onClick={() => handleSend()}
                             disabled={isTyping || !input.trim()}
                             className="bg-indigo-600 text-white p-3 rounded-2xl hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 transition-all active:scale-90 shadow-lg shadow-indigo-100"
                         >

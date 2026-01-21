@@ -4,6 +4,7 @@ import { Trip, Fuel, Maintenance, VehicleTableData, Worker } from '../types';
 import { MONTHS_ORDER } from '../constants';
 import { formatNumber } from '../services/dataService';
 import KpiCard from './KpiCard';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface KpiGridProps {
     filteredTrips: Trip[];
@@ -24,6 +25,7 @@ const KpiGrid: React.FC<KpiGridProps> = ({
     selectedYear, comparisonYear, vehicleTableData, comparisonVehicleTableData,
     totalPopulation, workers
 }) => {
+    const { t } = useLanguage();
     
     const calculateStats = (trips: Trip[], year: string, tableData: VehicleTableData[]) => {
         if (!trips.length && !year) return null;
@@ -87,7 +89,7 @@ const KpiGrid: React.FC<KpiGridProps> = ({
             totalTons, totalTrips, totalFuel, totalMaint, avgTonsPerDay, daysCount,
             activeVehiclesCount: activeVehicles.size,
             topTrips: topTripsVal > 0 ? `${topTripsVeh} | ${formatNumber(topTripsVal)}` : '—',
-            topTons: topTonsVal > 0 ? `${topTonsVeh} | ${formatNumber(topTonsVal, 1)} طن` : '—',
+            topTons: topTonsVal > 0 ? `${topTonsVeh} | ${formatNumber(topTonsVal, 1)} ${t('unit_ton')}` : '—',
             avgCapacity
         };
     };
@@ -119,51 +121,51 @@ const KpiGrid: React.FC<KpiGridProps> = ({
 
     const sections = [
         {
-            title: "المؤشرات السكانية والسياقية",
+            title: t('sec_population'),
             cards: [
-                { value: (typeof totalPopulation === 'number' && !isNaN(totalPopulation)) ? formatNumber(totalPopulation) : '—', label: 'إجمالي عدد السكان', icon: '👥', color: 'text-cyan-600', emphasized: true },
-                { value: formatNumber(metrics.areasCount), label: 'عدد المناطق المخدومة', icon: '📍', color: 'text-rose-500' },
-                { value: formatNumber(workers.length), label: 'عدد العاملين (سائقين + عمال وطن)', icon: '👷', color: 'text-slate-700' }
+                { value: (typeof totalPopulation === 'number' && !isNaN(totalPopulation)) ? formatNumber(totalPopulation) : '—', label: t('kpi_total_pop'), icon: '👥', color: 'text-cyan-600', emphasized: true },
+                { value: formatNumber(metrics.areasCount), label: t('kpi_areas_served'), icon: '📍', color: 'text-rose-500' },
+                { value: formatNumber(workers.length), label: t('kpi_workers_count'), icon: '👷', color: 'text-slate-700' }
             ]
         },
         {
-            title: "المؤشرات التشغيلية",
+            title: t('sec_operational'),
             cards: [
-                { value: formatNumber(currentStats.totalTrips), label: 'إجمالي الرحلات', icon: '🚚', color: 'text-sky-500', comp: comparisonStats?.totalTrips ? formatNumber(comparisonStats.totalTrips) : undefined, emphasized: true },
-                { value: formatNumber(currentStats.daysCount), label: 'عدد الأيام التشغيلية', icon: '📅', color: 'text-pink-600', comp: comparisonStats?.daysCount ? formatNumber(comparisonStats.daysCount) : undefined },
-                { value: formatNumber(metrics.avgTripsPerDay, 1), label: 'متوسط عدد الرحلات / يوم', icon: '🔄', color: 'text-sky-600' },
-                { value: formatNumber(metrics.avgTonsPerTrip, 1), label: 'متوسط حمولة الرحلة', icon: '⚖️', color: 'text-slate-600' },
-                { value: formatNumber(currentStats.avgTonsPerDay, 1), label: 'متوسط الأطنان / يوم', icon: '📊', color: 'text-green-600', comp: comparisonStats?.avgTonsPerDay ? formatNumber(comparisonStats.avgTonsPerDay, 1) : undefined }
+                { value: formatNumber(currentStats.totalTrips), label: t('kpi_total_trips'), icon: '🚚', color: 'text-sky-500', comp: comparisonStats?.totalTrips ? formatNumber(comparisonStats.totalTrips) : undefined, emphasized: true },
+                { value: formatNumber(currentStats.daysCount), label: t('kpi_op_days'), icon: '📅', color: 'text-pink-600', comp: comparisonStats?.daysCount ? formatNumber(comparisonStats.daysCount) : undefined },
+                { value: formatNumber(metrics.avgTripsPerDay, 1), label: t('kpi_avg_trips_day'), icon: '🔄', color: 'text-sky-600' },
+                { value: formatNumber(metrics.avgTonsPerTrip, 1), label: t('kpi_avg_load_trip'), icon: '⚖️', color: 'text-slate-600' },
+                { value: formatNumber(currentStats.avgTonsPerDay, 1), label: t('kpi_avg_tons_day'), icon: '📊', color: 'text-green-600', comp: comparisonStats?.avgTonsPerDay ? formatNumber(comparisonStats.avgTonsPerDay, 1) : undefined }
             ]
         },
         {
-            title: "مؤشرات إنتاج النفايات",
+            title: t('sec_waste_production'),
             cards: [
-                { value: formatNumber(Math.round(currentStats.totalTons)), label: 'إجمالي الأطنان', icon: '🗑️', color: 'text-blue-600', comp: comparisonStats?.totalTons ? formatNumber(Math.round(comparisonStats.totalTons)) : undefined, emphasized: true },
-                { value: formatNumber(metrics.kgPerCapita, 1) + ' كغم', label: 'معدل إنتاج الفرد من النفايات', icon: '👤', color: 'text-indigo-500' },
-                { value: formatNumber(currentStats.avgTonsPerDay, 1), label: 'معدل الإنتاج اليومي للنفايات (طن/يوم)', icon: '📈', color: 'text-teal-600' }
+                { value: formatNumber(Math.round(currentStats.totalTons)), label: t('kpi_total_tons'), icon: '🗑️', color: 'text-blue-600', comp: comparisonStats?.totalTons ? formatNumber(Math.round(comparisonStats.totalTons)) : undefined, emphasized: true },
+                { value: formatNumber(metrics.kgPerCapita, 1) + ' ' + t('unit_kg'), label: t('kpi_per_capita_waste'), icon: '👤', color: 'text-indigo-500' },
+                { value: formatNumber(currentStats.avgTonsPerDay, 1), label: t('kpi_daily_waste_rate'), icon: '📈', color: 'text-teal-600' }
             ]
         },
         {
-            title: "مؤشرات الأسطول والمركبات",
+            title: t('sec_fleet'),
             cards: [
-                { value: formatNumber(currentStats.activeVehiclesCount), label: 'عدد المركبات النشطة', icon: '🚛', color: 'text-purple-600', comp: comparisonStats?.activeVehiclesCount ? formatNumber(comparisonStats.activeVehiclesCount) : undefined, emphasized: true },
-                { value: formatNumber(currentStats.avgCapacity, 1), label: 'متوسط سعة المركبات', icon: '📦', color: 'text-amber-500', comp: comparisonStats?.avgCapacity ? formatNumber(comparisonStats.avgCapacity, 1) : undefined },
-                { value: currentStats.topTrips, label: 'أعلى مركبة بعدد الرحلات', icon: '🏆', color: 'text-indigo-600', comp: comparisonStats?.topTrips },
-                { value: currentStats.topTons, label: 'أعلى مركبة وزن', icon: '🏗️', color: 'text-teal-500', comp: comparisonStats?.topTons },
-                { value: formatNumber(metrics.avgTripsPerVehicle, 1), label: 'متوسط عدد الرحلات لكل مركبة', icon: '🚜', color: 'text-orange-600' }
+                { value: formatNumber(currentStats.activeVehiclesCount), label: t('kpi_active_vehicles'), icon: '🚛', color: 'text-purple-600', comp: comparisonStats?.activeVehiclesCount ? formatNumber(comparisonStats.activeVehiclesCount) : undefined, emphasized: true },
+                { value: formatNumber(currentStats.avgCapacity, 1), label: t('kpi_avg_capacity'), icon: '📦', color: 'text-amber-500', comp: comparisonStats?.avgCapacity ? formatNumber(comparisonStats.avgCapacity, 1) : undefined },
+                { value: currentStats.topTrips, label: t('kpi_top_trips_veh'), icon: '🏆', color: 'text-indigo-600', comp: comparisonStats?.topTrips },
+                { value: currentStats.topTons, label: t('kpi_top_weight_veh'), icon: '🏗️', color: 'text-teal-500', comp: comparisonStats?.topTons },
+                { value: formatNumber(metrics.avgTripsPerVehicle, 1), label: t('kpi_avg_trips_veh'), icon: '🚜', color: 'text-orange-600' }
             ]
         },
         {
-            title: "المؤشرات المالية",
+            title: t('sec_financial'),
             cards: [
-                { value: formatNumber(Math.round(metrics.totalCosts)) + ' د.أ', label: 'إجمالي المصاريف السنوية', icon: '📈', color: 'text-emerald-800', emphasized: true },
-                { value: formatNumber(Math.round(totalSalaries)), label: 'إجمالي الرواتب', icon: '💵', color: 'text-emerald-700' },
-                { value: formatNumber(Math.round(currentStats.totalFuel)), label: 'كلفة الوقود', icon: '⛽', color: 'text-orange-500', comp: comparisonStats?.totalFuel ? formatNumber(Math.round(comparisonStats.totalFuel)) : undefined },
-                { value: formatNumber(Math.round(currentStats.totalMaint)), label: 'كلفة الصيانة', icon: '🔧', color: 'text-red-600', comp: comparisonStats?.totalMaint ? formatNumber(Math.round(comparisonStats.totalMaint)) : undefined },
-                { value: formatNumber(metrics.costPerTon, 1) + ' د.أ', label: 'كلفة الطن الواحد', icon: '💰', color: 'text-amber-600' },
-                { value: formatNumber(metrics.costPerTrip, 1) + ' د.أ', label: 'كلفة الرحلة الواحدة', icon: '🎟️', color: 'text-blue-700' },
-                { value: formatNumber(metrics.costPerCapita, 1) + ' د.أ', label: 'كلفة الفرد من إدارة النفايات (د.أ / سنة)', icon: '🏷️', color: 'text-slate-800' }
+                { value: formatNumber(Math.round(metrics.totalCosts)) + ' ' + t('unit_jd'), label: t('kpi_total_annual_expenses'), icon: '📈', color: 'text-emerald-800', emphasized: true },
+                { value: formatNumber(Math.round(totalSalaries)), label: t('kpi_total_salaries'), icon: '💵', color: 'text-emerald-700' },
+                { value: formatNumber(Math.round(currentStats.totalFuel)), label: t('kpi_fuel_cost'), icon: '⛽', color: 'text-orange-500', comp: comparisonStats?.totalFuel ? formatNumber(Math.round(comparisonStats.totalFuel)) : undefined },
+                { value: formatNumber(Math.round(currentStats.totalMaint)), label: t('kpi_maint_cost'), icon: '🔧', color: 'text-red-600', comp: comparisonStats?.totalMaint ? formatNumber(Math.round(comparisonStats.totalMaint)) : undefined },
+                { value: formatNumber(metrics.costPerTon, 1) + ' ' + t('unit_jd'), label: t('kpi_cost_per_ton'), icon: '💰', color: 'text-amber-600' },
+                { value: formatNumber(metrics.costPerTrip, 1) + ' ' + t('unit_jd'), label: t('kpi_cost_per_trip'), icon: '🎟️', color: 'text-blue-700' },
+                { value: formatNumber(metrics.costPerCapita, 1) + ' ' + t('unit_jd'), label: t('kpi_cost_per_capita'), icon: '🏷️', color: 'text-slate-800' }
             ]
         }
     ];

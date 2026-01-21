@@ -4,6 +4,7 @@ import { Worker, VehicleTableData } from '../types';
 import { formatNumber } from '../services/dataService';
 import { printTable } from '../services/printService';
 import CollapsibleSection from './CollapsibleSection';
+import { useLanguage } from '../contexts/LanguageContext';
 import { 
     PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
     BarChart, Bar, XAxis, YAxis, CartesianGrid
@@ -18,7 +19,21 @@ interface FinancialManagementSectionProps {
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'];
 
 const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({ workers, vehicleData, selectedYear }) => {
+    /* Fix: Destructure 'language' as it's required for printTable */
+    const { t, language } = useLanguage();
     const tableContainerRef = useRef<HTMLDivElement>(null);
+
+    const areaMapping: {[key: string]: string} = {
+        'الطيبة': t('area_taybeh'),
+        'مؤته': t('area_mutah'),
+        'مؤتة': t('area_mutah'),
+        'المزار': t('area_mazar'),
+        'العراق': t('area_iraq'),
+        'الهاشمية': t('area_hashimiah'),
+        'سول': t('area_sol'),
+        'جعفر': t('area_jaffar'),
+        'غير محدد': t('area_undefined')
+    };
 
     const financialSummary = useMemo(() => {
         const totalSalaries = workers.reduce((sum, w) => sum + w.salary, 0);
@@ -37,12 +52,12 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
             totalTons,
             costPerTonOverall,
             allocation: [
-                { name: 'الرواتب السنوية', value: totalSalaries },
-                { name: 'كلفة الوقود', value: totalFuel },
-                { name: 'كلفة الصيانة', value: totalMaint }
+                { name: t('th_total_salaries'), value: totalSalaries },
+                { name: t('kpi_fuel_cost'), value: totalFuel },
+                { name: t('kpi_maint_cost'), value: totalMaint }
             ]
         };
-    }, [workers, vehicleData]);
+    }, [workers, vehicleData, t]);
 
     const areaFinancials = useMemo(() => {
         const areaMap = new Map<string, { fuel: number; maint: number; tons: number }>();
@@ -57,7 +72,6 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
             });
         });
 
-        // توزيع الرواتب على المناطق بشكل تقريبي بناءً على منطقة عمل العامل
         const areaSalaries = new Map<string, number>();
         workers.forEach(w => {
             const area = w.area || 'غير محدد';
@@ -72,56 +86,44 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
             const total = oper.fuel + oper.maint + salaries;
             return {
                 name: area,
+                displayName: areaMapping[area] || area,
                 salaries,
                 operational: oper.fuel + oper.maint,
                 total,
                 efficiency: oper.tons > 0 ? total / oper.tons : 0
             };
         }).sort((a, b) => b.total - a.total);
-    }, [workers, vehicleData]);
+    }, [workers, vehicleData, t]);
 
-    const formatCurrency = (val: number) => formatNumber(Math.round(val)) + ' د.أ';
+    const formatCurrency = (val: number) => formatNumber(Math.round(val)) + ' ' + t('unit_jd');
 
     return (
-        <CollapsibleSection title={`الإدارة المالية والتدقيق السنوي - سنة ${selectedYear}`}>
-            {/* المالية الكلية - KPIs */}
+        <CollapsibleSection title={t('sec_financial_mgmt')}>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
                 <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 p-6 rounded-3xl shadow-lg text-white">
-                    <div className="text-emerald-100 text-xs font-bold mb-2 opacity-80 text-right">إجمالي المصاريف السنوية</div>
+                    <div className="text-emerald-100 text-xs font-bold mb-2 opacity-80 text-right">{t('kpi_total_annual_expenses')}</div>
                     <div className="text-3xl font-black">{formatCurrency(financialSummary.grandTotal)}</div>
-                    <div className="mt-4 text-[10px] bg-white/20 p-2 rounded-xl text-center">تشمل الرواتب السنوية والوقود والصيانة</div>
                 </div>
                 
                 <div className="bg-white p-6 rounded-3xl shadow-md border-b-4 border-blue-500">
-                    <div className="text-slate-400 text-xs font-bold mb-2 text-right">كلفة الطن المالية (شاملة)</div>
-                    <div className="text-3xl font-black text-blue-600">{formatNumber(financialSummary.costPerTonOverall, 2)} <span className="text-sm font-normal text-slate-400">د.أ/طن</span></div>
-                    <div className="mt-2 text-[10px] text-slate-500">إجمالي الميزانية السنوية ÷ إجمالي الأطنان</div>
+                    <div className="text-slate-400 text-xs font-bold mb-2 text-right">{t('kpi_cost_per_ton')}</div>
+                    <div className="text-3xl font-black text-blue-600">{formatNumber(financialSummary.costPerTonOverall, 2)} <span className="text-sm font-normal text-slate-400">{t('unit_jd')}/{t('unit_ton')}</span></div>
                 </div>
 
                 <div className="bg-white p-6 rounded-3xl shadow-md border-b-4 border-amber-500">
-                    <div className="text-slate-400 text-xs font-bold mb-2 text-right">كلفة التشغيل (وقود + صيانة)</div>
+                    <div className="text-slate-400 text-xs font-bold mb-2 text-right">{t('th_operational_cost')}</div>
                     <div className="text-3xl font-black text-amber-600">{formatCurrency(financialSummary.totalFuel + financialSummary.totalMaint)}</div>
-                    <div className="mt-2 text-[10px] text-slate-500 text-center font-bold">
-                        {Math.round(((financialSummary.totalFuel + financialSummary.totalMaint) / financialSummary.grandTotal) * 100)}% من الميزانية
-                    </div>
                 </div>
 
                 <div className="bg-white p-6 rounded-3xl shadow-md border-b-4 border-indigo-500">
-                    <div className="text-slate-400 text-xs font-bold mb-2 text-right">كلفة الكادر (سنوي)</div>
+                    <div className="text-slate-400 text-xs font-bold mb-2 text-right">{t('th_total_salaries')}</div>
                     <div className="text-3xl font-black text-indigo-600">{formatCurrency(financialSummary.totalSalaries)}</div>
-                    <div className="mt-2 text-[10px] text-slate-500 text-center font-bold">
-                        {Math.round((financialSummary.totalSalaries / financialSummary.grandTotal) * 100)}% من الميزانية
-                    </div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
-                {/* توزيع الميزانية */}
                 <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100 shadow-inner">
-                    <h4 className="text-sm font-black text-slate-700 mb-6 text-right flex items-center justify-end gap-2">
-                        توزيع بنود الميزانية السنوية
-                        <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                    </h4>
+                    <h4 className="text-sm font-black text-slate-700 mb-6 text-right">{t('sec_financial')}</h4>
                     <div className="h-64 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -145,15 +147,14 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                     </div>
                 </div>
 
-                {/* كلفة المناطق */}
                 <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100 shadow-inner">
-                    <h4 className="text-sm font-black text-slate-700 mb-6 text-right">مقارنة التكاليف السنوية حسب المناطق</h4>
+                    <h4 className="text-sm font-black text-slate-700 mb-6 text-right">{t('th_budget')}</h4>
                     <div className="h-64 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={areaFinancials.slice(0, 5)} layout="vertical">
                                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e2e8f0" />
                                 <XAxis type="number" hide />
-                                <YAxis dataKey="name" type="category" tick={{fontSize: 10, fontWeight: 700}} width={80} />
+                                <YAxis dataKey="displayName" type="category" tick={{fontSize: 10, fontWeight: 700}} width={80} />
                                 <Tooltip formatter={(val: number) => formatCurrency(val)} />
                                 <Bar dataKey="total" fill="#4f46e5" radius={[0, 5, 5, 0]} barSize={20} />
                             </BarChart>
@@ -162,26 +163,25 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                 </div>
             </div>
 
-            {/* تفاصيل المناطق المالية */}
             <div className="overflow-x-auto bg-white rounded-3xl border border-slate-200 shadow-sm" ref={tableContainerRef}>
                 <table className="w-full text-sm text-center border-collapse">
                     <thead className="bg-slate-50">
                         <tr>
-                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase text-right pr-10">المنطقة</th>
-                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">رواتب سنوية</th>
-                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">تشغيل سنوي</th>
-                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">إجمالي الإنفاق السنوي</th>
-                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">الكلفة لكل طن</th>
+                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase text-right pr-10">{t('th_area')}</th>
+                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">{t('th_total_salaries')}</th>
+                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">{t('th_operational_cost')}</th>
+                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">{t('th_budget')}</th>
+                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">{t('th_cost_ton')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                         {areaFinancials.map((area, idx) => (
                             <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                                <td className="p-4 font-bold text-slate-800 text-right pr-10">{area.name}</td>
+                                <td className="p-4 font-bold text-slate-800 text-right pr-10">{area.displayName}</td>
                                 <td className="p-4 text-slate-600">{formatCurrency(area.salaries)}</td>
                                 <td className="p-4 text-slate-600">{formatCurrency(area.operational)}</td>
                                 <td className="p-4 font-black text-emerald-700">{formatCurrency(area.total)}</td>
-                                <td className="p-4 font-black text-blue-600">{formatNumber(area.efficiency, 1)} د.أ</td>
+                                <td className="p-4 font-black text-blue-600">{formatNumber(area.efficiency, 1)} {t('unit_jd')}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -190,11 +190,11 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
 
             <div className="mt-6 flex justify-end">
                 <button 
-                    onClick={() => printTable(tableContainerRef, 'التقرير المالي السنوي التفصيلي للمناطق', { vehicles: new Set(), months: new Set() })}
+                    /* Fix: Pass missing 't' and 'language' arguments to printTable */
+                    onClick={() => printTable(tableContainerRef, t('sec_financial_mgmt'), { vehicles: new Set(), months: new Set() }, t, language)}
                     className="flex items-center gap-2 bg-slate-800 text-white px-6 py-2 rounded-xl text-xs font-bold hover:bg-slate-900 transition-all shadow-md"
                 >
-                    <span>🖨️</span>
-                    طباعة التقرير المالي السنوي
+                    {t('print')}
                 </button>
             </div>
         </CollapsibleSection>

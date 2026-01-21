@@ -1,8 +1,10 @@
+
 import React, { useState, useMemo, useRef } from 'react';
 import { VehicleTableData } from '../types';
 import { formatNumber } from '../services/dataService';
 import { printTable } from '../services/printService';
 import CollapsibleSection from './CollapsibleSection';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface UtilizationSectionProps {
     tableData: VehicleTableData[];
@@ -17,6 +19,7 @@ type UtilizationData = {
 };
 
 const UtilizationSection: React.FC<UtilizationSectionProps> = ({ tableData, filters }) => {
+    const { t, language } = useLanguage();
     const [sortBy, setSortBy] = useState<keyof UtilizationData>('utilization');
     const tableContainerRef = useRef<HTMLDivElement>(null);
 
@@ -39,36 +42,36 @@ const UtilizationSection: React.FC<UtilizationSectionProps> = ({ tableData, filt
             const valA = a[sortBy];
             const valB = b[sortBy];
             if (sortBy === 'veh') {
-                return String(valA).localeCompare(String(valB), 'ar');
+                return String(valA).localeCompare(String(valB), language);
             }
             return (valB as number) - (valA as number);
         });
         return sorted;
-    }, [utilizationData, sortBy]);
+    }, [utilizationData, sortBy, language]);
 
     const handlePrint = () => {
-        printTable(tableContainerRef, 'تحليل استغلال المركبات', filters);
+        printTable(tableContainerRef, t('sec_utilization'), filters, t, language);
     };
 
     const headers = [
-        { key: 'veh', label: 'رقم المركبة' },
-        { key: 'cap_ton', label: 'السعة النظرية (طن)' },
-        { key: 'avgTonsPerTrip', label: 'متوسط الحمولة للرحلة (طن)' },
-        { key: 'utilization', label: 'نسبة الاستغلال (%)' },
+        { key: 'veh', label: t('th_veh_no') },
+        { key: 'cap_ton', label: t('th_cap_ton') },
+        { key: 'avgTonsPerTrip', label: t('th_avg_load') },
+        { key: 'utilization', label: t('th_utilization') },
     ];
 
     return (
-        <CollapsibleSection title="تحليل استغلال المركبات">
+        <CollapsibleSection title={t('sec_utilization')}>
             <div className="flex items-center gap-4 mb-4 text-sm">
                 <div>
-                    <label htmlFor="utilizationSort" className="ml-2 font-semibold">ترتيب حسب:</label>
+                    <label htmlFor="utilizationSort" className="ml-2 font-semibold">{t('chart_grouping')}</label>
                     <select id="utilizationSort" value={sortBy} onChange={e => setSortBy(e.target.value as keyof UtilizationData)}
                         className="p-2 border border-slate-300 rounded-lg">
                         {headers.map(h => <option key={h.key} value={h.key}>{h.label}</option>)}
                     </select>
                 </div>
                 <button onClick={handlePrint} className="px-3 py-2 border-none rounded-lg bg-emerald-500 text-white text-sm font-semibold cursor-pointer shadow-md transition hover:bg-emerald-600">
-                    طباعة الجدول
+                    {t('print')}
                 </button>
             </div>
             <div className="overflow-x-auto" ref={tableContainerRef}>

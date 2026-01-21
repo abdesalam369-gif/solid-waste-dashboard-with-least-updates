@@ -5,6 +5,7 @@ import { Trip } from '../types';
 import { MONTHS_ORDER } from '../constants';
 import CollapsibleSection from './CollapsibleSection';
 import { printChart } from '../services/printService';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ChartSectionProps {
     data: Trip[];
@@ -17,6 +18,7 @@ interface ChartSectionProps {
 }
 
 const ChartSection: React.FC<ChartSectionProps> = ({ data, comparisonData, isLoading, filters, selectedYear, comparisonYear, chartRef }) => {
+    const { t, language } = useLanguage();
     const [groupBy, setGroupBy] = useState<'month' | 'day'>('month');
     const [metric, setMetric] = useState<'trips' | 'tons'>('trips');
 
@@ -30,7 +32,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({ data, comparisonData, isLoa
                 } else {
                     const date = new Date(trip['تاريخ التوزين الثاني']);
                     if (!isNaN(date.getTime())) {
-                        key = date.toISOString().split('T')[0].split('-').slice(1).join('-'); // MM-DD for alignment
+                        key = date.toISOString().split('T')[0].split('-').slice(1).join('-'); 
                     }
                 }
                 if (!key) return;
@@ -61,31 +63,31 @@ const ChartSection: React.FC<ChartSectionProps> = ({ data, comparisonData, isLoa
     }, [data, comparisonData, groupBy, metric]);
 
     const handlePrint = () => {
-        const chartTitle = `السلاسل الزمنية - ${metric === 'trips' ? 'عدد الرحلات' : 'الأوزان (طن)'} حسب ${groupBy === 'month' ? 'الشهر' : 'اليوم'}`;
-        printChart(chartRef, chartTitle, filters);
+        const chartTitle = `${t('sec_time_series')} - ${metric === 'trips' ? t('chart_trips') : t('chart_tons')} (${groupBy === 'month' ? t('chart_monthly') : t('chart_daily')})`;
+        printChart(chartRef, chartTitle, filters, t, language);
     };
 
     return (
-        <CollapsibleSection title="السلاسل الزمنية والمقارنات">
+        <CollapsibleSection title={t('sec_time_series')}>
             <div className="flex flex-wrap items-center gap-4 mb-4 text-sm">
                 <div>
-                    <label htmlFor="timeGroup" className="ml-2 font-semibold">التجميع:</label>
+                    <label htmlFor="timeGroup" className="ml-2 font-semibold">{t('chart_grouping')}</label>
                     <select id="timeGroup" value={groupBy} onChange={e => setGroupBy(e.target.value as 'month' | 'day')}
                         className="p-2 border border-slate-300 rounded-lg">
-                        <option value="month">شهري</option>
-                        <option value="day">يومي</option>
+                        <option value="month">{t('chart_monthly')}</option>
+                        <option value="day">{t('chart_daily')}</option>
                     </select>
                 </div>
                 <div>
-                    <label htmlFor="metric" className="ml-2 font-semibold">القيمة:</label>
+                    <label htmlFor="metric" className="ml-2 font-semibold">{t('chart_value')}</label>
                     <select id="metric" value={metric} onChange={e => setMetric(e.target.value as 'trips' | 'tons')}
                         className="p-2 border border-slate-300 rounded-lg">
-                        <option value="trips">عدد الرحلات</option>
-                        <option value="tons">الأوزان (طن)</option>
+                        <option value="trips">{t('chart_trips')}</option>
+                        <option value="tons">{t('chart_tons')}</option>
                     </select>
                 </div>
                 <button onClick={handlePrint} className="px-3 py-2 border-none rounded-lg bg-emerald-500 text-white text-sm font-semibold cursor-pointer shadow-md transition hover:bg-emerald-600">
-                    طباعة الرسم البياني
+                    {t('print')}
                 </button>
             </div>
             <div className="h-96 w-full relative" ref={chartRef}>
@@ -104,7 +106,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({ data, comparisonData, isLoa
                         <Line 
                             type="monotone" 
                             dataKey="current" 
-                            name={`${selectedYear} (${metric === 'trips' ? 'رحلات' : 'أطنان'})`} 
+                            name={`${selectedYear} (${metric === 'trips' ? t('th_trips') : t('th_tons')})`} 
                             stroke="#2563eb" 
                             strokeWidth={3} 
                             activeDot={{ r: 8 }} 
@@ -113,7 +115,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({ data, comparisonData, isLoa
                             <Line 
                                 type="monotone" 
                                 dataKey="comparison" 
-                                name={`${comparisonYear} (${metric === 'trips' ? 'رحلات' : 'أطنان'})`} 
+                                name={`${comparisonYear} (${metric === 'trips' ? t('th_trips') : t('th_tons')})`} 
                                 stroke="#94a3b8" 
                                 strokeWidth={2} 
                                 strokeDasharray="5 5"
