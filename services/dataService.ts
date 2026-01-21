@@ -1,5 +1,5 @@
 
-import { Trip, Vehicle, Fuel, Maintenance, Area, Population, Worker } from '../types';
+import { Trip, Vehicle, Fuel, Maintenance, Area, Population, Worker, Revenue, WasteTreatment } from '../types';
 import { CONFIG } from '../constants';
 
 // Declare global Papa from script tag
@@ -40,11 +40,6 @@ function splitCsvLine(line: string): string[] {
     return values;
 }
 
-/**
- * Isolated worker data loader using the specific workers GID.
- * Handles cleaning of Arabic salary strings and deduplicates worker entries.
- * UPDATED: Multiplies monthly salary by 12 to provide annual figures.
- */
 export async function loadWorkersData(): Promise<Worker[]> {
     const url = CONFIG.workers;
     
@@ -64,7 +59,6 @@ export async function loadWorkersData(): Promise<Worker[]> {
                         const role = String(row["الوظيفة"] || "").trim();
                         const area = String(row["المنطقة"] || "").trim();
                         
-                        // Clean salary string from currency symbols, commas, etc.
                         const rawSalary = row["الراتب"];
                         let monthlySalary = Number(
                             String(rawSalary)
@@ -72,12 +66,9 @@ export async function loadWorkersData(): Promise<Worker[]> {
                         );
 
                         if (isNaN(monthlySalary)) monthlySalary = 0;
-                        
-                        // Convert to Annual Salary
                         const salary = monthlySalary * 12;
 
                         if (name && role && name !== "الاسم") {
-                            // Deduplication: Keep the entry with highest salary if duplicates exist
                             if (!workerMap.has(name) || salary > (workerMap.get(name)?.salary || 0)) {
                                 workerMap.set(name, { name, role, area, salary });
                             }
@@ -85,7 +76,6 @@ export async function loadWorkersData(): Promise<Worker[]> {
                     });
 
                     const workers = Array.from(workerMap.values());
-                    console.log(`Loaded ${workers.length} unique workers. Salaries converted to Annual.`);
                     resolve(workers);
                 },
                 error: (err: any) => {
@@ -128,11 +118,16 @@ export async function loadAllData() {
             });
 
             population = populationRows.map(row => {
-                const raw = row["عدد السكان"];
-                const popValue = Number(String(raw).trim().replace(/,/g, '').replace(/\u00A0/g, '').replace(/\s/g, ''));
+                const popRaw = row["عدد السكان"];
+                const servedRaw = row["التغطية"]; 
+                
+                const parseNum = (val: any) => Number(String(val).trim().replace(/,/g, '').replace(/\u00A0/g, '').replace(/\s/g, ''));
+                
                 return {
                     area: String(row["المنطقة"] || "").trim(),
-                    population: isNaN(popValue) ? 0 : popValue
+                    population: parseNum(popRaw) || 0,
+                    year: String(row["السنة"] || "").trim(),
+                    served: parseNum(servedRaw) || 0
                 };
             }).filter(p => p.area !== "");
         }
@@ -140,7 +135,77 @@ export async function loadAllData() {
         console.error("Critical error loading population data:", error);
     }
 
-    return { trips, vehicles, fuel, maint, areas, population, workers };
+    let revenues: Revenue[] = [];
+    try {
+        const revResponse = await fetch(CONFIG.revenues);
+        const revText = await revResponse.text();
+        const revLines = revText.trim().split(/\r?\n/);
+        
+        if (revLines.length >= 2) {
+            const revHeader = splitCsvLine(revLines.shift()!).map(h => h.replace(/^"|"$/g, '').trim());
+            const revRows = revLines.map(line => {
+                const values = splitCsvLine(line);
+                const obj: any = {};
+                revHeader.forEach((h, i) => {
+                    obj[h] = (values[i] || "").replace(/^"|"$/g, '').trim();
+                });
+                return obj;
+            });
+
+            revenues = revRows.map(row => {
+                // دالة معالجة الأرقام لضمان تحويل الفراغ إلى صفر
+                const parseNum = (val: any) => {
+                    const cleanVal = String(val || "").trim().replace(/,/g, '').replace(/[^\d.-]/g, '');
+                    const num = Number(cleanVal);
+                    return isNaN(num) || cleanVal === "" ? 0 : num;
+                };
+                
+                return {
+                    year: String(row["year"] || "").trim(),
+                    hhFees: parseNum(row["HH Fees"]),
+                    // تم تصحيح مسمى العمود ليتطابق مع مسمى الشيت (التحقق من lowercase 'f')
+                    commercialFees: parseNum(row["Commercial fees"] || row["Commercial Fees"]),
+                    recyclingRevenue: parseNum(row["Recycling Revenue"]),
+                    area: row["المنطقة"] ? String(row["المنطقة"]).trim() : undefined
+                };
+            }).filter(r => r.year !== "");
+        }
+    } catch (error) {
+        console.error("Error loading revenue data:", error);
+    }
+
+    let treatment: WasteTreatment[] = [];
+    try {
+        const treatResponse = await fetch(CONFIG.treatment);
+        const treatText = await treatResponse.text();
+        const treatLines = treatText.trim().split(/\r?\n/);
+        
+        if (treatLines.length >= 2) {
+            const treatHeader = splitCsvLine(treatLines.shift()!).map(h => h.replace(/^"|"$/g, '').trim());
+            const treatRows = treatLines.map(line => {
+                const values = splitCsvLine(line);
+                const obj: any = {};
+                treatHeader.forEach((h, i) => {
+                    obj[h] = (values[i] || "").replace(/^"|"$/g, '').trim();
+                });
+                return obj;
+            });
+
+            treatment = treatRows.map(row => {
+                const parseNum = (val: any) => Number(String(val || "0").trim().replace(/,/g, '').replace(/[^\d.-]/g, ''));
+                return {
+                    year: String(row["year"] || "").trim(),
+                    recyclablesTon: parseNum(row["Recyclables ton"]),
+                    biowasteTon: parseNum(row["Biowaste ton"]),
+                    otherTreatmentTon: parseNum(row["Other Treatment ton"])
+                };
+            }).filter(t => t.year !== "");
+        }
+    } catch (error) {
+        console.error("Error loading treatment data:", error);
+    }
+
+    return { trips, vehicles, fuel, maint, areas, population, workers, revenues, treatment };
 }
 
 export const formatNumber = (num: number | undefined | null, digits: number = 0): string => {

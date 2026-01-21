@@ -13,6 +13,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, setI
     const { t, language } = useLanguage();
     
     const menuItems = [
+        { id: 'summary', label: t('menu_summary'), icon: '📋' },
         { id: 'kpi', label: t('menu_kpi'), icon: '📊' },
         { id: 'charts', label: t('menu_charts'), icon: '📈' },
         { id: 'financial', label: t('menu_financial'), icon: '💰' },

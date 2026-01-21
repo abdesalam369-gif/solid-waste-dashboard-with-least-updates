@@ -52,6 +52,23 @@ export interface Area {
 export interface Population {
     area: string;
     population: number;
+    year: string;
+    served: number;
+}
+
+export interface Revenue {
+    year: string;
+    hhFees: number;
+    commercialFees: number;
+    recyclingRevenue: number;
+    area?: string;
+}
+
+export interface WasteTreatment {
+    year: string;
+    recyclablesTon: number;
+    biowasteTon: number;
+    otherTreatmentTon: number;
 }
 
 export interface Worker {
@@ -87,6 +104,8 @@ export interface DriverStatsData {
 export interface AreaPopulationStats {
     area: string;
     population: number;
+    served: number;
     totalTons: number;
     kgPerCapita: number;
+    coverageRate: number;
 }

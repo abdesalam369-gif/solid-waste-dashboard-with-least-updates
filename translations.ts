@@ -3,7 +3,6 @@ export type Language = 'ar' | 'en';
 
 export const translations = {
   ar: {
-    // Header & General
     app_title: "لوحة مؤشرات الأداء لإدارة النفايات الصلبة",
     municipality_name: "بلدية مؤتة والمزار",
     year: "السنة",
@@ -24,7 +23,8 @@ export const translations = {
     by_area: "حسب المنطقة",
 
     // Sidebar
-    menu_kpi: "المؤشرات الرئيسية",
+    menu_summary: "ملخص الأداء السنوي",
+    menu_kpi: "المؤشرات التفصيلية",
     menu_charts: "السلاسل الزمنية",
     menu_financial: "الإدارة المالية",
     menu_intelligence: "استخبارات المناطق",
@@ -37,7 +37,8 @@ export const translations = {
     menu_utilization: "استغلال المركبات",
 
     // Sections Titles
-    sec_kpi_main: "المؤشرات الرئيسية للأداء",
+    sec_annual_summary: "ملخص الأداء السنوي الإداري",
+    sec_kpi_main: "مؤشرات الأداء التفصيلية",
     sec_time_series: "السلاسل الزمنية والمقارنات",
     sec_financial_mgmt: "الإدارة المالية والتدقيق السنوي",
     sec_area_intel: "تقرير مناطق بلدية مؤته والمزار - تحليل شامل",
@@ -49,12 +50,31 @@ export const translations = {
     sec_ai_analysis: "تحليل الأسطول بالذكاء الاصطناعي",
     sec_utilization: "تحليل استغلال المركبات",
 
-    // KPI Sections Groups
-    sec_population: "المؤشرات السكانية والسياقية",
+    // Missing KPI Grid Section Titles
+    sec_population: "تحليل السكان والخدمة",
     sec_operational: "المؤشرات التشغيلية",
-    sec_waste_production: "مؤشرات إنتاج النفايات",
-    sec_fleet: "مؤشرات الأسطول والمركبات",
+    sec_waste_production: "إنتاج النفايات",
+    sec_treatment: "المعالجة والتدوير",
+    sec_fleet: "أداء الأسطول",
     sec_financial: "المؤشرات المالية",
+
+    // Groups
+    group_waste: "النفايات",
+    group_service: "الخدمة",
+    group_financial: "المؤشرات المالية",
+    group_treatment: "المعالجة",
+
+    // KPI Summary Labels
+    kpi_sum_total_waste: "إجمالي النفايات المتولدة",
+    kpi_sum_waste_capita: "تولد النفايات للفرد",
+    kpi_sum_coverage: "نسبة التغطية بالخدمة",
+    kpi_sum_total_cost: "إجمالي كلفة إدارة النفايات",
+    kpi_sum_cost_ton: "كلفة الطن الواحد",
+    kpi_sum_cost_capita: "كلفة الفرد سنوياً",
+    kpi_sum_total_revenue: "إجمالي الإيرادات",
+    kpi_sum_cost_recovery: "نسبة تغطية الكلفة",
+    kpi_sum_recycling: "Recycling Rate",
+    kpi_sum_diversion: "Diversion Rate",
 
     // Table Headers
     th_veh_no: "رقم المركبة",
@@ -72,6 +92,8 @@ export const translations = {
     th_utilization: "نسبة الاستغلال (%)",
     th_avg_load: "متوسط الحمولة (طن)",
     th_pop: "عدد السكان",
+    th_served_pop: "السكان المخدومون",
+    th_coverage: "نسبة التغطية (%)",
     th_kg_capita: "نصيب الفرد (كغم/فرد)",
     th_emp_name: "اسم الموظف",
     th_job_title: "المسمى الوظيفي",
@@ -101,6 +123,8 @@ export const translations = {
 
     // KPI Cards
     kpi_total_pop: "إجمالي عدد السكان",
+    kpi_served_pop: "إجمالي السكان المخدومين",
+    kpi_coverage_rate: "نسبة تغطية الخدمة",
     kpi_areas_served: "عدد المناطق المخدومة",
     kpi_workers_count: "عدد العاملين (سائقين + عمال وطن)",
     kpi_total_trips: "إجمالي الرحلات",
@@ -118,11 +142,19 @@ export const translations = {
     kpi_avg_trips_veh: "متوسط عدد الرحلات لكل مركبة",
     kpi_total_annual_expenses: "إجمالي المصاريف السنوية",
     kpi_total_salaries: "إجمالي الرواتب",
+    kpi_total_revenue: "إجمالي الإيرادات السنوية",
+    kpi_cost_recovery: "نسبة استرداد التكاليف (%)",
     kpi_fuel_cost: "كلفة الوقود",
     kpi_maint_cost: "كلفة الصيانة",
     kpi_cost_per_ton: "كلفة الطن الواحد",
     kpi_cost_per_trip: "كلفة الرحلة الواحدة",
     kpi_cost_per_capita: "كلفة الفرد من إدارة النفايات (د.أ / سنة)",
+    kpi_recycling_rate: "نسبة التدوير (%)",
+    kpi_alt_treatment_rate: "نسبة المعالجة البديلة (%)",
+    kpi_recyclables: "كمية المواد القابلة للتدوير",
+    kpi_biowaste: "كمية النفايات الحيوية",
+    kpi_other_treatment: "كميات معالجة أخرى",
+    kpi_total_treated: "إجمالي الكمية المعالجة",
     
     // Units & Misc
     unit_ton: "طن",
@@ -131,7 +163,7 @@ export const translations = {
     unit_capita: "فرد",
     unit_worker: "عامل",
     comparison: "مقارنة",
-    primary_kpi: "المؤشر الأساسي",
+    primary_kpi: "المؤشرات الأساسية",
     total_avg: "الإجمالي / المتوسط",
 
     // AI Section
@@ -177,7 +209,6 @@ export const translations = {
     pop_analysis_note: "يتم حساب نصيب الفرد بقسمة إجمالي الأوزان (بعد تحويلها إلى كيلوغرامات) التي جمعها أسطول البلدية في المنطقة على عدد سكان تلك المنطقة. هذا المؤشر يساعد في تحديد المناطق ذات الضغط العالي والحاجة لزيادة الموارد."
   },
   en: {
-    // Header & General
     app_title: "Solid Waste Performance Dashboard",
     municipality_name: "Mu'tah and Al-Mazar Municipality",
     year: "Year",
@@ -198,7 +229,8 @@ export const translations = {
     by_area: "By Area",
 
     // Sidebar
-    menu_kpi: "Main Indicators",
+    menu_summary: "Annual Performance Summary",
+    menu_kpi: "Detailed Indicators",
     menu_charts: "Time Series",
     menu_financial: "Financial Mgmt",
     menu_intelligence: "Area Intel",
@@ -211,7 +243,8 @@ export const translations = {
     menu_utilization: "Utilization",
 
     // Sections Titles
-    sec_kpi_main: "Main Performance Indicators",
+    sec_annual_summary: "Executive Annual Summary",
+    sec_kpi_main: "Detailed Performance Indicators",
     sec_time_series: "Time Series & Comparisons",
     sec_financial_mgmt: "Financial Mgmt & Annual Audit",
     sec_area_intel: "Area Report - Holistic Analysis",
@@ -223,12 +256,31 @@ export const translations = {
     sec_ai_analysis: "AI Fleet Analysis",
     sec_utilization: "Utilization Analysis",
 
-    // Groups
-    sec_population: "Demographic Indicators",
+    // Missing KPI Grid Section Titles (English)
+    sec_population: "Population & Service Analysis",
     sec_operational: "Operational Indicators",
-    sec_waste_production: "Production Indicators",
-    sec_fleet: "Fleet Indicators",
+    sec_waste_production: "Waste Production",
+    sec_treatment: "Treatment & Recycling",
+    sec_fleet: "Fleet Performance",
     sec_financial: "Financial Indicators",
+
+    // Groups
+    group_waste: "Waste",
+    group_service: "Service",
+    group_financial: "Financial Indicators",
+    group_treatment: "Treatment",
+
+    // KPI Summary Labels
+    kpi_sum_total_waste: "Total Generated Waste",
+    kpi_sum_waste_capita: "Waste per Capita",
+    kpi_sum_coverage: "Service Coverage Rate",
+    kpi_sum_total_cost: "Total Management Cost",
+    kpi_sum_cost_ton: "Cost per Ton",
+    kpi_sum_cost_capita: "Cost per Capita / Year",
+    kpi_sum_total_revenue: "Total Revenue",
+    kpi_sum_cost_recovery: "Cost Recovery Rate",
+    kpi_sum_recycling: "Recycling Rate",
+    kpi_sum_diversion: "Diversion Rate",
 
     // Table Headers
     th_veh_no: "Vehicle ID",
@@ -246,6 +298,8 @@ export const translations = {
     th_utilization: "Util. (%)",
     th_avg_load: "Avg Load (t)",
     th_pop: "Population",
+    th_served_pop: "Served Pop.",
+    th_coverage: "Coverage Rate (%)",
     th_kg_capita: "Waste/Capita (kg)",
     th_emp_name: "Staff Name",
     th_job_title: "Job Title",
@@ -275,6 +329,8 @@ export const translations = {
 
     // KPI Cards
     kpi_total_pop: "Total Population",
+    kpi_served_pop: "Total Served Population",
+    kpi_coverage_rate: "Service Coverage Rate",
     kpi_areas_served: "Areas Served",
     kpi_workers_count: "Total Staff",
     kpi_total_trips: "Total Trips",
@@ -292,11 +348,19 @@ export const translations = {
     kpi_avg_trips_veh: "Avg Trips / Vehicle",
     kpi_total_annual_expenses: "Total Annual Exp.",
     kpi_total_salaries: "Total Salaries",
+    kpi_total_revenue: "Total Annual Revenue",
+    kpi_cost_recovery: "Cost Recovery Rate (%)",
     kpi_fuel_cost: "Fuel Cost",
     kpi_maint_cost: "Maint. Cost",
     kpi_cost_per_ton: "Cost per Ton",
     kpi_cost_per_trip: "Cost per Trip",
     kpi_cost_per_capita: "Cost per Capita (JD/y)",
+    kpi_recycling_rate: "Recycling Rate (%)",
+    kpi_alt_treatment_rate: "Alt. Treatment Rate (%)",
+    kpi_recyclables: "Recyclables Amount",
+    kpi_biowaste: "Biowaste Amount",
+    kpi_other_treatment: "Other Treatment Amount",
+    kpi_total_treated: "Total Amount Treated",
 
     // Units & Misc
     unit_ton: "Tons",
@@ -305,7 +369,7 @@ export const translations = {
     unit_capita: "Capita",
     unit_worker: "Staff",
     comparison: "Comp.",
-    primary_kpi: "Primary",
+    primary_kpi: "Primary Indicators",
     total_avg: "Total / Avg",
 
     // AI Section

@@ -8,6 +8,7 @@ interface HeaderProps {
     filters: { vehicles: Set<string>; months: Set<string> };
     selectedYear: string;
     comparisonYear: string;
+    activeTab: string; // إضافة التبويب النشط
     onYearChange: (year: string) => void;
     onComparisonYearChange: (year: string) => void;
     onFilterToggle: (type: 'vehicles' | 'months', value: string) => void;
@@ -80,7 +81,8 @@ const FilterDropdown: React.FC<{
     );
 };
 
-const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, comparisonYear, onYearChange, onComparisonYearChange, onFilterToggle, onResetFilters }) => {
+const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, comparisonYear, activeTab, onYearChange, onComparisonYearChange, onFilterToggle, onResetFilters }) => {
+    // Destructure setLanguage from useLanguage to fix line 298 error
     const { t, language, setLanguage } = useLanguage();
     
     const vehicles = useMemo(() => [...new Set(tripsData.map(r => r['رقم المركبة']).filter(Boolean))].sort(), [tripsData]);
@@ -88,8 +90,24 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
     const years = useMemo(() => [...new Set(tripsData.map(r => r['السنة']).filter(Boolean))].sort().reverse(), [tripsData]);
 
     const printKPIs = () => {
-        const kpiGrid = document.getElementById('kpi-grid');
-        if (kpiGrid) {
+        // تحديد العنصر المستهدف بناءً على التبويب النشط
+        let targetId = '';
+        let reportTitle = '';
+        
+        if (activeTab === 'summary') {
+            targetId = 'annual-summary-content';
+            reportTitle = t('menu_summary');
+        } else if (activeTab === 'kpi') {
+            targetId = 'kpi-grid';
+            reportTitle = t('menu_kpi');
+        } else {
+            // في حال كان التبويب لا يحتوي على مؤشرات كرتية (مثل التشارتات أو الجداول)
+            window.print();
+            return;
+        }
+
+        const container = document.getElementById(targetId);
+        if (container) {
             const printWindow = window.open('', '', 'height=800,width=1000');
             if (!printWindow) {
                 alert('يرجى السماح بالنوافذ المنبثقة لطباعة التقرير.');
@@ -102,8 +120,8 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                 day: 'numeric'
             });
 
-            // الحصول على كافة الأقسام
-            const sections = kpiGrid.querySelectorAll('div.space-y-6');
+            // الحصول على كافة الأقسام (المجموعات)
+            const sections = container.querySelectorAll('div.space-y-6');
             let fullHtml = '';
 
             sections.forEach(section => {
@@ -111,22 +129,20 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                 const title = titleNode?.textContent || '';
                 const cardNodes = section.querySelectorAll('div.group');
 
+                if (cardNodes.length === 0) return;
+
                 let sectionCardsHtml = '';
                 cardNodes.forEach(card => {
-                    // استخراج الأيقونة
                     const iconSpan = card.querySelector('span.text-3xl');
                     const icon = iconSpan?.textContent || '';
 
-                    // استخراج القيمة (تحمل كلاسات الألوان)
                     const valueNode = card.querySelector('div.text-2xl.font-black');
                     const value = valueNode?.textContent || '';
                     const colorClass = Array.from(valueNode?.classList || []).find(c => c.startsWith('text-')) || 'text-slate-800';
 
-                    // استخراج التسمية
                     const labelNode = card.querySelector('div.text-\\[11px\\]');
                     const label = labelNode?.textContent || '';
 
-                    // استخراج المقارنة إن وجدت
                     const compNode = card.querySelector('div.text-\\[10px\\] span.text-slate-600');
                     const compValue = compNode?.textContent || '';
 
@@ -153,7 +169,7 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
             const printContent = `
                 <html>
                 <head>
-                    <title>${t('print_kpis')} - ${selectedYear}</title>
+                    <title>${reportTitle} - ${selectedYear}</title>
                     <link rel="preconnect" href="https://fonts.googleapis.com">
                     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
                     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
@@ -263,7 +279,7 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                 </head>
                 <body>
                     <div class="print-header">
-                        <h1>${t('app_title')} - ${t('year')} ${selectedYear}</h1>
+                        <h1>${reportTitle} - ${t('year')} ${selectedYear}</h1>
                         <p>${t('municipality_name')} | ${today}</p>
                     </div>
                     ${fullHtml}

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Trip, Vehicle, Fuel, Maintenance, Area, VehicleTableData, DriverStatsData, Population, AreaPopulationStats, Worker } from './types';
+import { Trip, Vehicle, Fuel, Maintenance, Area, VehicleTableData, DriverStatsData, Population, AreaPopulationStats, Worker, Revenue, WasteTreatment } from './types';
 import { CONFIG, MONTHS_ORDER } from './constants';
 import { loadAllData } from './services/dataService';
 import { generateFleetReport } from './services/geminiService';
@@ -17,12 +17,12 @@ import DriverStatsSection from './components/DriverStatsSection';
 import PopulationAnalysisSection from './components/PopulationAnalysisSection';
 import SalaryAnalysisSection from './components/SalaryAnalysisSection';
 import FinancialManagementSection from './components/FinancialManagementSection';
+import AnnualSummarySection from './components/AnnualSummarySection';
 import AiChat from './components/AiChat';
 import Sidebar from './components/Sidebar';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 
 const AppContent: React.FC = () => {
-    /* Fix: Destructure 't' from useLanguage to resolve "Cannot find name 't'" error */
     const { language, t } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [tripsData, setTripsData] = useState<Trip[]>([]);
@@ -32,10 +32,12 @@ const AppContent: React.FC = () => {
     const [areasData, setAreasData] = useState<Area[]>([]);
     const [populationData, setPopulationData] = useState<Population[]>([]);
     const [workersData, setWorkersData] = useState<Worker[]>([]);
+    const [revenuesData, setRevenuesData] = useState<Revenue[]>([]);
+    const [treatmentData, setTreatmentData] = useState<WasteTreatment[]>([]);
     
     const [selectedYear, setSelectedYear] = useState<string>('');
     const [comparisonYear, setComparisonYear] = useState<string>('');
-    const [activeTab, setActiveTab] = useState<string>('kpi');
+    const [activeTab, setActiveTab] = useState<string>('summary');
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const [filters, setFilters] = useState<{ vehicles: Set<string>; months: Set<string> }>({
@@ -55,7 +57,7 @@ const AppContent: React.FC = () => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const { trips, vehicles, fuel, maint, areas, population, workers } = await loadAllData();
+                const { trips, vehicles, fuel, maint, areas, population, workers, revenues, treatment } = await loadAllData();
                 setTripsData(trips);
                 setVehiclesData(vehicles);
                 setFuelData(fuel);
@@ -63,6 +65,8 @@ const AppContent: React.FC = () => {
                 setAreasData(areas);
                 setPopulationData(population || []);
                 setWorkersData(workers || []);
+                setRevenuesData(revenues || []);
+                setTreatmentData(treatment || []);
 
                 const years = [...new Set(trips.map(t => t['السنة']).filter(Boolean))].sort().reverse();
                 if (years.length > 0) {
@@ -268,28 +272,76 @@ const AppContent: React.FC = () => {
         const tonsByArea: { [key: string]: number } = {};
         filteredTrips.forEach(trip => {
             const vehicleId = (trip['رقم المركبة'] || '').trim();
-            const area = vehAreaMap.get(vehicleId) || 'غير مححدد';
+            const area = vehAreaMap.get(vehicleId) || 'غير محدد';
             tonsByArea[area] = (tonsByArea[area] || 0) + (Number(trip['صافي التحميل'] || 0) / 1000);
         });
 
-        return populationData.map(pop => {
+        const popDataForYear = populationData.filter(p => p.year === selectedYear);
+
+        return popDataForYear.map(pop => {
             const areaName = pop.area.trim();
             const tons = tonsByArea[areaName] || 0;
             const population = pop.population || 0;
+            const served = pop.served || 0;
             const kgPerCapita = population > 0 ? (tons * 1000) / population : 0;
+            const coverageRate = population > 0 ? (served / population) * 100 : 0;
+            
             return {
                 area: areaName,
                 population,
+                served,
                 totalTons: tons,
-                kgPerCapita
+                kgPerCapita,
+                coverageRate
             };
         }).sort((a, b) => b.kgPerCapita - a.kgPerCapita);
     }, [filteredTrips, areasData, populationData, selectedYear]);
 
-    const totalPopulation = useMemo(() => {
-        if (!populationData || !populationData.length) return 0;
-        return populationData.reduce((sum, item) => sum + item.population, 0);
-    }, [populationData]);
+    const populationTotals = useMemo(() => {
+        let targetData = areaPopulationStats;
+        
+        if (filters.vehicles.size > 0) {
+            const activeAreas = new Set(filteredVehicleTableData.map(v => v.area));
+            targetData = areaPopulationStats.filter(p => activeAreas.has(p.area));
+        }
+
+        const totalPop = targetData.reduce((sum, item) => sum + item.population, 0);
+        const totalServed = targetData.reduce((sum, item) => sum + item.served, 0);
+        const coverageRate = totalPop > 0 ? (totalServed / totalPop) * 100 : 0;
+
+        return { totalPop, totalServed, coverageRate };
+    }, [areaPopulationStats, filters.vehicles, filteredVehicleTableData]);
+
+    const financialTotals = useMemo(() => {
+        const getYearRevenue = (year: string) => {
+            if (!year) return 0;
+            const yearRevenues = revenuesData.filter(r => r.year === year);
+            return yearRevenues.reduce((sum, r) => sum + r.hhFees + r.commercialFees + r.recyclingRevenue, 0);
+        };
+
+        return {
+            currentRevenue: getYearRevenue(selectedYear),
+            comparisonRevenue: comparisonYear ? getYearRevenue(comparisonYear) : 0
+        };
+    }, [revenuesData, selectedYear, comparisonYear]);
+
+    const treatmentTotals = useMemo(() => {
+        const getYearTreatment = (year: string) => {
+            if (!year) return null;
+            const yearTreat = treatmentData.find(t => t.year === year);
+            if (!yearTreat) return null;
+            const totalTreated = yearTreat.recyclablesTon + yearTreat.biowasteTon + yearTreat.otherTreatmentTon;
+            return {
+                ...yearTreat,
+                totalTreated
+            };
+        };
+
+        return {
+            current: getYearTreatment(selectedYear),
+            comparison: comparisonYear ? getYearTreatment(comparisonYear) : null
+        };
+    }, [treatmentData, selectedYear, comparisonYear]);
 
     const handleGenerateReport = async (analysisType: string, options: { vehicleId?: string; vehicleIds?: string[]; customPrompt?: string }) => {
         setAiLoading(true);
@@ -312,6 +364,18 @@ const AppContent: React.FC = () => {
 
     const renderActiveContent = () => {
         switch (activeTab) {
+            case 'summary':
+                return (
+                    <AnnualSummarySection 
+                        filteredTrips={filteredTrips}
+                        treatment={treatmentTotals.current}
+                        populationData={populationData}
+                        workers={workersData}
+                        revenues={revenuesData}
+                        vehicleTableData={filteredVehicleTableData}
+                        selectedYear={selectedYear}
+                    />
+                );
             case 'kpi':
                 return (
                     <div className="animate-in fade-in duration-500">
@@ -325,8 +389,14 @@ const AppContent: React.FC = () => {
                             comparisonYear={comparisonYear}
                             vehicleTableData={filteredVehicleTableData}
                             comparisonVehicleTableData={comparisonVehicleTableData}
-                            totalPopulation={totalPopulation}
+                            totalPopulation={populationTotals.totalPop}
+                            totalServed={populationTotals.totalServed}
+                            coverageRate={populationTotals.coverageRate}
                             workers={workersData}
+                            totalRevenue={financialTotals.currentRevenue}
+                            comparisonRevenue={financialTotals.comparisonRevenue}
+                            treatment={treatmentTotals.current}
+                            comparisonTreatment={treatmentTotals.comparison}
                         />
                     </div>
                 );
@@ -360,7 +430,7 @@ const AppContent: React.FC = () => {
                         <AreaIntelligenceSection 
                             workers={workersData} 
                             vehicleData={filteredVehicleTableData} 
-                            population={populationData}
+                            population={populationData.filter(p => p.year === selectedYear)}
                             selectedYear={selectedYear}
                             filters={filters}
                         />
@@ -389,7 +459,6 @@ const AppContent: React.FC = () => {
                     <div className="animate-in slide-in-from-left-5 duration-500 space-y-6">
                         <TableSection tableData={filteredVehicleTableData} filters={filters} />
                         {comparisonYear && (
-                            /* Fix: Access 't' from LanguageContext */
                             <TableSection tableData={comparisonVehicleTableData} filters={filters} title={`${t('sec_veh_eff')} - ${t('year')} ${comparisonYear} (${t('comparison')})`} />
                         )}
                     </div>
@@ -428,7 +497,6 @@ const AppContent: React.FC = () => {
 
     return (
         <div className={`bg-slate-50 text-slate-800 min-h-screen flex overflow-hidden ${isRtl ? 'font-arabic' : 'font-sans'}`}>
-            {/* Sidebar */}
             <Sidebar 
                 activeTab={activeTab} 
                 setActiveTab={setActiveTab} 
@@ -436,13 +504,13 @@ const AppContent: React.FC = () => {
                 setIsOpen={setIsSidebarOpen}
             />
 
-            {/* Main Content */}
             <div className={`flex-1 flex flex-col h-screen transition-all duration-300 ${isSidebarOpen ? (isRtl ? 'mr-72' : 'ml-72') : (isRtl ? 'mr-20' : 'ml-20')} overflow-y-auto`}>
                 <Header
                     tripsData={tripsData}
                     filters={filters}
                     selectedYear={selectedYear}
                     comparisonYear={comparisonYear}
+                    activeTab={activeTab}
                     onYearChange={handleYearChange}
                     onComparisonYearChange={handleComparisonYearChange}
                     onFilterToggle={handleFilterToggle}

@@ -1,0 +1,141 @@
+
+import React, { useMemo } from 'react';
+import { Trip, WasteTreatment, Population, Worker, Revenue, VehicleTableData } from '../types';
+import { formatNumber } from '../services/dataService';
+import KpiCard from './KpiCard';
+import { useLanguage } from '../contexts/LanguageContext';
+
+interface AnnualSummarySectionProps {
+    filteredTrips: Trip[];
+    treatment?: (WasteTreatment & { totalTreated: number }) | null;
+    populationData: Population[];
+    workers: Worker[];
+    revenues: Revenue[];
+    vehicleTableData: VehicleTableData[];
+    selectedYear: string;
+}
+
+const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({ 
+    filteredTrips, treatment, populationData, workers, revenues, vehicleTableData, selectedYear 
+}) => {
+    const { t } = useLanguage();
+
+    const stats = useMemo(() => {
+        // 1. النفايات
+        const totalCollectedTons = filteredTrips.reduce((sum, trip) => sum + (Number(trip['صافي التحميل']) || 0) / 1000, 0);
+        const totalTreated = treatment?.totalTreated || 0;
+        const totalGeneratedTons = totalCollectedTons + totalTreated;
+        
+        const yearPopData = populationData.filter(p => p.year === selectedYear);
+        const totalPopulation = yearPopData.reduce((sum, p) => sum + p.population, 0);
+        const totalServed = yearPopData.reduce((sum, p) => sum + p.served, 0);
+        
+        const wastePerCapita = totalPopulation > 0 ? (totalGeneratedTons * 1000) / totalPopulation / 365 : 0;
+
+        // 2. الخدمة
+        const coverageRate = totalPopulation > 0 ? (totalServed / totalPopulation) * 100 : 0;
+
+        // 3. المؤشرات المالية
+        const totalSalaries = workers.reduce((sum, w) => sum + w.salary, 0);
+        const totalFuel = vehicleTableData.reduce((sum, v) => sum + v.fuel, 0);
+        const totalMaint = vehicleTableData.reduce((sum, v) => sum + v.maint, 0);
+        const totalCost = totalSalaries + totalFuel + totalMaint;
+        
+        const costPerTon = totalGeneratedTons > 0 ? totalCost / totalGeneratedTons : 0;
+        const costPerCapita = totalPopulation > 0 ? totalCost / totalPopulation : 0;
+        
+        const yearRevenues = revenues.filter(r => r.year === selectedYear);
+        const totalRevenue = yearRevenues.reduce((sum, r) => sum + r.hhFees + r.commercialFees + r.recyclingRevenue, 0);
+        
+        const costRecovery = totalCost > 0 ? (totalRevenue / totalCost) * 100 : 0;
+
+        // 4. المعالجة
+        const recyclingRate = totalGeneratedTons > 0 ? ((treatment?.recyclablesTon || 0) / totalGeneratedTons) * 100 : 0;
+        const diversionRate = totalGeneratedTons > 0 ? (totalTreated / totalGeneratedTons) * 100 : 0;
+
+        return {
+            totalGeneratedTons,
+            wastePerCapita,
+            totalPopulation,
+            coverageRate,
+            totalCost,
+            costPerTon,
+            costPerCapita,
+            totalRevenue,
+            costRecovery,
+            recyclingRate,
+            diversionRate
+        };
+    }, [filteredTrips, treatment, populationData, workers, revenues, vehicleTableData, selectedYear]);
+
+    const groups = [
+        {
+            title: t('group_waste'),
+            cards: [
+                { value: formatNumber(Math.round(stats.totalGeneratedTons)) + ' ' + t('unit_ton'), label: t('kpi_sum_total_waste'), icon: '🗑️', color: 'text-blue-600' },
+                { value: formatNumber(stats.wastePerCapita, 2) + ' ' + t('unit_kg'), label: t('kpi_sum_waste_capita'), icon: '👤', color: 'text-sky-500' },
+            ]
+        },
+        {
+            title: t('group_service'),
+            cards: [
+                { value: formatNumber(stats.totalPopulation), label: t('kpi_total_pop'), icon: '👥', color: 'text-cyan-600' },
+                { value: formatNumber(stats.coverageRate, 1) + '%', label: t('kpi_sum_coverage'), icon: '📡', color: 'text-emerald-600' },
+            ]
+        },
+        {
+            title: t('group_financial'),
+            cards: [
+                { value: formatNumber(Math.round(stats.totalCost)) + ' ' + t('unit_jd'), label: t('kpi_sum_total_cost'), icon: '📈', color: 'text-indigo-600' },
+                { value: formatNumber(stats.costPerTon, 1) + ' ' + t('unit_jd'), label: t('kpi_sum_cost_ton'), icon: '💰', color: 'text-amber-600' },
+                { value: formatNumber(stats.costPerCapita, 1) + ' ' + t('unit_jd'), label: t('kpi_sum_cost_capita'), icon: '🏷️', color: 'text-slate-700' },
+                { value: formatNumber(Math.round(stats.totalRevenue)) + ' ' + t('unit_jd'), label: t('kpi_sum_total_revenue'), icon: '💵', color: 'text-blue-700' },
+                { value: formatNumber(stats.costRecovery, 1) + '%', label: t('kpi_sum_cost_recovery'), icon: '⚖️', color: 'text-teal-600' },
+            ]
+        },
+        {
+            title: t('group_treatment'),
+            cards: [
+                { value: formatNumber(stats.recyclingRate, 1) + '%', label: t('kpi_sum_recycling'), icon: '♻️', color: 'text-emerald-700' },
+                { value: formatNumber(stats.diversionRate, 1) + '%', label: t('kpi_sum_diversion'), icon: '🧪', color: 'text-purple-600' },
+            ]
+        }
+    ];
+
+    return (
+        <div id="annual-summary-content" className="space-y-10 animate-in fade-in duration-500">
+            <div className="bg-white p-8 rounded-[40px] shadow-sm border border-slate-100 flex justify-between items-center">
+                <h2 className="text-2xl font-black text-slate-800">{t('sec_annual_summary')} - {selectedYear}</h2>
+                <div className="px-6 py-2 bg-blue-50 text-blue-700 rounded-2xl font-bold border border-blue-100">
+                    {t('primary_kpi')}
+                </div>
+            </div>
+
+            {groups.map((group, gIdx) => (
+                <div key={gIdx} className="space-y-6">
+                    <div className="flex items-center gap-4 px-2">
+                        <div className="h-8 w-1.5 bg-slate-300 rounded-full"></div>
+                        <h3 className="text-lg font-bold text-slate-600 tracking-tight">
+                            {group.title}
+                        </h3>
+                        <div className="flex-1 h-px bg-slate-100"></div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                        {group.cards.map((kpi, kIdx) => (
+                            <KpiCard 
+                                key={`${gIdx}-${kIdx}`}
+                                value={kpi.value} 
+                                label={kpi.label} 
+                                icon={kpi.icon} 
+                                color={kpi.color} 
+                            />
+                        ))}
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+export default AnnualSummarySection;

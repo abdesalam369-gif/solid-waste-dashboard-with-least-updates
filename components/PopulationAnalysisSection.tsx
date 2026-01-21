@@ -47,9 +47,11 @@ const PopulationAnalysisSection: React.FC<PopulationAnalysisSectionProps> = ({ t
     const totals = useMemo(() => {
         if (sortedData.length === 0) return null;
         const totalPop = sortedData.reduce((sum, row) => sum + row.population, 0);
+        const totalServed = sortedData.reduce((sum, row) => sum + row.served, 0);
         const totalTons = sortedData.reduce((sum, row) => sum + row.totalTons, 0);
         const avgKg = totalPop > 0 ? (totalTons * 1000) / totalPop : 0;
-        return { totalPop, totalTons, avgKg };
+        const totalCoverage = totalPop > 0 ? (totalServed / totalPop) * 100 : 0;
+        return { totalPop, totalServed, totalTons, avgKg, totalCoverage };
     }, [sortedData]);
 
     const handlePrint = () => {
@@ -59,6 +61,8 @@ const PopulationAnalysisSection: React.FC<PopulationAnalysisSectionProps> = ({ t
     const headers = [
         { key: 'area', label: t('th_area') },
         { key: 'population', label: t('th_pop') },
+        { key: 'served', label: t('th_served_pop') },
+        { key: 'coverageRate', label: t('th_coverage') },
         { key: 'totalTons', label: t('th_tons') },
         { key: 'kgPerCapita', label: t('th_kg_capita') },
     ];
@@ -91,6 +95,8 @@ const PopulationAnalysisSection: React.FC<PopulationAnalysisSectionProps> = ({ t
                             <tr key={`${row.area}-${idx}`} className="hover:bg-slate-50 transition-colors">
                                 <td className="p-3 border-b border-slate-200 font-bold">{areaMapping[row.area] || row.area}</td>
                                 <td className="p-3 border-b border-slate-200">{formatNumber(row.population)}</td>
+                                <td className="p-3 border-b border-slate-200">{formatNumber(row.served)}</td>
+                                <td className="p-3 border-b border-slate-200 font-bold text-emerald-600">{formatNumber(row.coverageRate, 1)}%</td>
                                 <td className="p-3 border-b border-slate-200">{formatNumber(row.totalTons, 1)}</td>
                                 <td className="p-3 border-b border-slate-200 font-semibold text-indigo-600">
                                     {formatNumber(row.kgPerCapita, 3)}
@@ -101,6 +107,8 @@ const PopulationAnalysisSection: React.FC<PopulationAnalysisSectionProps> = ({ t
                             <tr className="bg-slate-200 font-black text-slate-800">
                                 <td className="p-3 border-t-2 border-slate-300">{t('total_avg')}</td>
                                 <td className="p-3 border-t-2 border-slate-300">{formatNumber(totals.totalPop)}</td>
+                                <td className="p-3 border-t-2 border-slate-300">{formatNumber(totals.totalServed)}</td>
+                                <td className="p-3 border-t-2 border-slate-300 text-emerald-800">{formatNumber(totals.totalCoverage, 1)}%</td>
                                 <td className="p-3 border-t-2 border-slate-300">{formatNumber(totals.totalTons, 1)}</td>
                                 <td className="p-3 border-t-2 border-slate-300 text-indigo-800">
                                     {formatNumber(totals.avgKg, 3)}

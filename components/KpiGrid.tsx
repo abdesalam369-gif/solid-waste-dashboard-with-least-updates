@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { Trip, Fuel, Maintenance, VehicleTableData, Worker } from '../types';
+import { Trip, Fuel, Maintenance, VehicleTableData, Worker, WasteTreatment } from '../types';
 import { MONTHS_ORDER } from '../constants';
 import { formatNumber } from '../services/dataService';
 import KpiCard from './KpiCard';
@@ -17,13 +17,21 @@ interface KpiGridProps {
     vehicleTableData: VehicleTableData[];
     comparisonVehicleTableData: VehicleTableData[];
     totalPopulation?: number;
+    totalServed?: number;
+    coverageRate?: number;
     workers: Worker[];
+    totalRevenue?: number;
+    comparisonRevenue?: number;
+    treatment?: (WasteTreatment & { totalTreated: number }) | null;
+    comparisonTreatment?: (WasteTreatment & { totalTreated: number }) | null;
 }
 
 const KpiGrid: React.FC<KpiGridProps> = ({ 
     filteredTrips, comparisonTrips, fuelData, maintData, filters, 
     selectedYear, comparisonYear, vehicleTableData, comparisonVehicleTableData,
-    totalPopulation, workers
+    totalPopulation, totalServed, coverageRate, workers,
+    totalRevenue = 0, comparisonRevenue = 0,
+    treatment, comparisonTreatment
 }) => {
     const { t } = useLanguage();
     
@@ -89,6 +97,7 @@ const KpiGrid: React.FC<KpiGridProps> = ({
             totalTons, totalTrips, totalFuel, totalMaint, avgTonsPerDay, daysCount,
             activeVehiclesCount: activeVehicles.size,
             topTrips: topTripsVal > 0 ? `${topTripsVeh} | ${formatNumber(topTripsVal)}` : '—',
+            // Fix: topTonsVeh is a string, so we must compare topTonsVal (number) to 0.
             topTons: topTonsVal > 0 ? `${topTonsVeh} | ${formatNumber(topTonsVal, 1)} ${t('unit_ton')}` : '—',
             avgCapacity
         };
@@ -109,13 +118,23 @@ const KpiGrid: React.FC<KpiGridProps> = ({
         const costPerTrip = currentStats.totalTrips > 0 ? totalCosts / currentStats.totalTrips : 0;
         const avgTonsPerTrip = currentStats.totalTrips > 0 ? currentStats.totalTons / currentStats.totalTrips : 0;
         const avgTripsPerDay = currentStats.daysCount > 0 ? currentStats.totalTrips / currentStats.daysCount : 0;
+        
         const kgPerCapita = (totalPopulation && totalPopulation > 0) ? (currentStats.totalTons * 1000) / totalPopulation : 0;
         const costPerCapita = (totalPopulation && totalPopulation > 0) ? totalCosts / totalPopulation : 0;
+        
         const avgTripsPerVehicle = currentStats.activeVehiclesCount > 0 ? currentStats.totalTrips / currentStats.activeVehiclesCount : 0;
         const areasCount = totalPopulation ? 7 : 0; 
 
-        return { totalCosts, costPerTon, costPerTrip, avgTonsPerTrip, avgTripsPerDay, kgPerCapita, areasCount, costPerCapita, avgTripsPerVehicle };
-    }, [currentStats, totalSalaries, totalPopulation]);
+        const costRecovery = totalCosts > 0 ? (totalRevenue / totalCosts) * 100 : 0;
+
+        // حساب نسب التدوير والمعالجة البديلة
+        // إجمالي النفايات المتولدة = الكمية التي تم جمعها (المطمورة) + الكميات التي تمت معالجتها بطرق أخرى
+        const totalGenerated = currentStats.totalTons + (treatment?.totalTreated || 0);
+        const recyclingRate = totalGenerated > 0 ? ((treatment?.recyclablesTon || 0) / totalGenerated) * 100 : 0;
+        const alternativeTreatmentRate = totalGenerated > 0 ? ((treatment?.totalTreated || 0) / totalGenerated) * 100 : 0;
+
+        return { totalCosts, costPerTon, costPerTrip, avgTonsPerTrip, avgTripsPerDay, kgPerCapita, areasCount, costPerCapita, avgTripsPerVehicle, costRecovery, totalGenerated, recyclingRate, alternativeTreatmentRate };
+    }, [currentStats, totalSalaries, totalPopulation, totalRevenue, treatment]);
 
     if (!currentStats || !metrics) return null;
 
@@ -123,7 +142,9 @@ const KpiGrid: React.FC<KpiGridProps> = ({
         {
             title: t('sec_population'),
             cards: [
-                { value: (typeof totalPopulation === 'number' && !isNaN(totalPopulation)) ? formatNumber(totalPopulation) : '—', label: t('kpi_total_pop'), icon: '👥', color: 'text-cyan-600', emphasized: true },
+                { value: formatNumber(totalPopulation), label: t('kpi_total_pop'), icon: '👥', color: 'text-cyan-600', emphasized: true },
+                { value: formatNumber(totalServed), label: t('kpi_served_pop'), icon: '🏠', color: 'text-emerald-600' },
+                { value: formatNumber(coverageRate, 1) + '%', label: t('kpi_coverage_rate'), icon: '📡', color: 'text-indigo-600' },
                 { value: formatNumber(metrics.areasCount), label: t('kpi_areas_served'), icon: '📍', color: 'text-rose-500' },
                 { value: formatNumber(workers.length), label: t('kpi_workers_count'), icon: '👷', color: 'text-slate-700' }
             ]
@@ -141,9 +162,19 @@ const KpiGrid: React.FC<KpiGridProps> = ({
         {
             title: t('sec_waste_production'),
             cards: [
-                { value: formatNumber(Math.round(currentStats.totalTons)), label: t('kpi_total_tons'), icon: '🗑️', color: 'text-blue-600', comp: comparisonStats?.totalTons ? formatNumber(Math.round(comparisonStats.totalTons)) : undefined, emphasized: true },
+                { value: formatNumber(Math.round(metrics.totalGenerated)), label: t('kpi_total_tons'), icon: '🗑️', color: 'text-blue-600', emphasized: true },
                 { value: formatNumber(metrics.kgPerCapita, 1) + ' ' + t('unit_kg'), label: t('kpi_per_capita_waste'), icon: '👤', color: 'text-indigo-500' },
                 { value: formatNumber(currentStats.avgTonsPerDay, 1), label: t('kpi_daily_waste_rate'), icon: '📈', color: 'text-teal-600' }
+            ]
+        },
+        {
+            title: t('sec_treatment'),
+            cards: [
+                { value: formatNumber(metrics.recyclingRate, 1) + '%', label: t('kpi_recycling_rate'), icon: '♻️', color: 'text-emerald-600', emphasized: true },
+                { value: formatNumber(metrics.alternativeTreatmentRate, 1) + '%', label: t('kpi_alt_treatment_rate'), icon: '🧪', color: 'text-indigo-600' },
+                { value: formatNumber(treatment?.totalTreated, 1) + ' ' + t('unit_ton'), label: t('kpi_total_treated'), icon: '⚙️', color: 'text-blue-500' },
+                { value: formatNumber(treatment?.recyclablesTon, 1) + ' ' + t('unit_ton'), label: t('kpi_recyclables'), icon: '📦', color: 'text-amber-500' },
+                { value: formatNumber(treatment?.biowasteTon, 1) + ' ' + t('unit_ton'), label: t('kpi_biowaste'), icon: '🍎', color: 'text-orange-600' }
             ]
         },
         {
@@ -160,6 +191,8 @@ const KpiGrid: React.FC<KpiGridProps> = ({
             title: t('sec_financial'),
             cards: [
                 { value: formatNumber(Math.round(metrics.totalCosts)) + ' ' + t('unit_jd'), label: t('kpi_total_annual_expenses'), icon: '📈', color: 'text-emerald-800', emphasized: true },
+                { value: formatNumber(Math.round(totalRevenue)) + ' ' + t('unit_jd'), label: t('kpi_total_revenue'), icon: '💰', color: 'text-blue-800', comp: comparisonRevenue ? formatNumber(Math.round(comparisonRevenue)) : undefined, emphasized: true },
+                { value: formatNumber(metrics.costRecovery, 1) + '%', label: t('kpi_cost_recovery'), icon: '📈', color: 'text-indigo-700' },
                 { value: formatNumber(Math.round(totalSalaries)), label: t('kpi_total_salaries'), icon: '💵', color: 'text-emerald-700' },
                 { value: formatNumber(Math.round(currentStats.totalFuel)), label: t('kpi_fuel_cost'), icon: '⛽', color: 'text-orange-500', comp: comparisonStats?.totalFuel ? formatNumber(Math.round(comparisonStats.totalFuel)) : undefined },
                 { value: formatNumber(Math.round(currentStats.totalMaint)), label: t('kpi_maint_cost'), icon: '🔧', color: 'text-red-600', comp: comparisonStats?.totalMaint ? formatNumber(Math.round(comparisonStats.totalMaint)) : undefined },
@@ -171,10 +204,8 @@ const KpiGrid: React.FC<KpiGridProps> = ({
     ];
 
     const getGridColsClass = (count: number) => {
-        if (count === 3) return "md:grid-cols-3";
-        if (count === 5) return "md:grid-cols-5";
-        if (count === 6) return "md:grid-cols-3 lg:grid-cols-6";
-        if (count === 7) return "md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7";
+        if (count <= 3) return "md:grid-cols-3";
+        if (count === 5) return "md:grid-cols-3 lg:grid-cols-5";
         return "md:grid-cols-3 lg:grid-cols-4";
     };
 
