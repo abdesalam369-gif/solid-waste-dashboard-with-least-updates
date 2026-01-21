@@ -20,8 +20,8 @@ interface KpiGridProps {
     totalServed?: number;
     coverageRate?: number;
     workers: Worker[];
-    totalRevenue?: number;
-    comparisonRevenue?: number;
+    revenueDetail?: { total: number; hh: number; commercial: number; recycling: number } | null;
+    comparisonRevenueDetail?: { total: number; hh: number; commercial: number; recycling: number } | null;
     treatment?: (WasteTreatment & { totalTreated: number }) | null;
     comparisonTreatment?: (WasteTreatment & { totalTreated: number }) | null;
 }
@@ -30,7 +30,7 @@ const KpiGrid: React.FC<KpiGridProps> = ({
     filteredTrips, comparisonTrips, fuelData, maintData, filters, 
     selectedYear, comparisonYear, vehicleTableData, comparisonVehicleTableData,
     totalPopulation, totalServed, coverageRate, workers,
-    totalRevenue = 0, comparisonRevenue = 0,
+    revenueDetail, comparisonRevenueDetail,
     treatment, comparisonTreatment
 }) => {
     const { t } = useLanguage();
@@ -97,7 +97,6 @@ const KpiGrid: React.FC<KpiGridProps> = ({
             totalTons, totalTrips, totalFuel, totalMaint, avgTonsPerDay, daysCount,
             activeVehiclesCount: activeVehicles.size,
             topTrips: topTripsVal > 0 ? `${topTripsVeh} | ${formatNumber(topTripsVal)}` : '—',
-            // Fix: topTonsVeh is a string, so we must compare topTonsVal (number) to 0.
             topTons: topTonsVal > 0 ? `${topTonsVeh} | ${formatNumber(topTonsVal, 1)} ${t('unit_ton')}` : '—',
             avgCapacity
         };
@@ -125,16 +124,15 @@ const KpiGrid: React.FC<KpiGridProps> = ({
         const avgTripsPerVehicle = currentStats.activeVehiclesCount > 0 ? currentStats.totalTrips / currentStats.activeVehiclesCount : 0;
         const areasCount = totalPopulation ? 7 : 0; 
 
-        const costRecovery = totalCosts > 0 ? (totalRevenue / totalCosts) * 100 : 0;
+        const currentRevenueTotal = revenueDetail?.total || 0;
+        const costRecovery = totalCosts > 0 ? (currentRevenueTotal / totalCosts) * 100 : 0;
 
-        // حساب نسب التدوير والمعالجة البديلة
-        // إجمالي النفايات المتولدة = الكمية التي تم جمعها (المطمورة) + الكميات التي تمت معالجتها بطرق أخرى
         const totalGenerated = currentStats.totalTons + (treatment?.totalTreated || 0);
         const recyclingRate = totalGenerated > 0 ? ((treatment?.recyclablesTon || 0) / totalGenerated) * 100 : 0;
         const alternativeTreatmentRate = totalGenerated > 0 ? ((treatment?.totalTreated || 0) / totalGenerated) * 100 : 0;
 
         return { totalCosts, costPerTon, costPerTrip, avgTonsPerTrip, avgTripsPerDay, kgPerCapita, areasCount, costPerCapita, avgTripsPerVehicle, costRecovery, totalGenerated, recyclingRate, alternativeTreatmentRate };
-    }, [currentStats, totalSalaries, totalPopulation, totalRevenue, treatment]);
+    }, [currentStats, totalSalaries, totalPopulation, revenueDetail, treatment]);
 
     if (!currentStats || !metrics) return null;
 
@@ -191,7 +189,9 @@ const KpiGrid: React.FC<KpiGridProps> = ({
             title: t('sec_financial'),
             cards: [
                 { value: formatNumber(Math.round(metrics.totalCosts)) + ' ' + t('unit_jd'), label: t('kpi_total_annual_expenses'), icon: '📈', color: 'text-emerald-800', emphasized: true },
-                { value: formatNumber(Math.round(totalRevenue)) + ' ' + t('unit_jd'), label: t('kpi_total_revenue'), icon: '💰', color: 'text-blue-800', comp: comparisonRevenue ? formatNumber(Math.round(comparisonRevenue)) : undefined, emphasized: true },
+                { value: formatNumber(Math.round(revenueDetail?.total || 0)) + ' ' + t('unit_jd'), label: t('kpi_total_revenue'), icon: '💰', color: 'text-blue-800', comp: comparisonRevenueDetail?.total ? formatNumber(Math.round(comparisonRevenueDetail.total)) : undefined, emphasized: true },
+                { value: formatNumber(Math.round(revenueDetail?.hh || 0)) + ' ' + t('unit_jd'), label: t('kpi_hh_revenue'), icon: '🏠', color: 'text-blue-600' },
+                { value: formatNumber(Math.round(revenueDetail?.commercial || 0)) + ' ' + t('unit_jd'), label: t('kpi_commercial_revenue'), icon: '🏢', color: 'text-indigo-600' },
                 { value: formatNumber(metrics.costRecovery, 1) + '%', label: t('kpi_cost_recovery'), icon: '📈', color: 'text-indigo-700' },
                 { value: formatNumber(Math.round(totalSalaries)), label: t('kpi_total_salaries'), icon: '💵', color: 'text-emerald-700' },
                 { value: formatNumber(Math.round(currentStats.totalFuel)), label: t('kpi_fuel_cost'), icon: '⛽', color: 'text-orange-500', comp: comparisonStats?.totalFuel ? formatNumber(Math.round(comparisonStats.totalFuel)) : undefined },

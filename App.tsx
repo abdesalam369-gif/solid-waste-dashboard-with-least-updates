@@ -313,15 +313,23 @@ const AppContent: React.FC = () => {
     }, [areaPopulationStats, filters.vehicles, filteredVehicleTableData]);
 
     const financialTotals = useMemo(() => {
-        const getYearRevenue = (year: string) => {
-            if (!year) return 0;
+        const getYearRevenueDetail = (year: string) => {
+            if (!year) return { total: 0, hh: 0, commercial: 0, recycling: 0 };
             const yearRevenues = revenuesData.filter(r => r.year === year);
-            return yearRevenues.reduce((sum, r) => sum + r.hhFees + r.commercialFees + r.recyclingRevenue, 0);
+            const hh = yearRevenues.reduce((sum, r) => sum + r.hhFees, 0);
+            const commercial = yearRevenues.reduce((sum, r) => sum + r.commercialFees, 0);
+            const recycling = yearRevenues.reduce((sum, r) => sum + r.recyclingRevenue, 0);
+            return {
+                total: hh + commercial + recycling,
+                hh,
+                commercial,
+                recycling
+            };
         };
 
         return {
-            currentRevenue: getYearRevenue(selectedYear),
-            comparisonRevenue: comparisonYear ? getYearRevenue(comparisonYear) : 0
+            current: getYearRevenueDetail(selectedYear),
+            comparison: getYearRevenueDetail(comparisonYear)
         };
     }, [revenuesData, selectedYear, comparisonYear]);
 
@@ -393,8 +401,8 @@ const AppContent: React.FC = () => {
                             totalServed={populationTotals.totalServed}
                             coverageRate={populationTotals.coverageRate}
                             workers={workersData}
-                            totalRevenue={financialTotals.currentRevenue}
-                            comparisonRevenue={financialTotals.comparisonRevenue}
+                            revenueDetail={financialTotals.current}
+                            comparisonRevenueDetail={financialTotals.comparison}
                             treatment={treatmentTotals.current}
                             comparisonTreatment={treatmentTotals.comparison}
                         />
