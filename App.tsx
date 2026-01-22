@@ -21,6 +21,7 @@ import AnnualSummarySection from './components/AnnualSummarySection';
 import AiChat from './components/AiChat';
 import Sidebar from './components/Sidebar';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 const AppContent: React.FC = () => {
     const { language, t } = useLanguage();
@@ -512,7 +513,7 @@ const AppContent: React.FC = () => {
     const isRtl = language === 'ar';
 
     return (
-        <div className={`bg-slate-50 text-slate-800 min-h-screen flex overflow-hidden ${isRtl ? 'font-arabic' : 'font-sans'}`}>
+        <div className={`bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex overflow-hidden transition-colors duration-300 ${isRtl ? 'font-arabic' : 'font-sans'}`}>
             <Sidebar 
                 activeTab={activeTab} 
                 setActiveTab={setActiveTab} 
@@ -550,9 +551,11 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
     return (
-        <LanguageProvider>
-            <AppContent />
-        </LanguageProvider>
+        <ThemeProvider>
+            <LanguageProvider>
+                <AppContent />
+            </LanguageProvider>
+        </ThemeProvider>
     );
 };
 

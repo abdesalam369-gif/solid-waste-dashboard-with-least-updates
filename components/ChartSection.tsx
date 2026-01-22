@@ -6,6 +6,7 @@ import { MONTHS_ORDER } from '../constants';
 import CollapsibleSection from './CollapsibleSection';
 import { printChart } from '../services/printService';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface ChartSectionProps {
     data: Trip[];
@@ -19,8 +20,13 @@ interface ChartSectionProps {
 
 const ChartSection: React.FC<ChartSectionProps> = ({ data, comparisonData, isLoading, filters, selectedYear, comparisonYear, chartRef }) => {
     const { t, language } = useLanguage();
+    const { theme } = useTheme();
     const [groupBy, setGroupBy] = useState<'month' | 'day'>('month');
     const [metric, setMetric] = useState<'trips' | 'tons'>('trips');
+
+    const isDark = theme === 'dark';
+    const axisColor = isDark ? '#94a3b8' : '#64748b';
+    const gridColor = isDark ? '#334155' : '#e2e8f0';
 
     const chartData = useMemo(() => {
         const process = (trips: Trip[]) => {
@@ -71,17 +77,17 @@ const ChartSection: React.FC<ChartSectionProps> = ({ data, comparisonData, isLoa
         <CollapsibleSection title={t('sec_time_series')}>
             <div className="flex flex-wrap items-center gap-4 mb-4 text-sm">
                 <div>
-                    <label htmlFor="timeGroup" className="ml-2 font-semibold">{t('chart_grouping')}</label>
+                    <label htmlFor="timeGroup" className="ml-2 font-semibold text-slate-700 dark:text-slate-300">{t('chart_grouping')}</label>
                     <select id="timeGroup" value={groupBy} onChange={e => setGroupBy(e.target.value as 'month' | 'day')}
-                        className="p-2 border border-slate-300 rounded-lg">
+                        className="p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                         <option value="month">{t('chart_monthly')}</option>
                         <option value="day">{t('chart_daily')}</option>
                     </select>
                 </div>
                 <div>
-                    <label htmlFor="metric" className="ml-2 font-semibold">{t('chart_value')}</label>
+                    <label htmlFor="metric" className="ml-2 font-semibold text-slate-700 dark:text-slate-300">{t('chart_value')}</label>
                     <select id="metric" value={metric} onChange={e => setMetric(e.target.value as 'trips' | 'tons')}
-                        className="p-2 border border-slate-300 rounded-lg">
+                        className="p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                         <option value="trips">{t('chart_trips')}</option>
                         <option value="tons">{t('chart_tons')}</option>
                     </select>
@@ -92,17 +98,20 @@ const ChartSection: React.FC<ChartSectionProps> = ({ data, comparisonData, isLoa
             </div>
             <div className="h-96 w-full relative" ref={chartRef}>
                  {isLoading && (
-                    <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
-                        <div className="w-12 h-12 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
+                        <div className="w-12 h-12 border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 rounded-full animate-spin"></div>
                     </div>
                 )}
                 <ResponsiveContainer>
                     <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
+                        <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                        <XAxis dataKey="name" tick={{ fill: axisColor }} stroke={gridColor} />
+                        <YAxis tick={{ fill: axisColor }} stroke={gridColor} />
+                        <Tooltip 
+                            contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderColor: isDark ? '#334155' : '#e2e8f0', color: isDark ? '#f1f5f9' : '#1e293b' }}
+                            itemStyle={{ color: isDark ? '#cbd5e1' : '#475569' }}
+                        />
+                        <Legend wrapperStyle={{ color: axisColor }} />
                         <Line 
                             type="monotone" 
                             dataKey="current" 

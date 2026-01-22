@@ -5,6 +5,7 @@ import { formatNumber } from '../services/dataService';
 import { printTable } from '../services/printService';
 import CollapsibleSection from './CollapsibleSection';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { 
     PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
     BarChart, Bar, XAxis, YAxis, CartesianGrid
@@ -19,8 +20,12 @@ interface FinancialManagementSectionProps {
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'];
 
 const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({ workers, vehicleData, selectedYear }) => {
-    /* Fix: Destructure 'language' as it's required for printTable */
     const { t, language } = useLanguage();
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+    const axisColor = isDark ? '#94a3b8' : '#64748b';
+    const gridColor = isDark ? '#334155' : '#e2e8f0';
+
     const tableContainerRef = useRef<HTMLDivElement>(null);
 
     const areaMapping: {[key: string]: string} = {
@@ -105,25 +110,25 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                     <div className="text-3xl font-black">{formatCurrency(financialSummary.grandTotal)}</div>
                 </div>
                 
-                <div className="bg-white p-6 rounded-3xl shadow-md border-b-4 border-blue-500">
-                    <div className="text-slate-400 text-xs font-bold mb-2 text-right">{t('kpi_cost_per_ton')}</div>
-                    <div className="text-3xl font-black text-blue-600">{formatNumber(financialSummary.costPerTonOverall, 2)} <span className="text-sm font-normal text-slate-400">{t('unit_jd')}/{t('unit_ton')}</span></div>
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-md border-b-4 border-blue-500 transition-colors">
+                    <div className="text-slate-400 dark:text-slate-500 text-xs font-bold mb-2 text-right">{t('kpi_cost_per_ton')}</div>
+                    <div className="text-3xl font-black text-blue-600 dark:text-blue-400">{formatNumber(financialSummary.costPerTonOverall, 2)} <span className="text-sm font-normal text-slate-400">{t('unit_jd')}/{t('unit_ton')}</span></div>
                 </div>
 
-                <div className="bg-white p-6 rounded-3xl shadow-md border-b-4 border-amber-500">
-                    <div className="text-slate-400 text-xs font-bold mb-2 text-right">{t('th_operational_cost')}</div>
-                    <div className="text-3xl font-black text-amber-600">{formatCurrency(financialSummary.totalFuel + financialSummary.totalMaint)}</div>
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-md border-b-4 border-amber-500 transition-colors">
+                    <div className="text-slate-400 dark:text-slate-500 text-xs font-bold mb-2 text-right">{t('th_operational_cost')}</div>
+                    <div className="text-3xl font-black text-amber-600 dark:text-amber-400">{formatCurrency(financialSummary.totalFuel + financialSummary.totalMaint)}</div>
                 </div>
 
-                <div className="bg-white p-6 rounded-3xl shadow-md border-b-4 border-indigo-500">
-                    <div className="text-slate-400 text-xs font-bold mb-2 text-right">{t('th_total_salaries')}</div>
-                    <div className="text-3xl font-black text-indigo-600">{formatCurrency(financialSummary.totalSalaries)}</div>
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-md border-b-4 border-indigo-500 transition-colors">
+                    <div className="text-slate-400 dark:text-slate-500 text-xs font-bold mb-2 text-right">{t('th_total_salaries')}</div>
+                    <div className="text-3xl font-black text-indigo-600 dark:text-indigo-400">{formatCurrency(financialSummary.totalSalaries)}</div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
-                <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100 shadow-inner">
-                    <h4 className="text-sm font-black text-slate-700 mb-6 text-right">{t('sec_financial')}</h4>
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-inner">
+                    <h4 className="text-sm font-black text-slate-700 dark:text-slate-300 mb-6 text-right">{t('sec_financial')}</h4>
                     <div className="h-64 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -140,22 +145,28 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>
-                                <Tooltip formatter={(val: number) => formatCurrency(val)} />
-                                <Legend />
+                                <Tooltip 
+                                    contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderColor: isDark ? '#334155' : '#e2e8f0', color: isDark ? '#fff' : '#000' }}
+                                    formatter={(val: number) => formatCurrency(val)} 
+                                />
+                                <Legend wrapperStyle={{ color: axisColor }} />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
-                <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100 shadow-inner">
-                    <h4 className="text-sm font-black text-slate-700 mb-6 text-right">{t('th_budget')}</h4>
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-inner">
+                    <h4 className="text-sm font-black text-slate-700 dark:text-slate-300 mb-6 text-right">{t('th_budget')}</h4>
                     <div className="h-64 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={areaFinancials.slice(0, 5)} layout="vertical">
-                                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e2e8f0" />
+                                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke={gridColor} />
                                 <XAxis type="number" hide />
-                                <YAxis dataKey="displayName" type="category" tick={{fontSize: 10, fontWeight: 700}} width={80} />
-                                <Tooltip formatter={(val: number) => formatCurrency(val)} />
+                                <YAxis dataKey="displayName" type="category" tick={{fontSize: 10, fontWeight: 700, fill: axisColor}} width={80} />
+                                <Tooltip 
+                                    contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderColor: isDark ? '#334155' : '#e2e8f0', color: isDark ? '#fff' : '#000' }}
+                                    formatter={(val: number) => formatCurrency(val)} 
+                                />
                                 <Bar dataKey="total" fill="#4f46e5" radius={[0, 5, 5, 0]} barSize={20} />
                             </BarChart>
                         </ResponsiveContainer>
@@ -163,25 +174,25 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                 </div>
             </div>
 
-            <div className="overflow-x-auto bg-white rounded-3xl border border-slate-200 shadow-sm" ref={tableContainerRef}>
-                <table className="w-full text-sm text-center border-collapse">
-                    <thead className="bg-slate-50">
+            <div className="overflow-x-auto rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm" ref={tableContainerRef}>
+                <table className="w-full text-sm text-center border-collapse bg-white dark:bg-slate-900">
+                    <thead className="bg-slate-50 dark:bg-slate-800">
                         <tr>
-                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase text-right pr-10">{t('th_area')}</th>
-                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">{t('th_total_salaries')}</th>
-                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">{t('th_operational_cost')}</th>
-                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">{t('th_budget')}</th>
-                            <th className="p-4 border-b border-slate-200 text-slate-500 font-black text-[10px] uppercase">{t('th_cost_ton')}</th>
+                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase text-right pr-10">{t('th_area')}</th>
+                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase">{t('th_total_salaries')}</th>
+                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase">{t('th_operational_cost')}</th>
+                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase">{t('th_budget')}</th>
+                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase">{t('th_cost_ton')}</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {areaFinancials.map((area, idx) => (
-                            <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                                <td className="p-4 font-bold text-slate-800 text-right pr-10">{area.displayName}</td>
-                                <td className="p-4 text-slate-600">{formatCurrency(area.salaries)}</td>
-                                <td className="p-4 text-slate-600">{formatCurrency(area.operational)}</td>
-                                <td className="p-4 font-black text-emerald-700">{formatCurrency(area.total)}</td>
-                                <td className="p-4 font-black text-blue-600">{formatNumber(area.efficiency, 1)} {t('unit_jd')}</td>
+                            <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                <td className="p-4 font-bold text-slate-800 dark:text-slate-200 text-right pr-10">{area.displayName}</td>
+                                <td className="p-4 text-slate-600 dark:text-slate-400">{formatCurrency(area.salaries)}</td>
+                                <td className="p-4 text-slate-600 dark:text-slate-400">{formatCurrency(area.operational)}</td>
+                                <td className="p-4 font-black text-emerald-700 dark:text-emerald-400">{formatCurrency(area.total)}</td>
+                                <td className="p-4 font-black text-blue-600 dark:text-blue-400">{formatNumber(area.efficiency, 1)} {t('unit_jd')}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -192,7 +203,7 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                 <button 
                     /* Fix: Pass missing 't' and 'language' arguments to printTable */
                     onClick={() => printTable(tableContainerRef, t('sec_financial_mgmt'), { vehicles: new Set(), months: new Set() }, t, language)}
-                    className="flex items-center gap-2 bg-slate-800 text-white px-6 py-2 rounded-xl text-xs font-bold hover:bg-slate-900 transition-all shadow-md"
+                    className="flex items-center gap-2 bg-slate-800 dark:bg-slate-700 text-white px-6 py-2 rounded-xl text-xs font-bold hover:bg-slate-900 dark:hover:bg-slate-600 transition-all shadow-md"
                 >
                     {t('print')}
                 </button>

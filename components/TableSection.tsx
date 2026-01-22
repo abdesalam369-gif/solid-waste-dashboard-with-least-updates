@@ -88,9 +88,9 @@ const TableSection: React.FC<TableSectionProps> = ({ tableData, filters, title }
         <CollapsibleSection title={title || t('sec_veh_eff')}>
              <div className="flex items-center gap-4 mb-4 text-sm">
                 <div>
-                    <label htmlFor="tableSort" className="ml-2 font-semibold">{t('chart_grouping')}</label>
+                    <label htmlFor="tableSort" className="ml-2 font-semibold text-slate-700 dark:text-slate-300">{t('chart_grouping')}</label>
                     <select id="tableSort" value={sortBy} onChange={e => setSortBy(e.target.value as keyof VehicleTableData)}
-                        className="p-2 border border-slate-300 rounded-lg">
+                        className="p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                         {headers.map(h => <option key={h.key} value={h.key}>{h.label}</option>)}
                     </select>
                 </div>
@@ -98,44 +98,44 @@ const TableSection: React.FC<TableSectionProps> = ({ tableData, filters, title }
                     {t('print')}
                 </button>
             </div>
-            <div className="overflow-x-auto" ref={tableContainerRef}>
-                <table className="w-full text-sm text-center border-collapse">
-                    <thead className="bg-slate-100">
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700" ref={tableContainerRef}>
+                <table className="w-full text-sm text-center border-collapse bg-white dark:bg-slate-900">
+                    <thead className="bg-slate-100 dark:bg-slate-800">
                         <tr>
-                            {headers.map(h => <th key={h.key} className="p-2 border-b border-slate-200 font-semibold text-slate-600">{h.label}</th>)}
+                            {headers.map(h => <th key={h.key} className="p-2 border-b border-slate-200 dark:border-slate-700 font-semibold text-slate-600 dark:text-slate-300">{h.label}</th>)}
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {sortedData.map(row => (
-                            <tr key={row.veh} className="hover:bg-slate-50">
-                                <td className="p-2 border-b border-slate-200 font-bold">{row.veh}</td>
-                                <td className="p-2 border-b border-slate-200">{areaMapping[row.area] || row.area}</td>
-                                <td className={`p-2 border-b border-slate-200 ${row.drivers.includes(',') ? 'text-xs' : ''}`}>{row.drivers}</td>
-                                <td className="p-2 border-b border-slate-200">{row.year}</td>
-                                <td className="p-2 border-b border-slate-200">{formatNumber(row.cap_m3, 1)}</td>
-                                <td className="p-2 border-b border-slate-200">{formatNumber(row.cap_ton, 1)}</td>
-                                <td className="p-2 border-b border-slate-200">{formatNumber(row.trips)}</td>
-                                <td className="p-2 border-b border-slate-200">{formatNumber(row.tons, 1)}</td>
-                                <td className="p-2 border-b border-slate-200">{formatNumber(row.fuel, 1)}</td>
-                                <td className="p-2 border-b border-slate-200">{formatNumber(row.maint, 1)}</td>
-                                <td className="p-2 border-b border-slate-200 font-semibold text-blue-600">{formatNumber(row.cost_trip, 1)}</td>
-                                <td className="p-2 border-b border-slate-200 font-semibold text-blue-600">{formatNumber(row.cost_ton, 1)}</td>
-                                <td className="p-2 border-b border-slate-200">{formatNumber(row.distance, 1)}</td>
-                                <td className="p-2 border-b border-slate-200 font-semibold text-indigo-600">{formatNumber(row.km_per_trip, 1)}</td>
+                            <tr key={row.veh} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 font-bold text-slate-800 dark:text-slate-200">{row.veh}</td>
+                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">{areaMapping[row.area] || row.area}</td>
+                                <td className={`p-2 border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 ${row.drivers.includes(',') ? 'text-xs' : ''}`}>{row.drivers}</td>
+                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">{row.year}</td>
+                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">{formatNumber(row.cap_m3, 1)}</td>
+                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">{formatNumber(row.cap_ton, 1)}</td>
+                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">{formatNumber(row.trips)}</td>
+                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">{formatNumber(row.tons, 1)}</td>
+                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">{formatNumber(row.fuel, 1)}</td>
+                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">{formatNumber(row.maint, 1)}</td>
+                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 font-semibold text-blue-600 dark:text-blue-400">{formatNumber(row.cost_trip, 1)}</td>
+                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 font-semibold text-blue-600 dark:text-blue-400">{formatNumber(row.cost_ton, 1)}</td>
+                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">{formatNumber(row.distance, 1)}</td>
+                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 font-semibold text-indigo-600 dark:text-indigo-400">{formatNumber(row.km_per_trip, 1)}</td>
                             </tr>
                         ))}
                         {totals && (
-                            <tr className="font-bold bg-slate-200">
-                                <td className="p-2 border-b border-slate-300">{t('total_avg')}</td>
-                                <td colSpan={5} className="p-2 border-b border-slate-300"></td>
-                                <td className="p-2 border-b border-slate-300">{formatNumber(totals.totalTrips)}</td>
-                                <td className="p-2 border-b border-slate-300">{formatNumber(totals.totalTons, 1)}</td>
-                                <td className="p-2 border-b border-slate-300">{formatNumber(totals.totalFuel, 1)}</td>
-                                <td className="p-2 border-b border-slate-300">{formatNumber(totals.totalMaint, 1)}</td>
-                                <td className="p-2 border-b border-slate-300 text-blue-700">{formatNumber(totals.avgCostTrip, 1)}</td>
-                                <td className="p-2 border-b border-slate-300 text-blue-700">{formatNumber(totals.avgCostTon, 1)}</td>
-                                <td className="p-2 border-b border-slate-300">{formatNumber(totals.totalDistance, 1)}</td>
-                                <td className="p-2 border-b border-slate-300 text-indigo-800" colSpan={1}>{formatNumber(totals.avgKmTrip, 1)}</td>
+                            <tr className="font-bold bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-100">
+                                <td className="p-2 border-b border-slate-300 dark:border-slate-700">{t('total_avg')}</td>
+                                <td colSpan={5} className="p-2 border-b border-slate-300 dark:border-slate-700"></td>
+                                <td className="p-2 border-b border-slate-300 dark:border-slate-700">{formatNumber(totals.totalTrips)}</td>
+                                <td className="p-2 border-b border-slate-300 dark:border-slate-700">{formatNumber(totals.totalTons, 1)}</td>
+                                <td className="p-2 border-b border-slate-300 dark:border-slate-700">{formatNumber(totals.totalFuel, 1)}</td>
+                                <td className="p-2 border-b border-slate-300 dark:border-slate-700">{formatNumber(totals.totalMaint, 1)}</td>
+                                <td className="p-2 border-b border-slate-300 dark:border-slate-700 text-blue-700 dark:text-blue-300">{formatNumber(totals.avgCostTrip, 1)}</td>
+                                <td className="p-2 border-b border-slate-300 dark:border-slate-700 text-blue-700 dark:text-blue-300">{formatNumber(totals.avgCostTon, 1)}</td>
+                                <td className="p-2 border-b border-slate-300 dark:border-slate-700">{formatNumber(totals.totalDistance, 1)}</td>
+                                <td className="p-2 border-b border-slate-300 dark:border-slate-700 text-indigo-800 dark:text-indigo-300" colSpan={1}>{formatNumber(totals.avgKmTrip, 1)}</td>
                             </tr>
                         )}
                     </tbody>

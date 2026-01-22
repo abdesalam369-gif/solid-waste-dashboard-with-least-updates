@@ -64,9 +64,9 @@ const UtilizationSection: React.FC<UtilizationSectionProps> = ({ tableData, filt
         <CollapsibleSection title={t('sec_utilization')}>
             <div className="flex items-center gap-4 mb-4 text-sm">
                 <div>
-                    <label htmlFor="utilizationSort" className="ml-2 font-semibold">{t('chart_grouping')}</label>
+                    <label htmlFor="utilizationSort" className="ml-2 font-semibold text-slate-700 dark:text-slate-300">{t('chart_grouping')}</label>
                     <select id="utilizationSort" value={sortBy} onChange={e => setSortBy(e.target.value as keyof UtilizationData)}
-                        className="p-2 border border-slate-300 rounded-lg">
+                        className="p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                         {headers.map(h => <option key={h.key} value={h.key}>{h.label}</option>)}
                     </select>
                 </div>
@@ -74,20 +74,20 @@ const UtilizationSection: React.FC<UtilizationSectionProps> = ({ tableData, filt
                     {t('print')}
                 </button>
             </div>
-            <div className="overflow-x-auto" ref={tableContainerRef}>
-                <table id="utilization-table" className="w-full text-sm text-center border-collapse">
-                    <thead className="bg-slate-100">
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700" ref={tableContainerRef}>
+                <table id="utilization-table" className="w-full text-sm text-center border-collapse bg-white dark:bg-slate-900">
+                    <thead className="bg-slate-100 dark:bg-slate-800">
                         <tr>
-                            {headers.map(h => <th key={h.key} className="p-2 border-b border-slate-200 font-semibold text-slate-600">{h.label}</th>)}
+                            {headers.map(h => <th key={h.key} className="p-2 border-b border-slate-200 dark:border-slate-700 font-semibold text-slate-600 dark:text-slate-300">{h.label}</th>)}
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {sortedData.map(row => (
-                            <tr key={row.veh} className={`hover:bg-slate-50 ${row.utilization < 50 ? 'bg-red-100 underutilized' : ''}`}>
-                                <td className="p-2 border-b border-slate-200">{row.veh}</td>
-                                <td className="p-2 border-b border-slate-200">{formatNumber(row.cap_ton, 1)}</td>
-                                <td className="p-2 border-b border-slate-200">{formatNumber(row.avgTonsPerTrip, 1)}</td>
-                                <td className="p-2 border-b border-slate-200 font-bold">{formatNumber(row.utilization, 1)}%</td>
+                            <tr key={row.veh} className={`hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${row.utilization < 50 ? 'bg-red-50 dark:bg-red-900/20' : ''}`}>
+                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200">{row.veh}</td>
+                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">{formatNumber(row.cap_ton, 1)}</td>
+                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">{formatNumber(row.avgTonsPerTrip, 1)}</td>
+                                <td className={`p-2 border-b border-slate-200 dark:border-slate-700 font-bold ${row.utilization < 50 ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-100'}`}>{formatNumber(row.utilization, 1)}%</td>
                             </tr>
                         ))}
                     </tbody>

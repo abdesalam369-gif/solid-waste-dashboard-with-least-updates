@@ -21,6 +21,8 @@ export const translations = {
     all_employees: "كافة الموظفين",
     by_job: "حسب المسمى الوظيفي",
     by_area: "حسب المنطقة",
+    theme_dark: "الوضع الداكن",
+    theme_light: "الوضع الفاتح",
 
     // Sidebar
     menu_summary: "ملخص الأداء السنوي",
@@ -171,7 +173,7 @@ export const translations = {
     unit_capita: "فرد",
     unit_worker: "عامل",
     comparison: "مقارنة",
-    primary_kpi: "المؤشرات الأساسية",
+    primary_kpi: "المؤشارات الأساسية",
     total_avg: "الإجمالي / المتوسط",
 
     // AI Section
@@ -235,6 +237,8 @@ export const translations = {
     all_employees: "All Staff",
     by_job: "By Job Title",
     by_area: "By Area",
+    theme_dark: "Dark Mode",
+    theme_light: "Light Mode",
 
     // Sidebar
     menu_summary: "Annual Performance Summary",

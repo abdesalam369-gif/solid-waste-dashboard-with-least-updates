@@ -2,13 +2,14 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Trip } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface HeaderProps {
     tripsData: Trip[];
     filters: { vehicles: Set<string>; months: Set<string> };
     selectedYear: string;
     comparisonYear: string;
-    activeTab: string; // إضافة التبويب النشط
+    activeTab: string;
     onYearChange: (year: string) => void;
     onComparisonYearChange: (year: string) => void;
     onFilterToggle: (type: 'vehicles' | 'months', value: string) => void;
@@ -45,14 +46,14 @@ const FilterDropdown: React.FC<{
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`px-4 py-2 border-none rounded-lg text-sm font-semibold cursor-pointer shadow-md transition hover:opacity-90 ${isSingle && selectedItems ? `${activeColor} text-white` : 'bg-white text-slate-800'}`}
+                className={`px-4 py-2 border-none rounded-lg text-sm font-semibold cursor-pointer shadow-md transition hover:opacity-90 ${isSingle && selectedItems ? `${activeColor} text-white` : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100'}`}
             >
                 {buttonText} {isSingle && selectedItems ? `: ${selectedItems}` : '▼'}
             </button>
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-10 max-h-64 overflow-y-auto p-2">
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl z-10 max-h-64 overflow-y-auto p-2 border border-slate-100 dark:border-slate-700">
                     {items.map(item => (
-                        <label key={item} className="flex items-center space-x-2 p-2 rounded-md hover:bg-slate-100 cursor-pointer">
+                        <label key={item} className="flex items-center space-x-2 p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer">
                             <input
                                 type={isSingle ? "radio" : "checkbox"}
                                 name={isSingle ? "single-select" : undefined}
@@ -64,13 +65,13 @@ const FilterDropdown: React.FC<{
                                 }}
                                 className="form-checkbox h-4 w-4 text-blue-600 rounded"
                             />
-                            <span className="text-sm text-slate-700">{item}</span>
+                            <span className="text-sm text-slate-700 dark:text-slate-200">{item}</span>
                         </label>
                     ))}
                     {isSingle && selectedItems && (
                         <button 
                             onClick={() => { onToggle(''); setIsOpen(false); }}
-                            className="w-full text-center p-2 text-xs text-red-500 hover:bg-red-50"
+                            className="w-full text-center p-2 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
                         >
                             إلغاء التحديد
                         </button>
@@ -82,15 +83,14 @@ const FilterDropdown: React.FC<{
 };
 
 const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, comparisonYear, activeTab, onYearChange, onComparisonYearChange, onFilterToggle, onResetFilters }) => {
-    // Destructure setLanguage from useLanguage to fix line 298 error
     const { t, language, setLanguage } = useLanguage();
+    const { theme, toggleTheme } = useTheme();
     
     const vehicles = useMemo(() => [...new Set(tripsData.map(r => r['رقم المركبة']).filter(Boolean))].sort(), [tripsData]);
     const months = useMemo(() => [...new Set(tripsData.map(r => (r['الشهر'] || '').toLowerCase()).filter(Boolean))], [tripsData]);
     const years = useMemo(() => [...new Set(tripsData.map(r => r['السنة']).filter(Boolean))].sort().reverse(), [tripsData]);
 
     const printKPIs = () => {
-        // تحديد العنصر المستهدف بناءً على التبويب النشط
         let targetId = '';
         let reportTitle = '';
         
@@ -101,7 +101,6 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
             targetId = 'kpi-grid';
             reportTitle = t('menu_kpi');
         } else {
-            // في حال كان التبويب لا يحتوي على مؤشرات كرتية (مثل التشارتات أو الجداول)
             window.print();
             return;
         }
@@ -120,7 +119,6 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                 day: 'numeric'
             });
 
-            // الحصول على كافة الأقسام (المجموعات)
             const sections = container.querySelectorAll('div.space-y-6');
             let fullHtml = '';
 
@@ -307,6 +305,13 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2">
                 <button
+                    onClick={toggleTheme}
+                    className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition border border-white/10"
+                    title={theme === 'light' ? t('theme_dark') : t('theme_light')}
+                >
+                    {theme === 'light' ? '🌙' : '☀️'}
+                </button>
+                <button
                     onClick={toggleLanguage}
                     className="px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-bold transition flex items-center gap-2 border border-white/10"
                 >
@@ -326,7 +331,7 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                     selectedItems={comparisonYear}
                     onToggle={onComparisonYearChange}
                     isSingle={true}
-                    activeColor="bg-slate-700"
+                    activeColor="bg-slate-700 dark:bg-slate-900"
                 />
                 <div className="w-px h-8 bg-white/30 mx-2 hidden md:block"></div>
                 <FilterDropdown

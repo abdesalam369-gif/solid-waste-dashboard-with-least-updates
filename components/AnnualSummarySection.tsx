@@ -44,8 +44,6 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
         const costPerTon = totalGeneratedTons > 0 ? totalCost / totalGeneratedTons : 0;
         const costPerCapita = totalPopulation > 0 ? totalCost / totalPopulation : 0;
         
-        // حساب نسبة كلفة القدرة على التحمل (Cost Affordability)
-        // الحد المسموح به للبلديات من الفئة الثانية هو 4.9 دينار للفرد سنوياً
         const affordabilityLimit = 4.9;
         const costAffordability = (costPerCapita / affordabilityLimit) * 100;
         
@@ -99,7 +97,7 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
                     value: formatNumber(stats.costAffordability, 1) + '%', 
                     label: t('kpi_sum_cost_affordability'), 
                     icon: '🛡️', 
-                    color: stats.costAffordability > 100 ? 'text-red-600' : 'text-indigo-600' 
+                    color: stats.costAffordability > 100 ? 'text-red-600' : 'text-indigo-600 dark:text-indigo-400' 
                 },
                 { value: formatNumber(Math.round(stats.totalRevenue)) + ' ' + t('unit_jd'), label: t('kpi_sum_total_revenue'), icon: '💵', color: 'text-blue-700' },
                 { value: formatNumber(stats.costRecovery, 1) + '%', label: t('kpi_sum_cost_recovery'), icon: '⚖️', color: 'text-teal-600' },
@@ -116,9 +114,9 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
 
     return (
         <div id="annual-summary-content" className="space-y-10 animate-in fade-in duration-500">
-            <div className="bg-white p-8 rounded-[40px] shadow-sm border border-slate-100 flex justify-between items-center">
-                <h2 className="text-2xl font-black text-slate-800">{t('sec_annual_summary')} - {selectedYear}</h2>
-                <div className="px-6 py-2 bg-blue-50 text-blue-700 rounded-2xl font-bold border border-blue-100">
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] shadow-sm dark:shadow-none border border-slate-100 dark:border-slate-800 flex justify-between items-center transition-colors">
+                <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">{t('sec_annual_summary')} - {selectedYear}</h2>
+                <div className="px-6 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-2xl font-bold border border-blue-100 dark:border-blue-900/50">
                     {t('primary_kpi')}
                 </div>
             </div>
@@ -126,11 +124,11 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
             {groups.map((group, gIdx) => (
                 <div key={gIdx} className="space-y-6">
                     <div className="flex items-center gap-4 px-2">
-                        <div className="h-8 w-1.5 bg-slate-300 rounded-full"></div>
-                        <h3 className="text-lg font-bold text-slate-600 tracking-tight">
+                        <div className="h-8 w-1.5 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
+                        <h3 className="text-lg font-bold text-slate-600 dark:text-slate-400 tracking-tight">
                             {group.title}
                         </h3>
-                        <div className="flex-1 h-px bg-slate-100"></div>
+                        <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800"></div>
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">

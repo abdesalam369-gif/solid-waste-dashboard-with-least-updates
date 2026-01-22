@@ -4,6 +4,7 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recha
 import CollapsibleSection from './CollapsibleSection';
 import { printChart } from '../services/printService';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface AreaChartSectionProps {
     data: { name: string; value: number }[];
@@ -16,6 +17,8 @@ const COLORS = ['#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#f97316', '#eab308'
 
 const AreaChartSection: React.FC<AreaChartSectionProps> = ({ data, isLoading, filters, chartRef }) => {
     const { t, language } = useLanguage();
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
 
     const areaMapping: {[key: string]: string} = {
         'الطيبة': t('area_taybeh'),
@@ -44,9 +47,9 @@ const AreaChartSection: React.FC<AreaChartSectionProps> = ({ data, isLoading, fi
                 : '';
             
             return (
-                <div className="bg-white p-2 border border-slate-200 rounded-lg shadow-sm">
-                    <p className="font-bold">{`${payload[0].name}`}</p>
-                    <p className="text-sm">{`${t('chart_amount')} ${payload[0].value.toLocaleString()} ${t('unit_ton')} ${percentDisplay}`}</p>
+                <div className="bg-white dark:bg-slate-800 p-2 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm">
+                    <p className="font-bold text-slate-800 dark:text-slate-100">{`${payload[0].name}`}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300">{`${t('chart_amount')} ${payload[0].value.toLocaleString()} ${t('unit_ton')} ${percentDisplay}`}</p>
                 </div>
             );
         }
@@ -88,8 +91,8 @@ const AreaChartSection: React.FC<AreaChartSectionProps> = ({ data, isLoading, fi
             </div>
              <div className="h-96 w-full relative" ref={chartRef}>
                  {isLoading && (
-                    <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
-                        <div className="w-12 h-12 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
+                        <div className="w-12 h-12 border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 rounded-full animate-spin"></div>
                     </div>
                 )}
                 {!isLoading && totalValue > 0 ? (
@@ -111,11 +114,11 @@ const AreaChartSection: React.FC<AreaChartSectionProps> = ({ data, isLoading, fi
                                 ))}
                             </Pie>
                             <Tooltip content={<CustomTooltip />} />
-                            <Legend wrapperStyle={{fontSize: '0.875rem'}} />
+                            <Legend wrapperStyle={{ color: isDark ? '#94a3b8' : '#64748b' }} />
                         </PieChart>
                     </ResponsiveContainer>
                 ) : (
-                    !isLoading && <div className="absolute inset-0 flex items-center justify-center text-slate-500">
+                    !isLoading && <div className="absolute inset-0 flex items-center justify-center text-slate-500 dark:text-slate-400">
                         {t('chart_no_data')}
                     </div>
                 )}
