@@ -44,6 +44,11 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
         const costPerTon = totalGeneratedTons > 0 ? totalCost / totalGeneratedTons : 0;
         const costPerCapita = totalPopulation > 0 ? totalCost / totalPopulation : 0;
         
+        // حساب نسبة كلفة القدرة على التحمل (Cost Affordability)
+        // الحد المسموح به للبلديات من الفئة الثانية هو 4.9 دينار للفرد سنوياً
+        const affordabilityLimit = 4.9;
+        const costAffordability = (costPerCapita / affordabilityLimit) * 100;
+        
         const yearRevenues = revenues.filter(r => r.year === selectedYear);
         const totalRevenue = yearRevenues.reduce((sum, r) => sum + r.hhFees + r.commercialFees + r.recyclingRevenue, 0);
         
@@ -61,6 +66,7 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
             totalCost,
             costPerTon,
             costPerCapita,
+            costAffordability,
             totalRevenue,
             costRecovery,
             recyclingRate,
@@ -89,6 +95,12 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
                 { value: formatNumber(Math.round(stats.totalCost)) + ' ' + t('unit_jd'), label: t('kpi_sum_total_cost'), icon: '📈', color: 'text-indigo-600' },
                 { value: formatNumber(stats.costPerTon, 1) + ' ' + t('unit_jd'), label: t('kpi_sum_cost_ton'), icon: '💰', color: 'text-amber-600' },
                 { value: formatNumber(stats.costPerCapita, 1) + ' ' + t('unit_jd'), label: t('kpi_sum_cost_capita'), icon: '🏷️', color: 'text-slate-700' },
+                { 
+                    value: formatNumber(stats.costAffordability, 1) + '%', 
+                    label: t('kpi_sum_cost_affordability'), 
+                    icon: '🛡️', 
+                    color: stats.costAffordability > 100 ? 'text-red-600' : 'text-indigo-600' 
+                },
                 { value: formatNumber(Math.round(stats.totalRevenue)) + ' ' + t('unit_jd'), label: t('kpi_sum_total_revenue'), icon: '💵', color: 'text-blue-700' },
                 { value: formatNumber(stats.costRecovery, 1) + '%', label: t('kpi_sum_cost_recovery'), icon: '⚖️', color: 'text-teal-600' },
             ]

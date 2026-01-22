@@ -65,8 +65,8 @@ export const translations = {
     group_treatment: "المعالجة",
 
     // KPI Summary Labels
-    kpi_sum_total_waste: "إجمالي النفايات المتولدة",
-    kpi_sum_waste_capita: "تولد النفايات للفرد",
+    kpi_sum_total_waste: "إجمالي النفايات المنقولة",
+    kpi_sum_waste_capita: "تولد النفايات للفرد (يومياً)",
     kpi_sum_coverage: "نسبة التغطية بالخدمة",
     kpi_sum_total_cost: "إجمالي كلفة إدارة النفايات",
     kpi_sum_cost_ton: "كلفة الطن الواحد",
@@ -75,6 +75,7 @@ export const translations = {
     kpi_sum_cost_recovery: "نسبة تغطية الكلفة",
     kpi_sum_recycling: "معدل إعادة التدوير",
     kpi_sum_diversion: "معدل تحويل النفايات",
+    kpi_sum_cost_affordability: "نسبة كلفة القدرة على التحمل",
 
     // Table Headers
     th_veh_no: "رقم المركبة",
@@ -160,6 +161,8 @@ export const translations = {
     kpi_biowaste: "كمية النفايات الحيوية",
     kpi_other_treatment: "كميات معالجة أخرى",
     kpi_total_treated: "إجمالي الكمية المعالجة",
+    kpi_pop_per_cleaner: "عدد السكان لكل عامل وطن",
+    kpi_cost_affordability: "نسبة كلفة القدرة على التحمل",
     
     // Units & Misc
     unit_ton: "طن",
@@ -276,8 +279,8 @@ export const translations = {
     group_treatment: "Treatment",
 
     // KPI Summary Labels
-    kpi_sum_total_waste: "Total Generated Waste",
-    kpi_sum_waste_capita: "Waste per Capita",
+    kpi_sum_total_waste: "Total Transported Waste",
+    kpi_sum_waste_capita: "Waste per Capita (Daily)",
     kpi_sum_coverage: "Service Coverage Rate",
     kpi_sum_total_cost: "Total Management Cost",
     kpi_sum_cost_ton: "Cost per Ton",
@@ -286,6 +289,7 @@ export const translations = {
     kpi_sum_cost_recovery: "Cost Recovery Rate",
     kpi_sum_recycling: "Recycling Rate",
     kpi_sum_diversion: "Diversion Rate",
+    kpi_sum_cost_affordability: "Cost Affordability Rate (%)",
 
     // Table Headers
     th_veh_no: "Vehicle ID",
@@ -371,6 +375,8 @@ export const translations = {
     kpi_biowaste: "Biowaste Amount",
     kpi_other_treatment: "Other Treatment Amount",
     kpi_total_treated: "Total Amount Treated",
+    kpi_pop_per_cleaner: "Population per Sanitation Worker",
+    kpi_cost_affordability: "Cost Affordability Rate (%)",
 
     // Units & Misc
     unit_ton: "Tons",

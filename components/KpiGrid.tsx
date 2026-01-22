@@ -120,6 +120,11 @@ const KpiGrid: React.FC<KpiGridProps> = ({
         
         const kgPerCapita = (totalPopulation && totalPopulation > 0) ? (currentStats.totalTons * 1000) / totalPopulation : 0;
         const costPerCapita = (totalPopulation && totalPopulation > 0) ? totalCosts / totalPopulation : 0;
+
+        // حساب نسبة كلفة القدرة على التحمل (Cost Affordability)
+        // الحد المسموح به هو 4.9 دينار للفرد سنوياً
+        const affordabilityLimit = 4.9;
+        const costAffordability = (costPerCapita / affordabilityLimit) * 100;
         
         const avgTripsPerVehicle = currentStats.activeVehiclesCount > 0 ? currentStats.totalTrips / currentStats.activeVehiclesCount : 0;
         const areasCount = totalPopulation ? 7 : 0; 
@@ -131,8 +136,19 @@ const KpiGrid: React.FC<KpiGridProps> = ({
         const recyclingRate = totalGenerated > 0 ? ((treatment?.recyclablesTon || 0) / totalGenerated) * 100 : 0;
         const alternativeTreatmentRate = totalGenerated > 0 ? ((treatment?.totalTreated || 0) / totalGenerated) * 100 : 0;
 
-        return { totalCosts, costPerTon, costPerTrip, avgTonsPerTrip, avgTripsPerDay, kgPerCapita, areasCount, costPerCapita, avgTripsPerVehicle, costRecovery, totalGenerated, recyclingRate, alternativeTreatmentRate };
-    }, [currentStats, totalSalaries, totalPopulation, revenueDetail, treatment]);
+        // حساب عدد عمال الوطن فقط
+        const cleanersCount = workers.filter(w => w.role === 'عامل وطن').length;
+        const popPerCleaner = (totalPopulation && totalPopulation > 0 && cleanersCount > 0) 
+            ? totalPopulation / cleanersCount 
+            : 0;
+
+        return { 
+            totalCosts, costPerTon, costPerTrip, avgTonsPerTrip, avgTripsPerDay, 
+            kgPerCapita, areasCount, costPerCapita, costAffordability, avgTripsPerVehicle, 
+            costRecovery, totalGenerated, recyclingRate, alternativeTreatmentRate,
+            cleanersCount, popPerCleaner
+        };
+    }, [currentStats, totalSalaries, totalPopulation, revenueDetail, treatment, workers]);
 
     if (!currentStats || !metrics) return null;
 
@@ -143,6 +159,7 @@ const KpiGrid: React.FC<KpiGridProps> = ({
                 { value: formatNumber(totalPopulation), label: t('kpi_total_pop'), icon: '👥', color: 'text-cyan-600', emphasized: true },
                 { value: formatNumber(totalServed), label: t('kpi_served_pop'), icon: '🏠', color: 'text-emerald-600' },
                 { value: formatNumber(coverageRate, 1) + '%', label: t('kpi_coverage_rate'), icon: '📡', color: 'text-indigo-600' },
+                { value: formatNumber(metrics.popPerCleaner), label: t('kpi_pop_per_cleaner'), icon: '🚶', color: 'text-amber-600' },
                 { value: formatNumber(metrics.areasCount), label: t('kpi_areas_served'), icon: '📍', color: 'text-rose-500' },
                 { value: formatNumber(workers.length), label: t('kpi_workers_count'), icon: '👷', color: 'text-slate-700' }
             ]
@@ -198,7 +215,13 @@ const KpiGrid: React.FC<KpiGridProps> = ({
                 { value: formatNumber(Math.round(currentStats.totalMaint)), label: t('kpi_maint_cost'), icon: '🔧', color: 'text-red-600', comp: comparisonStats?.totalMaint ? formatNumber(Math.round(comparisonStats.totalMaint)) : undefined },
                 { value: formatNumber(metrics.costPerTon, 1) + ' ' + t('unit_jd'), label: t('kpi_cost_per_ton'), icon: '💰', color: 'text-amber-600' },
                 { value: formatNumber(metrics.costPerTrip, 1) + ' ' + t('unit_jd'), label: t('kpi_cost_per_trip'), icon: '🎟️', color: 'text-blue-700' },
-                { value: formatNumber(metrics.costPerCapita, 1) + ' ' + t('unit_jd'), label: t('kpi_cost_per_capita'), icon: '🏷️', color: 'text-slate-800' }
+                { value: formatNumber(metrics.costPerCapita, 1) + ' ' + t('unit_jd'), label: t('kpi_cost_per_capita'), icon: '🏷️', color: 'text-slate-800' },
+                { 
+                    value: formatNumber(metrics.costAffordability, 1) + '%', 
+                    label: t('kpi_cost_affordability'), 
+                    icon: '🛡️', 
+                    color: metrics.costAffordability > 100 ? 'text-red-600' : 'text-indigo-600' 
+                },
             ]
         }
     ];
