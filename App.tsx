@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Trip, Vehicle, Fuel, Maintenance, Area, VehicleTableData, DriverStatsData, Population, AreaPopulationStats, Worker, Revenue, WasteTreatment } from './types';
+import { Trip, Vehicle, Fuel, Maintenance, Area, VehicleTableData, DriverStatsData, Population, AreaPopulationStats, Worker, Revenue, WasteTreatment, Distance } from './types';
 import { CONFIG, MONTHS_ORDER } from './constants';
 import { loadAllData } from './services/dataService';
 import { generateFleetReport } from './services/geminiService';
@@ -34,6 +34,7 @@ const AppContent: React.FC = () => {
     const [workersData, setWorkersData] = useState<Worker[]>([]);
     const [revenuesData, setRevenuesData] = useState<Revenue[]>([]);
     const [treatmentData, setTreatmentData] = useState<WasteTreatment[]>([]);
+    const [distanceData, setDistanceData] = useState<Distance[]>([]);
     
     const [selectedYear, setSelectedYear] = useState<string>('');
     const [comparisonYear, setComparisonYear] = useState<string>('');
@@ -57,7 +58,7 @@ const AppContent: React.FC = () => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const { trips, vehicles, fuel, maint, areas, population, workers, revenues, treatment } = await loadAllData();
+                const { trips, vehicles, fuel, maint, areas, population, workers, revenues, treatment, distance } = await loadAllData();
                 setTripsData(trips);
                 setVehiclesData(vehicles);
                 setFuelData(fuel);
@@ -67,6 +68,7 @@ const AppContent: React.FC = () => {
                 setWorkersData(workers || []);
                 setRevenuesData(revenues || []);
                 setTreatmentData(treatment || []);
+                setDistanceData(distance || []);
 
                 const years = [...new Set(trips.map(t => t['السنة']).filter(Boolean))].sort().reverse();
                 if (years.length > 0) {
@@ -162,6 +164,7 @@ const AppContent: React.FC = () => {
             const areaRow = areasData.find(x => x['رقم المركبة'] === v && (x['السنة'] === year || !x['السنة'])) || {};
             const fuelRow = fuelData.find(x => x['رقم المركبة'] === v && x['السنة'] === year) || {};
             const maintRow = maintData.find(x => x['رقم المركبة'] === v && x['السنة'] === year) || {};
+            const distRow = distanceData.find(x => x['رقم المركبة'] === v && x['السنة'] === year);
 
             let fuel = 0;
             if(fuelRow) {
@@ -179,6 +182,9 @@ const AppContent: React.FC = () => {
             const cost_trip = trips ? totalCost / trips : 0;
             const cost_ton = tons ? totalCost / tons : 0;
 
+            const distance = distRow ? (Number(distRow['المسافة المقطوعة (كم)']) || 0) : 0;
+            const km_per_trip = trips ? distance / trips : 0;
+
             return {
                 veh: v,
                 area: areaRow['المنطقة'] || '',
@@ -192,17 +198,19 @@ const AppContent: React.FC = () => {
                 maint,
                 cost_trip,
                 cost_ton,
+                distance,
+                km_per_trip
             };
         });
     };
 
     const filteredVehicleTableData = useMemo<VehicleTableData[]>(() => 
         getVehicleTableData(filteredTrips, selectedYear), 
-    [filteredTrips, vehiclesData, areasData, fuelData, maintData, filters.months, selectedYear]);
+    [filteredTrips, vehiclesData, areasData, fuelData, maintData, filters.months, selectedYear, distanceData]);
 
     const comparisonVehicleTableData = useMemo<VehicleTableData[]>(() => 
         comparisonYear ? getVehicleTableData(comparisonTrips, comparisonYear) : [], 
-    [comparisonTrips, vehiclesData, areasData, fuelData, maintData, filters.months, comparisonYear]);
+    [comparisonTrips, vehiclesData, areasData, fuelData, maintData, filters.months, comparisonYear, distanceData]);
 
     const driverStatsData = useMemo<DriverStatsData[]>(() => {
         const driverGroups: { [key: string]: { trips: number; tons: number; vehicles: Set<string> } } = {};

@@ -71,6 +71,12 @@ export interface WasteTreatment {
     otherTreatmentTon: number;
 }
 
+export interface Distance {
+    'رقم المركبة': string;
+    'المسافة المقطوعة (كم)': string;
+    'السنة': string;
+}
+
 export interface Worker {
     name: string;
     role: string;
@@ -91,6 +97,8 @@ export interface VehicleTableData {
     maint: number;
     cost_trip: number;
     cost_ton: number;
+    distance: number;
+    km_per_trip: number;
 }
 
 export interface DriverStatsData {

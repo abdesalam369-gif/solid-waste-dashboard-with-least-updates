@@ -30,6 +30,8 @@ const TableSection: React.FC<TableSectionProps> = ({ tableData, filters, title }
         { key: 'maint', label: t('th_maint') },
         { key: 'cost_trip', label: t('th_cost_trip') }, 
         { key: 'cost_ton', label: t('th_cost_ton') },
+        { key: 'distance', label: t('th_distance') },
+        { key: 'km_per_trip', label: t('th_km_trip') },
     ];
 
     const areaMapping: {[key: string]: string} = {
@@ -66,16 +68,17 @@ const TableSection: React.FC<TableSectionProps> = ({ tableData, filters, title }
         const totalTons = sortedData.reduce((s, r) => s + r.tons, 0);
         const totalFuel = sortedData.reduce((s, r) => s + r.fuel, 0);
         const totalMaint = sortedData.reduce((s, r) => s + r.maint, 0);
+        const totalDistance = sortedData.reduce((s, r) => s + r.distance, 0);
         const totalCost = totalFuel + totalMaint;
         
         const avgCostTrip = totalTrips > 0 ? totalCost / totalTrips : 0;
         const avgCostTon = totalTons > 0 ? totalCost / totalTons : 0;
+        const avgKmTrip = totalTrips > 0 ? totalDistance / totalTrips : 0;
         
-        return { totalTrips, totalTons, totalFuel, totalMaint, avgCostTrip, avgCostTon };
+        return { totalTrips, totalTons, totalFuel, totalMaint, totalDistance, avgCostTrip, avgCostTon, avgKmTrip };
     }, [sortedData]);
 
     const handlePrint = () => {
-        /* Fix: Provide missing 't' and 'language' arguments to printTable */
         printTable(tableContainerRef, title || t('sec_veh_eff'), filters, t, language);
     };
 
@@ -117,6 +120,8 @@ const TableSection: React.FC<TableSectionProps> = ({ tableData, filters, title }
                                 <td className="p-2 border-b border-slate-200">{formatNumber(row.maint, 1)}</td>
                                 <td className="p-2 border-b border-slate-200 font-semibold text-blue-600">{formatNumber(row.cost_trip, 1)}</td>
                                 <td className="p-2 border-b border-slate-200 font-semibold text-blue-600">{formatNumber(row.cost_ton, 1)}</td>
+                                <td className="p-2 border-b border-slate-200">{formatNumber(row.distance, 1)}</td>
+                                <td className="p-2 border-b border-slate-200 font-semibold text-indigo-600">{formatNumber(row.km_per_trip, 1)}</td>
                             </tr>
                         ))}
                         {totals && (
@@ -129,6 +134,8 @@ const TableSection: React.FC<TableSectionProps> = ({ tableData, filters, title }
                                 <td className="p-2 border-b border-slate-300">{formatNumber(totals.totalMaint, 1)}</td>
                                 <td className="p-2 border-b border-slate-300 text-blue-700">{formatNumber(totals.avgCostTrip, 1)}</td>
                                 <td className="p-2 border-b border-slate-300 text-blue-700">{formatNumber(totals.avgCostTon, 1)}</td>
+                                <td className="p-2 border-b border-slate-300">{formatNumber(totals.totalDistance, 1)}</td>
+                                <td className="p-2 border-b border-slate-300 text-indigo-800" colSpan={1}>{formatNumber(totals.avgKmTrip, 1)}</td>
                             </tr>
                         )}
                     </tbody>

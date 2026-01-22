@@ -1,5 +1,5 @@
 
-import { Trip, Vehicle, Fuel, Maintenance, Area, Population, Worker, Revenue, WasteTreatment } from '../types';
+import { Trip, Vehicle, Fuel, Maintenance, Area, Population, Worker, Revenue, WasteTreatment, Distance } from '../types';
 import { CONFIG } from '../constants';
 
 // Declare global Papa from script tag
@@ -91,13 +91,14 @@ export async function loadWorkersData(): Promise<Worker[]> {
 }
 
 export async function loadAllData() {
-    const [trips, vehicles, fuel, maint, areas, workers] = await Promise.all([
+    const [trips, vehicles, fuel, maint, areas, workers, distance] = await Promise.all([
         fetchCSV<Trip>(CONFIG.trips),
         fetchCSV<Vehicle>(CONFIG.vehicles),
         fetchCSV<Fuel>(CONFIG.fuel),
         fetchCSV<Maintenance>(CONFIG.maint),
         fetchCSV<Area>(CONFIG.areas),
-        loadWorkersData() 
+        loadWorkersData(),
+        fetchCSV<Distance>(CONFIG.distance)
     ]);
 
     let population: Population[] = [];
@@ -205,7 +206,7 @@ export async function loadAllData() {
         console.error("Error loading treatment data:", error);
     }
 
-    return { trips, vehicles, fuel, maint, areas, population, workers, revenues, treatment };
+    return { trips, vehicles, fuel, maint, areas, population, workers, revenues, treatment, distance };
 }
 
 export const formatNumber = (num: number | undefined | null, digits: number = 0): string => {
