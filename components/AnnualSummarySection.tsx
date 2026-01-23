@@ -1,8 +1,9 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Trip, WasteTreatment, Population, Worker, Revenue, VehicleTableData } from '../types';
 import { formatNumber } from '../services/dataService';
 import KpiCard from './KpiCard';
+import KpiExplanationModal from './KpiExplanationModal';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface AnnualSummarySectionProps {
@@ -20,6 +21,7 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
     filteredTrips, treatment, populationData, workers, revenues, vehicleTableData, selectedYear, filters 
 }) => {
     const { t } = useLanguage();
+    const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
 
     const stats = useMemo(() => {
         // 1. النفايات
@@ -145,11 +147,18 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
                                 label={kpi.label} 
                                 icon={kpi.icon} 
                                 color={kpi.color} 
+                                onClick={() => setSelectedMetric(kpi.label)}
                             />
                         ))}
                     </div>
                 </div>
             ))}
+
+            <KpiExplanationModal 
+                isOpen={!!selectedMetric}
+                onClose={() => setSelectedMetric(null)}
+                label={selectedMetric || ''}
+            />
         </div>
     );
 };

@@ -1,9 +1,10 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Trip, Fuel, Maintenance, VehicleTableData, Worker, WasteTreatment } from '../types';
 import { MONTHS_ORDER } from '../constants';
 import { formatNumber } from '../services/dataService';
 import KpiCard from './KpiCard';
+import KpiExplanationModal from './KpiExplanationModal';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface KpiGridProps {
@@ -34,6 +35,7 @@ const KpiGrid: React.FC<KpiGridProps> = ({
     treatment, comparisonTreatment
 }) => {
     const { t } = useLanguage();
+    const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
     
     const calculateStats = (trips: Trip[], year: string, tableData: VehicleTableData[]) => {
         if (!trips.length && !year) return null;
@@ -254,12 +256,19 @@ const KpiGrid: React.FC<KpiGridProps> = ({
                                     icon={kpi.icon} 
                                     color={kpi.color} 
                                     comparisonValue={kpi.comp}
+                                    onClick={() => setSelectedMetric(kpi.label)}
                                 />
                             </div>
                         ))}
                     </div>
                 </div>
             ))}
+
+            <KpiExplanationModal 
+                isOpen={!!selectedMetric}
+                onClose={() => setSelectedMetric(null)}
+                label={selectedMetric || ''}
+            />
         </div>
     );
 };
