@@ -68,7 +68,8 @@ export const translations = {
 
     // KPI Summary Labels
     kpi_sum_total_waste: "إجمالي النفايات المنقولة",
-    kpi_sum_waste_capita: "تولد النفايات للفرد (يومياً)",
+    kpi_sum_waste_capita: "تولد النفايات للفرد يومياً (حسب النفايات المنقولة)",
+    kpi_sum_waste_nswms: "تولد النفايات للفرد يومياً (حسب NSWMS)",
     kpi_sum_coverage: "نسبة التغطية بالخدمة",
     kpi_sum_total_cost: "إجمالي كلفة إدارة النفايات",
     kpi_sum_cost_ton: "كلفة الطن الواحد",
@@ -139,7 +140,8 @@ export const translations = {
     kpi_avg_load_trip: "متوسط حمولة الرحلة",
     kpi_avg_tons_day: "متوسط الأطنان / يوم",
     kpi_total_tons: "إجمالي الأطنان",
-    kpi_per_capita_waste: "معدل إنتاج الفرد من النفايات",
+    kpi_per_capita_waste: "إنتاج الفرد اليومي (حسب النفايات المنقولة)",
+    kpi_nswms_waste: "إنتاج الفرد اليومي (حسب NSWMS)",
     kpi_daily_waste_rate: "معدل الإنتاج اليومي للنفايات (طن/يوم)",
     kpi_active_vehicles: "عدد المركبات النشطة",
     kpi_avg_capacity: "متوسط سعة المركبات",
@@ -284,7 +286,8 @@ export const translations = {
 
     // KPI Summary Labels
     kpi_sum_total_waste: "Total Transported Waste",
-    kpi_sum_waste_capita: "Waste per Capita (Daily)",
+    kpi_sum_waste_capita: "Daily Waste Generation (Based on Transported Waste)",
+    kpi_sum_waste_nswms: "Daily Waste Generation (NSWMS)",
     kpi_sum_coverage: "Service Coverage Rate",
     kpi_sum_total_cost: "Total Management Cost",
     kpi_sum_cost_ton: "Cost per Ton",
@@ -355,7 +358,8 @@ export const translations = {
     kpi_avg_load_trip: "Avg Load / Trip",
     kpi_avg_tons_day: "Avg Tons / Day",
     kpi_total_tons: "Total Tons",
-    kpi_per_capita_waste: "Waste per Capita",
+    kpi_per_capita_waste: "Daily Capita Generation (Transported Waste)",
+    kpi_nswms_waste: "Daily Capita Generation (NSWMS)",
     kpi_daily_waste_rate: "Daily Waste (t/d)",
     kpi_active_vehicles: "Active Vehicles",
     kpi_avg_capacity: "Avg Capacity",

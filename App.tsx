@@ -391,6 +391,7 @@ const AppContent: React.FC = () => {
                         revenues={revenuesData}
                         vehicleTableData={filteredVehicleTableData}
                         selectedYear={selectedYear}
+                        filters={filters}
                     />
                 );
             case 'kpi':
@@ -438,6 +439,7 @@ const AppContent: React.FC = () => {
                             workers={workersData} 
                             vehicleData={filteredVehicleTableData} 
                             selectedYear={selectedYear} 
+                            filters={filters}
                         />
                     </div>
                 );
@@ -468,7 +470,7 @@ const AppContent: React.FC = () => {
             case 'salaries':
                 return (
                     <div className="animate-in slide-in-from-left-5 duration-500">
-                        <SalaryAnalysisSection workers={workersData} />
+                        <SalaryAnalysisSection workers={workersData} filters={filters} />
                     </div>
                 );
             case 'vehicles':

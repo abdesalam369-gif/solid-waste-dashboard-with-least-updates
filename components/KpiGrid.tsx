@@ -106,8 +106,9 @@ const KpiGrid: React.FC<KpiGridProps> = ({
     const comparisonStats = useMemo(() => comparisonYear ? calculateStats(comparisonTrips, comparisonYear, comparisonVehicleTableData) : null, [comparisonTrips, comparisonYear, fuelData, maintData, filters, comparisonVehicleTableData]);
 
     const totalSalaries = useMemo(() => {
-        return workers.reduce((sum, w) => sum + w.salary, 0);
-    }, [workers]);
+        const monthsCount = filters.months.size > 0 ? filters.months.size : 12;
+        return workers.reduce((sum, w) => sum + (w.salary / 12) * monthsCount, 0);
+    }, [workers, filters.months]);
 
     const metrics = useMemo(() => {
         if (!currentStats) return null;
@@ -121,8 +122,6 @@ const KpiGrid: React.FC<KpiGridProps> = ({
         const kgPerCapita = (totalPopulation && totalPopulation > 0) ? (currentStats.totalTons * 1000) / totalPopulation : 0;
         const costPerCapita = (totalPopulation && totalPopulation > 0) ? totalCosts / totalPopulation : 0;
 
-        // حساب نسبة كلفة القدرة على التحمل (Cost Affordability)
-        // الحد المسموح به هو 4.9 دينار للفرد سنوياً
         const affordabilityLimit = 4.9;
         const costAffordability = (costPerCapita / affordabilityLimit) * 100;
         
@@ -136,17 +135,18 @@ const KpiGrid: React.FC<KpiGridProps> = ({
         const recyclingRate = totalGenerated > 0 ? ((treatment?.recyclablesTon || 0) / totalGenerated) * 100 : 0;
         const alternativeTreatmentRate = totalGenerated > 0 ? ((treatment?.totalTreated || 0) / totalGenerated) * 100 : 0;
 
-        // حساب عدد عمال الوطن فقط
         const cleanersCount = workers.filter(w => w.role === 'عامل وطن').length;
         const popPerCleaner = (totalPopulation && totalPopulation > 0 && cleanersCount > 0) 
             ? totalPopulation / cleanersCount 
             : 0;
 
+        const wastePerCapitaNSWMS = 0.87;
+
         return { 
             totalCosts, costPerTon, costPerTrip, avgTonsPerTrip, avgTripsPerDay, 
             kgPerCapita, areasCount, costPerCapita, costAffordability, avgTripsPerVehicle, 
             costRecovery, totalGenerated, recyclingRate, alternativeTreatmentRate,
-            cleanersCount, popPerCleaner
+            cleanersCount, popPerCleaner, wastePerCapitaNSWMS
         };
     }, [currentStats, totalSalaries, totalPopulation, revenueDetail, treatment, workers]);
 
@@ -158,7 +158,7 @@ const KpiGrid: React.FC<KpiGridProps> = ({
             cards: [
                 { value: formatNumber(totalPopulation), label: t('kpi_total_pop'), icon: '👥', color: 'text-cyan-600', emphasized: true },
                 { value: formatNumber(totalServed), label: t('kpi_served_pop'), icon: '🏠', color: 'text-emerald-600' },
-                { value: formatNumber(coverageRate, 1) + '%', label: t('kpi_coverage_rate'), icon: '📡', color: 'text-indigo-600' },
+                { value: formatNumber(coverageRate, 1) + '%', label: t('kpi_sum_coverage'), icon: '📡', color: 'text-indigo-600' },
                 { value: formatNumber(metrics.popPerCleaner), label: t('kpi_pop_per_cleaner'), icon: '🚶', color: 'text-amber-600' },
                 { value: formatNumber(metrics.areasCount), label: t('kpi_areas_served'), icon: '📍', color: 'text-rose-500' },
                 { value: formatNumber(workers.length), label: t('kpi_workers_count'), icon: '👷', color: 'text-slate-700' }
@@ -179,6 +179,7 @@ const KpiGrid: React.FC<KpiGridProps> = ({
             cards: [
                 { value: formatNumber(Math.round(metrics.totalGenerated)), label: t('kpi_total_tons'), icon: '🗑️', color: 'text-blue-600', emphasized: true },
                 { value: formatNumber(metrics.kgPerCapita, 1) + ' ' + t('unit_kg'), label: t('kpi_per_capita_waste'), icon: '👤', color: 'text-indigo-500' },
+                { value: formatNumber(metrics.wastePerCapitaNSWMS, 2) + ' ' + t('unit_kg'), label: t('kpi_nswms_waste'), icon: '📋', color: 'text-slate-600' },
                 { value: formatNumber(currentStats.avgTonsPerDay, 1), label: t('kpi_daily_waste_rate'), icon: '📈', color: 'text-teal-600' }
             ]
         },
@@ -220,7 +221,7 @@ const KpiGrid: React.FC<KpiGridProps> = ({
                     value: formatNumber(metrics.costAffordability, 1) + '%', 
                     label: t('kpi_cost_affordability'), 
                     icon: '🛡️', 
-                    color: metrics.costAffordability > 100 ? 'text-red-600' : 'text-indigo-600' 
+                    color: metrics.costAffordability > 100 ? 'text-red-600' : 'text-indigo-600 dark:text-indigo-400' 
                 },
             ]
         }
@@ -235,13 +236,13 @@ const KpiGrid: React.FC<KpiGridProps> = ({
     return (
         <div id="kpi-grid" className="space-y-12 mb-12">
             {sections.map((section, sIdx) => (
-                <div key={sIdx} className="space-y-6 bg-slate-50/40 p-8 rounded-[40px] border border-slate-100/50 shadow-sm transition-all duration-300">
+                <div key={sIdx} className="space-y-6 bg-slate-50/40 dark:bg-slate-900/40 p-8 rounded-[40px] border border-slate-100/50 dark:border-slate-800/50 shadow-sm transition-all duration-300">
                     <div className="flex items-center gap-4 px-2">
                         <div className="h-10 w-2 bg-blue-600 rounded-full shadow-sm shadow-blue-200"></div>
-                        <h3 className="text-xl font-black text-slate-800 tracking-tight">
+                        <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
                             {section.title}
                         </h3>
-                        <div className="flex-1 h-px bg-gradient-to-l from-slate-200 to-transparent"></div>
+                        <div className="flex-1 h-px bg-gradient-to-l from-slate-200 dark:from-slate-800 to-transparent"></div>
                     </div>
                     
                     <div className={`grid grid-cols-1 sm:grid-cols-2 ${getGridColsClass(section.cards.length)} gap-6 justify-center`}>

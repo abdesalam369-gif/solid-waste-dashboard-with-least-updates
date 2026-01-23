@@ -12,11 +12,12 @@ import {
 
 interface SalaryAnalysisSectionProps {
     workers: Worker[];
+    filters: { vehicles: Set<string>; months: Set<string> };
 }
 
 const COLORS = ['#4f46e5', '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
-const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers }) => {
+const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers, filters }) => {
     const { t, language } = useLanguage();
     const { theme } = useTheme();
     const isDark = theme === 'dark';
@@ -46,20 +47,27 @@ const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers }
         'مراقب': t('role_supervisor')
     };
 
+    const monthsCount = useMemo(() => filters.months.size > 0 ? filters.months.size : 12, [filters.months]);
+
     const filteredWorkers = useMemo(() => {
-        return workers.filter(w => 
-            w.name.includes(searchTerm) || 
-            w.role.includes(searchTerm) || 
-            w.area.includes(searchTerm)
-        );
-    }, [workers, searchTerm]);
+        return workers
+            .filter(w => 
+                w.name.includes(searchTerm) || 
+                w.role.includes(searchTerm) || 
+                w.area.includes(searchTerm)
+            )
+            .map(w => ({
+                ...w,
+                periodSalary: (w.salary / 12) * monthsCount
+            }));
+    }, [workers, searchTerm, monthsCount]);
 
     const jobStats = useMemo(() => {
         const map = new Map<string, { count: number; total: number }>();
         filteredWorkers.forEach(w => {
             const stats = map.get(w.role) || { count: 0, total: 0 };
             stats.count++;
-            stats.total += w.salary;
+            stats.total += w.periodSalary;
             map.set(w.role, stats);
         });
         return Array.from(map.entries()).map(([name, data]) => ({
@@ -73,7 +81,7 @@ const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers }
 
     const overallStats = useMemo(() => {
         const count = filteredWorkers.length;
-        const total = filteredWorkers.reduce((sum, w) => sum + w.salary, 0);
+        const total = filteredWorkers.reduce((sum, w) => sum + w.periodSalary, 0);
         const avg = count > 0 ? total / count : 0;
         return { count, total, avg };
     }, [filteredWorkers]);
@@ -86,13 +94,13 @@ const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers }
     };
 
     const handlePrint = () => {
-        printTable(tableContainerRef, t('sec_salary_analysis'), { vehicles: new Set(), months: new Set() }, t, language);
+        printTable(tableContainerRef, t('sec_salary_analysis'), filters, t, language);
     };
 
     if (workers.length === 0) return null;
 
     return (
-        <CollapsibleSection title={t('sec_salary_analysis')}>
+        <CollapsibleSection title={`${t('sec_salary_analysis')} (${monthsCount} ${t('months')})`}>
             <div className="flex flex-wrap gap-4 mb-8 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 items-end shadow-inner text-right transition-colors">
                 <div className="flex flex-col gap-1.5 text-right">
                     <label className="text-xs font-black text-slate-500 dark:text-slate-400 mr-1">{t('chart_grouping')}</label>
@@ -180,7 +188,7 @@ const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers }
                                 </td>
                                 <td className="p-5 text-slate-500 dark:text-slate-400 font-medium">{areaMapping[worker.area] || worker.area}</td>
                                 <td className="p-5 font-black text-emerald-700 dark:text-emerald-400 text-lg">
-                                    {formatCurrency(worker.salary)}
+                                    {formatCurrency(worker.periodSalary)}
                                 </td>
                             </tr>
                         ))}

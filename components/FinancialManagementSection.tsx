@@ -15,11 +15,12 @@ interface FinancialManagementSectionProps {
     workers: Worker[];
     vehicleData: VehicleTableData[];
     selectedYear: string;
+    filters: { vehicles: Set<string>; months: Set<string> };
 }
 
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'];
 
-const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({ workers, vehicleData, selectedYear }) => {
+const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({ workers, vehicleData, selectedYear, filters }) => {
     const { t, language } = useLanguage();
     const { theme } = useTheme();
     const isDark = theme === 'dark';
@@ -41,7 +42,9 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
     };
 
     const financialSummary = useMemo(() => {
-        const totalSalaries = workers.reduce((sum, w) => sum + w.salary, 0);
+        const monthsCount = filters.months.size > 0 ? filters.months.size : 12;
+        const totalSalaries = workers.reduce((sum, w) => sum + (w.salary / 12) * monthsCount, 0);
+        
         const totalFuel = vehicleData.reduce((sum, v) => sum + v.fuel, 0);
         const totalMaint = vehicleData.reduce((sum, v) => sum + v.maint, 0);
         const totalTons = vehicleData.reduce((sum, v) => sum + v.tons, 0);
@@ -62,7 +65,7 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                 { name: t('kpi_maint_cost'), value: totalMaint }
             ]
         };
-    }, [workers, vehicleData, t]);
+    }, [workers, vehicleData, t, filters.months]);
 
     const areaFinancials = useMemo(() => {
         const areaMap = new Map<string, { fuel: number; maint: number; tons: number }>();
@@ -78,9 +81,12 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
         });
 
         const areaSalaries = new Map<string, number>();
+        const monthsCount = filters.months.size > 0 ? filters.months.size : 12;
+        
         workers.forEach(w => {
             const area = w.area || 'غير محدد';
-            areaSalaries.set(area, (areaSalaries.get(area) || 0) + w.salary);
+            const salaryForPeriod = (w.salary / 12) * monthsCount;
+            areaSalaries.set(area, (areaSalaries.get(area) || 0) + salaryForPeriod);
         });
 
         const allAreas = Array.from(new Set([...areaMap.keys(), ...areaSalaries.keys()]));
@@ -98,7 +104,7 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                 efficiency: oper.tons > 0 ? total / oper.tons : 0
             };
         }).sort((a, b) => b.total - a.total);
-    }, [workers, vehicleData, t]);
+    }, [workers, vehicleData, t, filters.months]);
 
     const formatCurrency = (val: number) => formatNumber(Math.round(val)) + ' ' + t('unit_jd');
 
@@ -201,8 +207,7 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
 
             <div className="mt-6 flex justify-end">
                 <button 
-                    /* Fix: Pass missing 't' and 'language' arguments to printTable */
-                    onClick={() => printTable(tableContainerRef, t('sec_financial_mgmt'), { vehicles: new Set(), months: new Set() }, t, language)}
+                    onClick={() => printTable(tableContainerRef, t('sec_financial_mgmt'), filters, t, language)}
                     className="flex items-center gap-2 bg-slate-800 dark:bg-slate-700 text-white px-6 py-2 rounded-xl text-xs font-bold hover:bg-slate-900 dark:hover:bg-slate-600 transition-all shadow-md"
                 >
                     {t('print')}

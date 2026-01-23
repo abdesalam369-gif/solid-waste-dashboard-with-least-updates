@@ -13,10 +13,11 @@ interface AnnualSummarySectionProps {
     revenues: Revenue[];
     vehicleTableData: VehicleTableData[];
     selectedYear: string;
+    filters: { vehicles: Set<string>; months: Set<string> };
 }
 
 const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({ 
-    filteredTrips, treatment, populationData, workers, revenues, vehicleTableData, selectedYear 
+    filteredTrips, treatment, populationData, workers, revenues, vehicleTableData, selectedYear, filters 
 }) => {
     const { t } = useLanguage();
 
@@ -31,12 +32,15 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
         const totalServed = yearPopData.reduce((sum, p) => sum + p.served, 0);
         
         const wastePerCapita = totalPopulation > 0 ? (totalGeneratedTons * 1000) / totalPopulation / 365 : 0;
+        const wastePerCapitaNSWMS = 0.87; // قيمة ثابتة حسب الطلب
 
         // 2. الخدمة
         const coverageRate = totalPopulation > 0 ? (totalServed / totalPopulation) * 100 : 0;
 
-        // 3. المؤشرات المالية
-        const totalSalaries = workers.reduce((sum, w) => sum + w.salary, 0);
+        // 3. المؤشرات المالية - تعديل احتساب الرواتب بناءً على الفلتر
+        const monthsCount = filters.months.size > 0 ? filters.months.size : 12;
+        const totalSalaries = workers.reduce((sum, w) => sum + (w.salary / 12) * monthsCount, 0);
+        
         const totalFuel = vehicleTableData.reduce((sum, v) => sum + v.fuel, 0);
         const totalMaint = vehicleTableData.reduce((sum, v) => sum + v.maint, 0);
         const totalCost = totalSalaries + totalFuel + totalMaint;
@@ -59,6 +63,7 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
         return {
             totalGeneratedTons,
             wastePerCapita,
+            wastePerCapitaNSWMS,
             totalPopulation,
             coverageRate,
             totalCost,
@@ -70,7 +75,7 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
             recyclingRate,
             diversionRate
         };
-    }, [filteredTrips, treatment, populationData, workers, revenues, vehicleTableData, selectedYear]);
+    }, [filteredTrips, treatment, populationData, workers, revenues, vehicleTableData, selectedYear, filters.months]);
 
     const groups = [
         {
@@ -78,6 +83,7 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
             cards: [
                 { value: formatNumber(Math.round(stats.totalGeneratedTons)) + ' ' + t('unit_ton'), label: t('kpi_sum_total_waste'), icon: '🗑️', color: 'text-blue-600' },
                 { value: formatNumber(stats.wastePerCapita, 2) + ' ' + t('unit_kg'), label: t('kpi_sum_waste_capita'), icon: '👤', color: 'text-sky-500' },
+                { value: formatNumber(stats.wastePerCapitaNSWMS, 2) + ' ' + t('unit_kg'), label: t('kpi_sum_waste_nswms'), icon: '📋', color: 'text-indigo-500' },
             ]
         },
         {
