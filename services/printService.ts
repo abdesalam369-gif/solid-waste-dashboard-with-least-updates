@@ -50,7 +50,7 @@ const generatePrintWindow = (title: string, subtitle: string, bodyContent: strin
                     print-color-adjust: exact !important;
                 }
                 .print-container {
-                    padding: 1.5cm; /* Standard A4 margins */
+                    padding: 1.5cm;
                 }
                 .print-header {
                     text-align: center;
@@ -83,10 +83,39 @@ const generatePrintWindow = (title: string, subtitle: string, bodyContent: strin
                     <h2>${t('print_municipality')} - ${today}</h2>
                     <p class="subtitle">${subtitle}</p>
                 </div>
-                <div class="print-body">
+                <div class="print-body" id="print-content">
                     ${bodyContent}
                 </div>
             </div>
+            <script>
+                // تأكيد الطباعة بعد تحميل جميع الصور (خاصة الـ Base64)
+                window.onload = function() {
+                    const images = document.getElementsByTagName('img');
+                    let loadedCount = 0;
+                    if (images.length === 0) {
+                        window.print();
+                        setTimeout(() => window.close(), 500);
+                    } else {
+                        for (let i = 0; i < images.length; i++) {
+                            if (images[i].complete) {
+                                loadedCount++;
+                                if (loadedCount === images.length) {
+                                    window.print();
+                                    setTimeout(() => window.close(), 500);
+                                }
+                            } else {
+                                images[i].onload = function() {
+                                    loadedCount++;
+                                    if (loadedCount === images.length) {
+                                        window.print();
+                                        setTimeout(() => window.close(), 500);
+                                    }
+                                };
+                            }
+                        }
+                    }
+                };
+            </script>
         </body>
         </html>
     `;
@@ -102,9 +131,13 @@ const generatePrintWindow = (title: string, subtitle: string, bodyContent: strin
     return printWindow;
 };
 
-// Helper to convert an SVG in a container to a PNG data URL
+/**
+ * دالة محسنة لتحويل SVG الخاص بـ Recharts إلى صورة PNG
+ * تقوم بنسخ الأنماط المحسوبة لضمان مظهر مطابق للواقع
+ */
 const convertChartToPng = (chartContainerRef: React.RefObject<HTMLDivElement>): Promise<string> => {
     return new Promise((resolve, reject) => {
+        // ننتظر قليلاً للتأكد من انتهاء حركات الأنيميشن في الشارت
         setTimeout(() => {
             if (!chartContainerRef.current) {
                 return reject(new Error('Container not found.'));
@@ -115,44 +148,62 @@ const convertChartToPng = (chartContainerRef: React.RefObject<HTMLDivElement>): 
             }
 
             try {
-                const container = chartContainerRef.current!;
-                const { width, height } = container.getBoundingClientRect();
-
-                if (!width || !height) {
-                    return reject(new Error('Dimensions not available.'));
-                }
-
+                const { width, height } = chartContainerRef.current.getBoundingClientRect();
+                
+                // إنشاء نسخة من الـ SVG لتعديلها دون التأثير على الواجهة
                 const svgClone = svgEl.cloneNode(true) as SVGSVGElement;
                 svgClone.setAttribute('width', String(width));
                 svgClone.setAttribute('height', String(height));
+                svgClone.setAttribute('viewBox', `0 0 ${width} ${height}`);
                 
-                const backgroundRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                backgroundRect.setAttribute('width', '100%');
-                backgroundRect.setAttribute('height', '100%');
-                backgroundRect.setAttribute('fill', 'white');
-                svgClone.insertBefore(backgroundRect, svgClone.firstChild);
+                // إضافة خلفية بيضاء لأن الـ SVG غالباً ما يكون شفافاً
+                const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                bg.setAttribute('width', '100%');
+                bg.setAttribute('height', '100%');
+                bg.setAttribute('fill', 'white');
+                svgClone.insertBefore(bg, svgClone.firstChild);
+
+                // استخراج النصوص والخطوط لضمان دقة الألوان في الطباعة
+                const labels = svgEl.querySelectorAll('text');
+                const clonedLabels = svgClone.querySelectorAll('text');
+                labels.forEach((label, i) => {
+                    const style = window.getComputedStyle(label);
+                    if (clonedLabels[i]) {
+                        (clonedLabels[i] as SVGTextElement).style.fontFamily = style.fontFamily;
+                        (clonedLabels[i] as SVGTextElement).style.fontSize = style.fontSize;
+                        (clonedLabels[i] as SVGTextElement).style.fill = style.fill;
+                    }
+                });
 
                 const svgData = new XMLSerializer().serializeToString(svgClone);
-                const svgBase64 = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+                const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(svgBlob);
                 
                 const img = new Image();
                 img.onload = () => {
-                    const scale = 2; // Higher resolution
                     const canvas = document.createElement('canvas');
-                    canvas.width = width * scale;
-                    canvas.height = height * scale;
                     const ctx = canvas.getContext('2d');
                     if (!ctx) return reject(new Error('Canvas context error.'));
+
+                    // دقة أعلى للطباعة (2x)
+                    const scale = 2;
+                    canvas.width = width * scale;
+                    canvas.height = height * scale;
                     ctx.scale(scale, scale);
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, width, height);
                     ctx.drawImage(img, 0, 0, width, height);
-                    resolve(canvas.toDataURL('image/png'));
+                    
+                    const pngData = canvas.toDataURL('image/png');
+                    URL.revokeObjectURL(url);
+                    resolve(pngData);
                 };
                 img.onerror = () => reject(new Error('Image loading error.'));
-                img.src = svgBase64;
+                img.src = url;
             } catch (e) {
-                reject(new Error('Chart conversion error.'));
+                reject(e);
             }
-        }, 300);
+        }, 500); // وقت انتظار كافٍ لثبات الشارت
     });
 };
 
@@ -161,28 +212,23 @@ export const printChart = async (chartContainerRef: React.RefObject<HTMLDivEleme
     try {
         const pngFile = await convertChartToPng(chartContainerRef);
         const customStyles = `
-            .print-body { text-align: center; }
-            img {
-                max-width: 18cm;
+            .print-body { text-align: center; margin-top: 20px; }
+            img.chart-image {
+                max-width: 100%;
                 height: auto;
-                border: 1px solid #ccc;
-                padding: 5px;
-                margin-top: 20px;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                border: 1px solid #eee;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             }
         `;
         const subtitle = createFilterSubtitle(filters, t);
-        const bodyContent = `<img src="${pngFile}" alt="${title}" />`;
-        const printWin = generatePrintWindow(title, subtitle, bodyContent, customStyles, language, t);
+        const bodyContent = `<img src="${pngFile}" class="chart-image" alt="${title}" />`;
         
-        if (printWin) {
-            printWin.onload = () => {
-                printWin.print();
-                printWin.close();
-            };
-        }
+        // الدالة الآن تدير عملية الطباعة داخلياً عبر الـ script المحقون
+        generatePrintWindow(title, subtitle, bodyContent, customStyles, language, t);
+        
     } catch (error: any) {
         console.error("Chart printing error:", error);
+        alert(language === 'ar' ? 'فشل تحويل الرسم البياني للطباعة.' : 'Failed to convert chart for printing.');
     }
 };
 
@@ -216,14 +262,7 @@ export const printTable = (tableContainerRef: React.RefObject<HTMLDivElement>, t
     `;
     const subtitle = createFilterSubtitle(filters, t);
     const bodyContent = tableEl.outerHTML;
-    const printWin = generatePrintWindow(title, subtitle, bodyContent, customStyles, language, t);
-    
-    if (printWin) {
-        setTimeout(() => {
-            printWin.print();
-            printWin.close();
-        }, 250);
-    }
+    generatePrintWindow(title, subtitle, bodyContent, customStyles, language, t);
 };
 
 export const printAiReport = (reportContent: string, title: string, filters: PrintFilters, t: (k: string) => string, language: string) => {
@@ -244,12 +283,5 @@ export const printAiReport = (reportContent: string, title: string, filters: Pri
     `;
 
     const subtitle = createFilterSubtitle(filters, t);
-    const printWin = generatePrintWindow(title, subtitle, bodyContent, customStyles, language, t);
-    
-    if (printWin) {
-        setTimeout(() => {
-            printWin.print();
-            printWin.close();
-        }, 250);
-    }
+    generatePrintWindow(title, subtitle, bodyContent, customStyles, language, t);
 };

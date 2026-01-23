@@ -3,6 +3,8 @@ import React, { useState, useMemo, useRef } from 'react';
 import { VehicleTableData } from '../types';
 import { formatNumber } from '../services/dataService';
 import { printTable } from '../services/printService';
+import { exportToExcel, exportToImage, extractTableData } from '../services/exportService';
+import ExportDropdown from './ExportDropdown';
 import CollapsibleSection from './CollapsibleSection';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -53,6 +55,11 @@ const UtilizationSection: React.FC<UtilizationSectionProps> = ({ tableData, filt
         printTable(tableContainerRef, t('sec_utilization'), filters, t, language);
     };
 
+    const handleExportExcel = () => {
+        const rawData = extractTableData(tableContainerRef);
+        exportToExcel(rawData, `Vehicle_Utilization`);
+    };
+
     const headers = [
         { key: 'veh', label: t('th_veh_no') },
         { key: 'cap_ton', label: t('th_cap_ton') },
@@ -62,7 +69,7 @@ const UtilizationSection: React.FC<UtilizationSectionProps> = ({ tableData, filt
 
     return (
         <CollapsibleSection title={t('sec_utilization')}>
-            <div className="flex items-center gap-4 mb-4 text-sm">
+            <div className="flex items-center justify-between gap-4 mb-6 text-sm">
                 <div>
                     <label htmlFor="utilizationSort" className="ml-2 font-semibold text-slate-700 dark:text-slate-300">{t('chart_grouping')}</label>
                     <select id="utilizationSort" value={sortBy} onChange={e => setSortBy(e.target.value as keyof UtilizationData)}
@@ -70,9 +77,12 @@ const UtilizationSection: React.FC<UtilizationSectionProps> = ({ tableData, filt
                         {headers.map(h => <option key={h.key} value={h.key}>{h.label}</option>)}
                     </select>
                 </div>
-                <button onClick={handlePrint} className="px-3 py-2 border-none rounded-lg bg-emerald-500 text-white text-sm font-semibold cursor-pointer shadow-md transition hover:bg-emerald-600">
-                    {t('print')}
-                </button>
+                <ExportDropdown 
+                    onExportPdf={handlePrint}
+                    onExportExcel={handleExportExcel}
+                    onExportCsv={handleExportExcel}
+                    onExportImage={() => exportToImage(tableContainerRef, `Utilization_Export`)}
+                />
             </div>
             <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700" ref={tableContainerRef}>
                 <table id="utilization-table" className="w-full text-sm text-center border-collapse bg-white dark:bg-slate-900">

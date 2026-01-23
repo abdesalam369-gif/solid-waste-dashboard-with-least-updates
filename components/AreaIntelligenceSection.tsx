@@ -3,6 +3,8 @@ import React, { useMemo, useRef, useState } from 'react';
 import { Worker, VehicleTableData, Population } from '../types';
 import { formatNumber } from '../services/dataService';
 import { printTable } from '../services/printService';
+import { exportToExcel, exportToImage, extractTableData } from '../services/exportService';
+import ExportDropdown from './ExportDropdown';
 import CollapsibleSection from './CollapsibleSection';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -137,8 +139,22 @@ const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ worke
 
     const formatCurrency = (val: number) => formatNumber(Math.round(val)) + ' ' + t('unit_jd');
 
+    const handleExportExcel = () => {
+        const rawData = extractTableData(tableContainerRef);
+        exportToExcel(rawData, `Area_Intelligence`);
+    };
+
     return (
         <CollapsibleSection title={t('sec_area_intel')}>
+            <div className="flex justify-end items-center gap-4 mb-8">
+                 <ExportDropdown 
+                    onExportPdf={() => printTable(tableContainerRef, t('sec_area_intel'), filters, t, language)}
+                    onExportExcel={handleExportExcel}
+                    onExportCsv={handleExportExcel}
+                    onExportImage={() => exportToImage(tableContainerRef, `Area_Intelligence_Export`)}
+                />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-xl border-r-8 border-indigo-500 relative overflow-hidden group">
                     <div className="absolute -left-4 -top-4 text-6xl opacity-10 group-hover:scale-110 transition-transform">🏆</div>
@@ -271,16 +287,6 @@ const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ worke
                         ))}
                     </tbody>
                 </table>
-            </div>
-
-            <div className="mt-8 flex justify-between items-center bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-3xl border border-indigo-100 dark:border-indigo-900/30">
-                <button 
-                    /* Fix: Pass missing 't' and 'language' arguments to printTable */
-                    onClick={() => printTable(tableContainerRef, t('sec_area_intel'), filters, t, language)}
-                    className="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-black shadow-lg hover:bg-indigo-700 transition-all flex items-center gap-2 text-sm"
-                >
-                    {t('print')}
-                </button>
             </div>
         </CollapsibleSection>
     );

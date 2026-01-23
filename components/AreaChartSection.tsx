@@ -2,7 +2,9 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import CollapsibleSection from './CollapsibleSection';
+import ExportDropdown from './ExportDropdown';
 import { printChart } from '../services/printService';
+import { exportToExcel, exportToImage } from '../services/exportService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -20,74 +22,41 @@ const AreaChartSection: React.FC<AreaChartSectionProps> = ({ data, isLoading, fi
     const { theme } = useTheme();
     const isDark = theme === 'dark';
 
-    const areaMapping: {[key: string]: string} = {
-        'الطيبة': t('area_taybeh'),
-        'مؤته': t('area_mutah'),
-        'مؤتة': t('area_mutah'),
-        'المزار': t('area_mazar'),
-        'العراق': t('area_iraq'),
-        'الهاشمية': t('area_hashimiah'),
-        'سول': t('area_sol'),
-        'جعفر': t('area_jaffar'),
-        'غير محدد': t('area_undefined')
-    };
-
-    const translatedData = React.useMemo(() => {
-        return data.map(item => ({
-            ...item,
-            name: areaMapping[item.name] || item.name
-        }));
-    }, [data, t]);
-    
-    const CustomTooltip = ({ active, payload }: any) => {
-        if (active && payload && payload.length) {
-            const percent = payload[0].payload.percent || payload[0].percent;
-            const percentDisplay = (isFinite(percent) && percent > 0) 
-                ? `(${(percent * 100).toFixed(1)}%)`
-                : '';
-            
-            return (
-                <div className="bg-white dark:bg-slate-800 p-2 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm">
-                    <p className="font-bold text-slate-800 dark:text-slate-100">{`${payload[0].name}`}</p>
-                    <p className="text-sm text-slate-600 dark:text-slate-300">{`${t('chart_amount')} ${payload[0].value.toLocaleString()} ${t('unit_ton')} ${percentDisplay}`}</p>
-                </div>
-            );
-        }
-        return null;
-    };
-
-    const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
-        if (!isFinite(percent) || percent <= 0.02) {
-            return null;
-        }
-        const RADIAN = Math.PI / 180;
-        const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
-        const x = cx + radius * Math.cos(-midAngle * RADIAN);
-        const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-        return (
-            <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" className="font-bold text-sm">
-                {`${(percent * 100).toFixed(0)}%`}
-            </text>
-        );
-    };
-    
-    const totalValue = translatedData.reduce((sum, entry) => sum + entry.value, 0);
-
     const handlePrint = () => {
         printChart(chartRef, t('sec_waste_dist'), filters, t, language);
     };
 
+    // دالة مخصصة لرسم النسب المئوية كأرقام صحيحة داخل الأجزاء
+    const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+        const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+        const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
+        const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
+
+        if (percent < 0.04) return null; // إخفاء النسب الصغيرة جداً لتفادي التداخل
+
+        return (
+            <text 
+                x={x} 
+                y={y} 
+                fill="white" 
+                textAnchor="middle" 
+                dominantBaseline="central"
+                className="text-[12px] font-black pointer-events-none"
+            >
+                {`${(percent * 100).toFixed(0)}%`}
+            </text>
+        );
+    };
+
     return (
         <CollapsibleSection title={t('sec_waste_dist')}>
-             <div className="flex items-center justify-end gap-4 mb-4 text-sm">
-                <button 
-                    onClick={handlePrint} 
-                    className="px-3 py-2 border-none rounded-lg bg-emerald-500 text-white text-sm font-semibold cursor-pointer shadow-md transition hover:bg-emerald-600 disabled:bg-slate-400 disabled:cursor-not-allowed"
-                    disabled={isLoading || totalValue === 0}
-                >
-                    {t('print')}
-                </button>
+             <div className="flex items-center justify-end gap-4 mb-6 text-sm">
+                <ExportDropdown 
+                    onExportPdf={handlePrint}
+                    onExportExcel={() => exportToExcel(data, "Waste_Distribution")}
+                    onExportCsv={() => exportToExcel(data, "Waste_Distribution")}
+                    onExportImage={() => exportToImage(chartRef, "Waste_Distribution_Image")}
+                />
             </div>
              <div className="h-96 w-full relative" ref={chartRef}>
                  {isLoading && (
@@ -95,33 +64,32 @@ const AreaChartSection: React.FC<AreaChartSectionProps> = ({ data, isLoading, fi
                         <div className="w-12 h-12 border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 rounded-full animate-spin"></div>
                     </div>
                 )}
-                {!isLoading && totalValue > 0 ? (
-                    <ResponsiveContainer>
-                        <PieChart>
-                            <Pie
-                                data={translatedData}
-                                cx="50%"
-                                cy="50%"
-                                labelLine={false}
-                                outerRadius={130}
-                                fill="#8884d8"
-                                dataKey="value"
-                                nameKey="name"
-                                label={renderCustomizedLabel}
-                            >
-                                {translatedData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip content={<CustomTooltip />} />
-                            <Legend wrapperStyle={{ color: isDark ? '#94a3b8' : '#64748b' }} />
-                        </PieChart>
-                    </ResponsiveContainer>
-                ) : (
-                    !isLoading && <div className="absolute inset-0 flex items-center justify-center text-slate-500 dark:text-slate-400">
-                        {t('chart_no_data')}
-                    </div>
-                )}
+                <ResponsiveContainer>
+                    <PieChart>
+                        <Pie 
+                            data={data} 
+                            cx="50%" 
+                            cy="50%" 
+                            labelLine={false} 
+                            label={renderCustomizedLabel}
+                            outerRadius={140} 
+                            dataKey="value" 
+                            nameKey="name"
+                            stroke="none"
+                        >
+                            {data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                        </Pie>
+                        <Tooltip 
+                            contentStyle={{ 
+                                backgroundColor: isDark ? '#1e293b' : '#fff', 
+                                borderColor: isDark ? '#334155' : '#e2e8f0',
+                                borderRadius: '12px',
+                                color: isDark ? '#f1f5f9' : '#1e293b'
+                            }}
+                        />
+                        <Legend wrapperStyle={{ color: isDark ? '#94a3b8' : '#64748b', paddingTop: '20px' }} />
+                    </PieChart>
+                </ResponsiveContainer>
              </div>
         </CollapsibleSection>
     );

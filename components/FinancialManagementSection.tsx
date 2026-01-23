@@ -3,6 +3,8 @@ import React, { useMemo, useRef } from 'react';
 import { Worker, VehicleTableData } from '../types';
 import { formatNumber } from '../services/dataService';
 import { printTable } from '../services/printService';
+import { exportToExcel, exportToImage, extractTableData } from '../services/exportService';
+import ExportDropdown from './ExportDropdown';
 import CollapsibleSection from './CollapsibleSection';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -108,8 +110,22 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
 
     const formatCurrency = (val: number) => formatNumber(Math.round(val)) + ' ' + t('unit_jd');
 
+    const handleExportExcel = () => {
+        const rawData = extractTableData(tableContainerRef);
+        exportToExcel(rawData, `Financial_Management`);
+    };
+
     return (
         <CollapsibleSection title={t('sec_financial_mgmt')}>
+            <div className="flex justify-end items-center gap-4 mb-8">
+                 <ExportDropdown 
+                    onExportPdf={() => printTable(tableContainerRef, t('sec_financial_mgmt'), filters, t, language)}
+                    onExportExcel={handleExportExcel}
+                    onExportCsv={handleExportExcel}
+                    onExportImage={() => exportToImage(tableContainerRef, `Financial_Export`)}
+                />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
                 <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 p-6 rounded-3xl shadow-lg text-white">
                     <div className="text-emerald-100 text-xs font-bold mb-2 opacity-80 text-right">{t('kpi_total_annual_expenses')}</div>
@@ -203,15 +219,6 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                         ))}
                     </tbody>
                 </table>
-            </div>
-
-            <div className="mt-6 flex justify-end">
-                <button 
-                    onClick={() => printTable(tableContainerRef, t('sec_financial_mgmt'), filters, t, language)}
-                    className="flex items-center gap-2 bg-slate-800 dark:bg-slate-700 text-white px-6 py-2 rounded-xl text-xs font-bold hover:bg-slate-900 dark:hover:bg-slate-600 transition-all shadow-md"
-                >
-                    {t('print')}
-                </button>
             </div>
         </CollapsibleSection>
     );

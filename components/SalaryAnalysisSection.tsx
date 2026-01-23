@@ -2,6 +2,8 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { Worker } from '../types';
 import { printTable } from '../services/printService';
+import { exportToExcel, exportToImage, extractTableData } from '../services/exportService';
+import ExportDropdown from './ExportDropdown';
 import CollapsibleSection from './CollapsibleSection';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -97,6 +99,11 @@ const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers, 
         printTable(tableContainerRef, t('sec_salary_analysis'), filters, t, language);
     };
 
+    const handleExportExcel = () => {
+        const rawData = extractTableData(tableContainerRef);
+        exportToExcel(rawData, `Salary_Analysis`);
+    };
+
     if (workers.length === 0) return null;
 
     return (
@@ -127,12 +134,12 @@ const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers, 
                 </div>
 
                 <div className="flex flex-1 justify-end">
-                    <button 
-                        onClick={handlePrint} 
-                        className="px-8 py-3 bg-slate-800 dark:bg-slate-700 text-white rounded-2xl text-sm font-bold shadow-lg hover:bg-slate-900 dark:hover:bg-slate-600 transition-all active:scale-95 flex items-center gap-2"
-                    >
-                        {t('print')}
-                    </button>
+                    <ExportDropdown 
+                        onExportPdf={handlePrint}
+                        onExportExcel={handleExportExcel}
+                        onExportCsv={handleExportExcel}
+                        onExportImage={() => exportToImage(tableContainerRef, `Salaries_Export`)}
+                    />
                 </div>
             </div>
 

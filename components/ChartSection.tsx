@@ -1,9 +1,11 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Trip } from '../types';
 import { MONTHS_ORDER } from '../constants';
 import CollapsibleSection from './CollapsibleSection';
+import ExportDropdown from './ExportDropdown';
+import { exportToExcel, exportToImage } from '../services/exportService';
 import { printChart } from '../services/printService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -50,7 +52,6 @@ const ChartSection: React.FC<ChartSectionProps> = ({ data, comparisonData, isLoa
 
         const currentMap = process(data);
         const comparisonMap = process(comparisonData);
-
         const allKeys = [...new Set([...Object.keys(currentMap), ...Object.keys(comparisonMap)])];
 
         const merged = allKeys.map(key => ({
@@ -64,7 +65,6 @@ const ChartSection: React.FC<ChartSectionProps> = ({ data, comparisonData, isLoa
         } else {
             merged.sort((a, b) => a.name.localeCompare(b.name));
         }
-        
         return merged;
     }, [data, comparisonData, groupBy, metric]);
 
@@ -73,28 +73,37 @@ const ChartSection: React.FC<ChartSectionProps> = ({ data, comparisonData, isLoa
         printChart(chartRef, chartTitle, filters, t, language);
     };
 
+    const handleExportExcel = () => {
+        exportToExcel(chartData, `Time_Series_${selectedYear}`);
+    };
+
     return (
         <CollapsibleSection title={t('sec_time_series')}>
-            <div className="flex flex-wrap items-center gap-4 mb-4 text-sm">
-                <div>
-                    <label htmlFor="timeGroup" className="ml-2 font-semibold text-slate-700 dark:text-slate-300">{t('chart_grouping')}</label>
-                    <select id="timeGroup" value={groupBy} onChange={e => setGroupBy(e.target.value as 'month' | 'day')}
-                        className="p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
-                        <option value="month">{t('chart_monthly')}</option>
-                        <option value="day">{t('chart_daily')}</option>
-                    </select>
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6 text-sm">
+                <div className="flex gap-4">
+                    <div>
+                        <label className="ml-2 font-semibold text-slate-700 dark:text-slate-300">{t('chart_grouping')}</label>
+                        <select value={groupBy} onChange={e => setGroupBy(e.target.value as 'month' | 'day')}
+                            className="p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                            <option value="month">{t('chart_monthly')}</option>
+                            <option value="day">{t('chart_daily')}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="ml-2 font-semibold text-slate-700 dark:text-slate-300">{t('chart_value')}</label>
+                        <select value={metric} onChange={e => setMetric(e.target.value as 'trips' | 'tons')}
+                            className="p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                            <option value="trips">{t('chart_trips')}</option>
+                            <option value="tons">{t('chart_tons')}</option>
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <label htmlFor="metric" className="ml-2 font-semibold text-slate-700 dark:text-slate-300">{t('chart_value')}</label>
-                    <select id="metric" value={metric} onChange={e => setMetric(e.target.value as 'trips' | 'tons')}
-                        className="p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
-                        <option value="trips">{t('chart_trips')}</option>
-                        <option value="tons">{t('chart_tons')}</option>
-                    </select>
-                </div>
-                <button onClick={handlePrint} className="px-3 py-2 border-none rounded-lg bg-emerald-500 text-white text-sm font-semibold cursor-pointer shadow-md transition hover:bg-emerald-600">
-                    {t('print')}
-                </button>
+                <ExportDropdown 
+                    onExportPdf={handlePrint}
+                    onExportExcel={handleExportExcel}
+                    onExportCsv={handleExportExcel}
+                    onExportImage={() => exportToImage(chartRef, `Chart_${selectedYear}`)}
+                />
             </div>
             <div className="h-96 w-full relative" ref={chartRef}>
                  {isLoading && (
@@ -109,26 +118,11 @@ const ChartSection: React.FC<ChartSectionProps> = ({ data, comparisonData, isLoa
                         <YAxis tick={{ fill: axisColor }} stroke={gridColor} />
                         <Tooltip 
                             contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderColor: isDark ? '#334155' : '#e2e8f0', color: isDark ? '#f1f5f9' : '#1e293b' }}
-                            itemStyle={{ color: isDark ? '#cbd5e1' : '#475569' }}
                         />
                         <Legend wrapperStyle={{ color: axisColor }} />
-                        <Line 
-                            type="monotone" 
-                            dataKey="current" 
-                            name={`${selectedYear} (${metric === 'trips' ? t('th_trips') : t('th_tons')})`} 
-                            stroke="#2563eb" 
-                            strokeWidth={3} 
-                            activeDot={{ r: 8 }} 
-                        />
+                        <Line type="monotone" dataKey="current" name={`${selectedYear}`} stroke="#2563eb" strokeWidth={3} />
                         {comparisonYear && (
-                            <Line 
-                                type="monotone" 
-                                dataKey="comparison" 
-                                name={`${comparisonYear} (${metric === 'trips' ? t('th_trips') : t('th_tons')})`} 
-                                stroke="#94a3b8" 
-                                strokeWidth={2} 
-                                strokeDasharray="5 5"
-                            />
+                            <Line type="monotone" dataKey="comparison" name={`${comparisonYear}`} stroke="#94a3b8" strokeWidth={2} strokeDasharray="5 5" />
                         )}
                     </LineChart>
                 </ResponsiveContainer>
