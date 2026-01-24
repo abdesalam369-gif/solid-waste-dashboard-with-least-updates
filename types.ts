@@ -91,6 +91,7 @@ export interface VehicleTableData {
     year: string;
     cap_m3: number;
     cap_ton: number;
+    actual_daily_cap: number;
     trips: number;
     tons: number;
     fuel: number;

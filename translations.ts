@@ -99,7 +99,10 @@ export const translations = {
 
     // Table Headers
     th_veh_no: "رقم المركبة", th_area: "المنطقة", th_driver: "السائق", th_year: "سنة التصنيع",
-    th_cap_m3: "السعة (م³)", th_cap_ton: "السعة (طن)", th_trips: "الرحلات", th_tons: "الأطنان",
+    th_cap_m3: "السعة (م³)", th_cap_ton: "السعة (طن)", 
+    th_actual_daily_cap: "السعة الفعلية (طن/يوم)",
+    th_actual_daily_cap_desc: "السعة التشغيلية الفعلية تأخذ بعين الاعتبار ظروف التشغيل الواقعية (الصيانة، الأعطال، أيام العمل) وكفاءة الآلية حسب عمرها، مما يوضح القدرة الحقيقية للجمع مقارنة بالسعة النظرية.",
+    th_trips: "الرحلات", th_tons: "الأطنان",
     th_fuel: "الوقود", th_maint: "الصيانة", th_cost_trip: "كلفة الرحلة", th_cost_ton: "كلفة الطن",
     th_distance: "المسافة (كم)", th_km_trip: "كم/رحلة", th_pop: "السكان", th_served_pop: "المخدومين",
     th_coverage: "التغطية (%)", th_kg_capita: "نصيب الفرد", th_emp_name: "الاسم",
@@ -265,7 +268,10 @@ export const translations = {
 
     // Table Headers
     th_veh_no: "Vehicle ID", th_area: "Service Area", th_driver: "Primary Driver", th_year: "Mfg Year",
-    th_cap_m3: "Cap (m³)", th_cap_ton: "Cap (Tons)", th_trips: "Total Trips", th_tons: "Total Tons",
+    th_cap_m3: "Cap (m³)", th_cap_ton: "Cap (Tons)", 
+    th_actual_daily_cap: "Actual Cap (Ton/Day)",
+    th_actual_daily_cap_desc: "Actual daily operational capacity accounts for real-world operating conditions (maintenance, breakdowns, workdays) and vehicle efficiency based on age.",
+    th_trips: "Total Trips", th_tons: "Total Tons",
     th_fuel: "Fuel Cost", th_maint: "Maintenance", th_cost_trip: "Cost/Trip", th_cost_ton: "Cost/Ton",
     th_distance: "Distance (km)", th_km_trip: "km/Trip", th_pop: "Population", th_served_pop: "Served Pop",
     th_coverage: "Coverage %", th_kg_capita: "kg/Capita", th_emp_name: "Employee Name",

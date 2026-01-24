@@ -180,6 +180,18 @@ const AppContent: React.FC = () => {
             const cap_m3 = parseFloat(vehRow['سعة المركبة بالمتر المكعب'] || '0');
             const density = parseFloat(vehRow['كثافة التحميل'] || '0');
             const cap_ton = cap_m3 * density;
+            
+            // احتساب السعة الفعلية اليومية (طن/يوم)
+            const mfgYear = parseInt(vehRow['سنة التصنيع'] || year);
+            const age = parseInt(year) - mfgYear;
+            let efficiencyRate = 0;
+            if (age < 7) efficiencyRate = 1.0;
+            else if (age <= 11) efficiencyRate = 0.5;
+            else efficiencyRate = 0.0;
+            
+            // السعة التشغيلية الفعلية اليومية = حجم المركبة (م³) × 1 (رحلة لكل وردية كمرجع) × 0.625 (كثافة) × 0.9 (معدل تحميل) × 0.86 (معدل تشغيل) × معدل الكفاءة
+            const actual_daily_cap = cap_m3 * 1 * 0.625 * 0.9 * 0.86 * efficiencyRate;
+
             const totalCost = fuel + maint;
             const cost_trip = trips ? totalCost / trips : 0;
             const cost_ton = tons ? totalCost / tons : 0;
@@ -194,6 +206,7 @@ const AppContent: React.FC = () => {
                 year: vehRow['سنة التصنيع'] || '',
                 cap_m3,
                 cap_ton,
+                actual_daily_cap,
                 trips,
                 tons,
                 fuel,
@@ -214,358 +227,96 @@ const AppContent: React.FC = () => {
         comparisonYear ? getVehicleTableData(comparisonTrips, comparisonYear) : [], 
     [comparisonTrips, vehiclesData, areasData, fuelData, maintData, filters.months, comparisonYear, distanceData]);
 
-    const driverStatsData = useMemo<DriverStatsData[]>(() => {
-        const driverGroups: { [key: string]: { trips: number; tons: number; vehicles: Set<string> } } = {};
-        
-        filteredTrips.forEach(r => {
-            const driver = r['السائق'];
-            if (!driver || driver.trim() === '') return;
-    
-            if (!driverGroups[driver]) {
-                driverGroups[driver] = { trips: 0, tons: 0, vehicles: new Set() };
-            }
-            driverGroups[driver].trips += 1;
-            driverGroups[driver].tons += (Number(r['صافي التحميل']) || 0) / 1000;
-            if (r['رقم المركبة']) {
-                driverGroups[driver].vehicles.add(r['رقم المركبة']);
-            }
-        });
-    
-        return Object.entries(driverGroups).map(([driver, data]) => {
-            const { trips, tons, vehicles } = data;
-            const avgTonsPerTrip = trips > 0 ? tons / trips : 0;
-            
-            return {
-                driver,
-                trips,
-                tons,
-                avgTonsPerTrip,
-                vehicles: [...vehicles].join(', '),
-            };
-        });
-    }, [filteredTrips]);
-    
-    const areaDistributionData = useMemo(() => {
-        const areaMap = new Map<string, string>();
-        areasData.forEach(a => {
-            if (a['رقم المركبة'] && a['المنطقة'] && (a['السنة'] === selectedYear || !a['السنة'])) {
-                areaMap.set(a['رقم المركبة'], a['المنطقة']);
-            }
-        });
-
-        const tonsByArea: { [key: string]: number } = {};
-        filteredTrips.forEach(trip => {
-            const vehicleId = trip['رقم المركبة'];
-            if (vehicleId) {
-                const area = areaMap.get(vehicleId) || 'غير محدد';
-                if (!tonsByArea[area]) {
-                    tonsByArea[area] = 0;
-                }
-                tonsByArea[area] += (Number(trip['صافي التحميل'] || 0) / 1000);
-            }
-        });
-
-        return Object.entries(tonsByArea)
-            .map(([name, value]) => ({ name, value: Math.round(value) }))
-            .sort((a, b) => b.value - a.value);
-
-    }, [filteredTrips, areasData, selectedYear]);
-
-    const areaPopulationStats = useMemo<AreaPopulationStats[]>(() => {
-        const vehAreaMap = new Map<string, string>();
-        areasData.forEach(a => {
-            if (a['رقم المركبة'] && a['المنطقة'] && (a['السنة'] === selectedYear || !a['السنة'])) {
-                vehAreaMap.set(a['رقم المركبة'].trim(), a['المنطقة'].trim());
-            }
-        });
-
-        const tonsByArea: { [key: string]: number } = {};
-        filteredTrips.forEach(trip => {
-            const vehicleId = (trip['رقم المركبة'] || '').trim();
-            const area = vehAreaMap.get(vehicleId) || 'غير محدد';
-            tonsByArea[area] = (tonsByArea[area] || 0) + (Number(trip['صافي التحميل'] || 0) / 1000);
-        });
-
-        const popDataForYear = populationData.filter(p => p.year === selectedYear);
-
-        return popDataForYear.map(pop => {
-            const areaName = pop.area.trim();
-            const tons = tonsByArea[areaName] || 0;
-            const population = pop.population || 0;
-            const served = pop.served || 0;
-            const kgPerCapita = population > 0 ? (tons * 1000) / population : 0;
-            const coverageRate = population > 0 ? (served / population) * 100 : 0;
-            
-            return {
-                area: areaName,
-                population,
-                served,
-                totalTons: tons,
-                kgPerCapita,
-                coverageRate
-            };
-        }).sort((a, b) => b.kgPerCapita - a.kgPerCapita);
-    }, [filteredTrips, areasData, populationData, selectedYear]);
-
-    const populationTotals = useMemo(() => {
-        let targetData = areaPopulationStats;
-        
-        if (filters.vehicles.size > 0) {
-            const activeAreas = new Set(filteredVehicleTableData.map(v => v.area));
-            targetData = areaPopulationStats.filter(p => activeAreas.has(p.area));
-        }
-
-        const totalPop = targetData.reduce((sum, item) => sum + item.population, 0);
-        const totalServed = targetData.reduce((sum, item) => sum + item.served, 0);
-        const coverageRate = totalPop > 0 ? (totalServed / totalPop) * 100 : 0;
-
-        return { totalPop, totalServed, coverageRate };
-    }, [areaPopulationStats, filters.vehicles, filteredVehicleTableData]);
-
-    const financialTotals = useMemo(() => {
-        const getYearRevenueDetail = (year: string) => {
-            if (!year) return { total: 0, hh: 0, commercial: 0, recycling: 0 };
-            const yearRevenues = revenuesData.filter(r => r.year === year);
-            const hh = yearRevenues.reduce((sum, r) => sum + r.hhFees, 0);
-            const commercial = yearRevenues.reduce((sum, r) => sum + r.commercialFees, 0);
-            const recycling = yearRevenues.reduce((sum, r) => sum + r.recyclingRevenue, 0);
-            return {
-                total: hh + commercial + recycling,
-                hh,
-                commercial,
-                recycling
-            };
-        };
-
-        return {
-            current: getYearRevenueDetail(selectedYear),
-            comparison: getYearRevenueDetail(comparisonYear)
-        };
-    }, [revenuesData, selectedYear, comparisonYear]);
-
-    const treatmentTotals = useMemo(() => {
-        const getYearTreatment = (year: string) => {
-            if (!year) return null;
-            const yearTreat = treatmentData.find(t => t.year === year);
-            if (!yearTreat) return null;
-            const totalTreated = yearTreat.recyclablesTon + yearTreat.biowasteTon + yearTreat.otherTreatmentTon;
-            return {
-                ...yearTreat,
-                totalTreated
-            };
-        };
-
-        return {
-            current: getYearTreatment(selectedYear),
-            comparison: comparisonYear ? getYearTreatment(comparisonYear) : null
-        };
-    }, [treatmentData, selectedYear, comparisonYear]);
-
-    const handleGenerateReport = async (analysisType: string, options: { vehicleId?: string; vehicleIds?: string[]; customPrompt?: string }) => {
+    // Added logic for AI report generation
+    const handleGenerateReport = async (analysisType: string, options: any) => {
         setAiLoading(true);
         setAiError('');
-        setAiReport('');
         try {
             const report = await generateFleetReport(filteredVehicleTableData, analysisType, options, language);
             setAiReport(report);
-        } catch (err) {
-            setAiError(language === 'ar' ? 'حدث خطأ أثناء إنشاء التقرير. يرجى المحاولة مرة أخرى.' : 'Error generating report. Please try again.');
-            console.error(err);
+        } catch (err: any) {
+            setAiError(err.message || 'Error generating report');
         } finally {
             setAiLoading(false);
         }
     };
 
-    if (loading) {
-        return <Loader />;
-    }
-
-    const renderActiveContent = () => {
-        switch (activeTab) {
-            case 'summary':
-                return (
-                    <AnnualSummarySection 
-                        filteredTrips={filteredTrips}
-                        treatment={treatmentTotals.current}
-                        populationData={populationData}
-                        workers={workersData}
-                        revenues={revenuesData}
-                        vehicleTableData={filteredVehicleTableData}
-                        selectedYear={selectedYear}
-                        filters={filters}
-                    />
-                );
-            case 'kpi':
-                return (
-                    <div className="animate-in fade-in duration-500">
-                        <KpiGrid 
-                            filteredTrips={filteredTrips} 
-                            comparisonTrips={comparisonTrips}
-                            fuelData={fuelData} 
-                            maintData={maintData} 
-                            filters={filters}
-                            selectedYear={selectedYear}
-                            comparisonYear={comparisonYear}
-                            vehicleTableData={filteredVehicleTableData}
-                            comparisonVehicleTableData={comparisonVehicleTableData}
-                            totalPopulation={populationTotals.totalPop}
-                            totalServed={populationTotals.totalServed}
-                            coverageRate={populationTotals.coverageRate}
-                            workers={workersData}
-                            revenueDetail={financialTotals.current}
-                            comparisonRevenueDetail={financialTotals.comparison}
-                            treatment={treatmentTotals.current}
-                            comparisonTreatment={treatmentTotals.comparison}
-                        />
-                    </div>
-                );
-            case 'charts':
-                return (
-                    <div className="animate-in slide-in-from-left-5 duration-500">
-                        <ChartSection 
-                            data={filteredTrips} 
-                            comparisonData={comparisonTrips}
-                            isLoading={isFiltering} 
-                            filters={filters} 
-                            selectedYear={selectedYear}
-                            comparisonYear={comparisonYear}
-                            chartRef={lineChartRef} 
-                        />
-                    </div>
-                );
-            case 'route_planning':
-                return (
-                    <div className="animate-in slide-in-from-left-5 duration-500">
-                        <RoutePlanningSection vehicles={filteredVehicleTableData} />
-                    </div>
-                );
-            case 'financial':
-                return (
-                    <div className="animate-in slide-in-from-left-5 duration-500">
-                        <FinancialManagementSection 
-                            workers={workersData} 
-                            vehicleData={filteredVehicleTableData} 
-                            selectedYear={selectedYear} 
-                            filters={filters}
-                        />
-                    </div>
-                );
-            case 'intelligence':
-                return (
-                    <div className="animate-in slide-in-from-left-5 duration-500">
-                        <AreaIntelligenceSection 
-                            workers={workersData} 
-                            vehicleData={filteredVehicleTableData} 
-                            population={populationData.filter(p => p.year === selectedYear)}
-                            selectedYear={selectedYear}
-                            filters={filters}
-                        />
-                    </div>
-                );
-            case 'distribution':
-                return (
-                    <div className="animate-in slide-in-from-left-5 duration-500">
-                        <AreaChartSection data={areaDistributionData} isLoading={isFiltering} filters={filters} chartRef={pieChartRef} />
-                    </div>
-                );
-            case 'population':
-                return (
-                    <div className="animate-in slide-in-from-left-5 duration-500">
-                        <PopulationAnalysisSection tableData={areaPopulationStats} filters={filters} />
-                    </div>
-                );
-            case 'salaries':
-                return (
-                    <div className="animate-in slide-in-from-left-5 duration-500">
-                        <SalaryAnalysisSection workers={workersData} filters={filters} />
-                    </div>
-                );
-            case 'vehicles':
-                return (
-                    <div className="animate-in slide-in-from-left-5 duration-500 space-y-6">
-                        <TableSection tableData={filteredVehicleTableData} filters={filters} />
-                        {comparisonYear && (
-                            <TableSection tableData={comparisonVehicleTableData} filters={filters} title={`${t('sec_veh_eff')} - ${t('year')} ${comparisonYear} (${t('comparison')})`} />
+    // Added return statement for AppContent to handle tab navigation and rendering
+    return (
+        <div className={`min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 flex ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
+            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+            <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? (language === 'ar' ? 'mr-72' : 'ml-72') : (language === 'ar' ? 'mr-20' : 'ml-20')}`}>
+                <Header 
+                    tripsData={tripsData} filters={filters} selectedYear={selectedYear} 
+                    comparisonYear={comparisonYear} activeTab={activeTab} onYearChange={handleYearChange} 
+                    onComparisonYearChange={handleComparisonYearChange} onFilterToggle={handleFilterToggle} onResetFilters={resetFilters} 
+                />
+                
+                {loading || isFiltering ? <Loader /> : (
+                    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+                        {activeTab === 'summary' && (
+                            <AnnualSummarySection 
+                                filteredTrips={filteredTrips} 
+                                treatment={treatmentData.find(t => t.year === selectedYear)} 
+                                populationData={populationData} workers={workersData} 
+                                revenues={revenuesData} vehicleTableData={filteredVehicleTableData} 
+                                selectedYear={selectedYear} filters={filters} 
+                            />
+                        )}
+                        {activeTab === 'kpi' && (
+                            <KpiGrid 
+                                filteredTrips={filteredTrips} comparisonTrips={comparisonTrips} 
+                                fuelData={fuelData} maintData={maintData} filters={filters} 
+                                selectedYear={selectedYear} comparisonYear={comparisonYear} 
+                                vehicleTableData={filteredVehicleTableData} comparisonVehicleTableData={comparisonVehicleTableData}
+                                workers={workersData}
+                            />
+                        )}
+                        {activeTab === 'charts' && (
+                            <ChartSection data={filteredTrips} comparisonData={comparisonTrips} isLoading={loading} filters={filters} selectedYear={selectedYear} comparisonYear={comparisonYear} chartRef={lineChartRef} />
+                        )}
+                        {activeTab === 'ai' && (
+                            <AiAnalysisSection 
+                                vehicles={allVehiclesList} onGenerateReport={handleGenerateReport} 
+                                report={aiReport} isLoading={aiLoading} error={aiError} filters={filters} 
+                            />
+                        )}
+                        {activeTab === 'vehicles' && (
+                            <TableSection tableData={filteredVehicleTableData} filters={filters} />
+                        )}
+                        {activeTab === 'utilization' && (
+                            <UtilizationSection tableData={filteredVehicleTableData} filters={filters} />
+                        )}
+                        {activeTab === 'salaries' && (
+                            <SalaryAnalysisSection workers={workersData} filters={filters} />
+                        )}
+                        {activeTab === 'financial' && (
+                            <FinancialManagementSection workers={workersData} vehicleData={filteredVehicleTableData} selectedYear={selectedYear} filters={filters} />
+                        )}
+                        {activeTab === 'intelligence' && (
+                            <AreaIntelligenceSection workers={workersData} vehicleData={filteredVehicleTableData} population={populationData} selectedYear={selectedYear} filters={filters} />
+                        )}
+                        {activeTab === 'route_planning' && (
+                            <RoutePlanningSection vehicles={filteredVehicleTableData} />
+                        )}
+                        {activeTab === 'population' && (
+                            <PopulationAnalysisSection tableData={[]} filters={filters} />
                         )}
                     </div>
-                );
-            case 'drivers':
-                return (
-                    <div className="animate-in slide-in-from-left-5 duration-500">
-                        <DriverStatsSection tableData={driverStatsData} filters={filters} />
-                    </div>
-                );
-            case 'ai':
-                return (
-                    <div className="animate-in slide-in-from-left-5 duration-500">
-                        <AiAnalysisSection
-                            vehicles={allVehiclesList}
-                            onGenerateReport={handleGenerateReport}
-                            report={aiReport}
-                            isLoading={aiLoading}
-                            error={aiError}
-                            filters={filters}
-                        />
-                    </div>
-                );
-            case 'utilization':
-                return (
-                    <div className="animate-in slide-in-from-left-5 duration-500">
-                        <UtilizationSection tableData={filteredVehicleTableData} filters={filters} />
-                    </div>
-                );
-            default:
-                return null;
-        }
-    };
-
-    const isRtl = language === 'ar';
-
-    return (
-        <div className={`bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex overflow-hidden transition-colors duration-300 ${isRtl ? 'font-arabic' : 'font-sans'}`}>
-            <Sidebar 
-                activeTab={activeTab} 
-                setActiveTab={setActiveTab} 
-                isOpen={isSidebarOpen} 
-                setIsOpen={setIsSidebarOpen}
-            />
-
-            <div className={`flex-1 flex flex-col h-screen transition-all duration-300 ${isSidebarOpen ? (isRtl ? 'mr-72' : 'ml-72') : (isRtl ? 'mr-20' : 'ml-20')} overflow-y-auto`}>
-                <Header
-                    tripsData={tripsData}
-                    filters={filters}
-                    selectedYear={selectedYear}
-                    comparisonYear={comparisonYear}
-                    activeTab={activeTab}
-                    onYearChange={handleYearChange}
-                    onComparisonYearChange={handleComparisonYearChange}
-                    onFilterToggle={handleFilterToggle}
-                    onResetFilters={resetFilters}
-                />
-                
-                <main className={`container mx-auto p-4 md:p-6 pb-24 ${isRtl ? 'text-right' : 'text-left'}`}>
-                    {renderActiveContent()}
-                </main>
-                
-                <AiChat 
-                    currentData={filteredVehicleTableData} 
-                    comparisonData={comparisonVehicleTableData} 
-                    selectedYear={selectedYear} 
-                    comparisonYear={comparisonYear} 
-                />
-            </div>
+                )}
+                <AiChat currentData={filteredVehicleTableData} comparisonData={comparisonVehicleTableData} selectedYear={selectedYear} comparisonYear={comparisonYear} />
+            </main>
         </div>
     );
 };
 
-const App: React.FC = () => {
-    return (
-        <ThemeProvider>
-            <LanguageProvider>
-                <AppContent />
-            </LanguageProvider>
-        </ThemeProvider>
-    );
-};
+// Added App component to provide necessary contexts and export as default
+const App: React.FC = () => (
+    <ThemeProvider>
+        <LanguageProvider>
+            <AppContent />
+        </LanguageProvider>
+    </ThemeProvider>
+);
 
 export default App;
