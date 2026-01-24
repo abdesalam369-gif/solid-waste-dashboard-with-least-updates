@@ -16,6 +16,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, setI
         { id: 'summary', label: t('menu_summary'), icon: '📋' },
         { id: 'kpi', label: t('menu_kpi'), icon: '📊' },
         { id: 'charts', label: t('menu_charts'), icon: '📈' },
+        { id: 'route_planning', label: t('menu_route_planning'), icon: '🛣️' },
         { id: 'financial', label: t('menu_financial'), icon: '💰' },
         { id: 'intelligence', label: t('menu_intelligence'), icon: '🧠' },
         { id: 'distribution', label: t('menu_distribution'), icon: '📍' },

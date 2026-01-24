@@ -18,6 +18,7 @@ import PopulationAnalysisSection from './components/PopulationAnalysisSection';
 import SalaryAnalysisSection from './components/SalaryAnalysisSection';
 import FinancialManagementSection from './components/FinancialManagementSection';
 import AnnualSummarySection from './components/AnnualSummarySection';
+import RoutePlanningSection from './components/RoutePlanningSection';
 import AiChat from './components/AiChat';
 import Sidebar from './components/Sidebar';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -430,6 +431,12 @@ const AppContent: React.FC = () => {
                             comparisonYear={comparisonYear}
                             chartRef={lineChartRef} 
                         />
+                    </div>
+                );
+            case 'route_planning':
+                return (
+                    <div className="animate-in slide-in-from-left-5 duration-500">
+                        <RoutePlanningSection vehicles={filteredVehicleTableData} />
                     </div>
                 );
             case 'financial':

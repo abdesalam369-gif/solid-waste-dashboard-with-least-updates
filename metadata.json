@@ -1,5 +1,7 @@
 {
-  "name": "Copy of Copy of Waste Management AI Dashboard",
+  "name": "Waste Management AI Dashboard",
   "description": "An intelligent dashboard for analyzing waste management fleet data for the Mu'tah and Al-Mazar Municipality, featuring AI-powered reports and recommendations using the Gemini API.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "geolocation"
+  ]
 }

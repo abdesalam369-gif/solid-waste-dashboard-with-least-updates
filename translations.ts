@@ -42,6 +42,18 @@ export const translations = {
     menu_drivers: "أداء السائقين",
     menu_ai: "تحليل الذكاء الاصطناعي",
     menu_utilization: "استغلال المركبات",
+    menu_route_planning: "تخطيط المسارات التشغيلية",
+
+    // Route Planning
+    sec_route_planning: "أداة تخطيط المسارات المقترحة (توجيه تشغيلي)",
+    rp_select_vehicle: "اختر الضاغطة لتخطيط مسارها المقترح",
+    rp_target_landfill: "مكب نفايات اللجون",
+    rp_start_point: "نقطة انطلاق المنطقة",
+    rp_route_distance: "طول المسار المقترح",
+    rp_km: "كم",
+    rp_planning_in_progress: "جاري تخطيط المسار الأمثل عبر شبكة الطرق...",
+    rp_no_area: "لا يمكن تحديد نقطة انطلاق لهذه المركبة (المنطقة غير معرفة)",
+    rp_view_on_maps: "عرض المسار التفصيلي على الخرائط",
 
     // Months
     jan: "يناير", feb: "فبراير", mar: "مارس", apr: "أبريل", may: "مايو", jun: "يونيو",
@@ -139,7 +151,7 @@ export const translations = {
     exp_pop_per_cleaner: { rep: "نصيب كل عامل وطن من عدد السكان المخدومين.", basis: "إجمالي السكان مقسوماً على عدد عمال الوطن الميدانيين.", und: "يحدد مدى ضغط العمل على العمال؛ القيمة العالية تشير لنقص الكوادر." },
     exp_areas_served: { rep: "عدد التجمعات السكانية أو الأحياء التي تصلها الخدمة.", basis: "عدد المناطق المعرفة إدارياً والتي يتم خدمتها.", und: "يعكس الانتشار الجغرافي لخدمات البلدية." },
     exp_workers_count: { rep: "إجمالي القوى البشرية العاملة في قطاع النفايات (سائقين وعمال).", basis: "عدد الموظفين النشطين في سجلات الأجور.", und: "يحدد حجم الموارد البشرية المستثمرة في القطاع." },
-    exp_total_trips: { rep: "إجمالي عدد الرحلات التي قامت بها الضاغطات للمكب.", basis: "عدد سجلات الوزن المسجلة في فواتير الميزان.", und: "يعكس النشاط اللوجستي وحجم استهلاك الوقود إهلاك الآليات." },
+    exp_total_trips: { rep: "إجمالي عدد الرحلات التي قامت بها الضاغطات للمكب.", basis: "عدد سجلات الوزن المسجلة في فواتير الميزان.", und: "يعكس النشاط اللوجستي وحجم استهلاك الوقود وإهلاك الآليات." },
     exp_op_days: { rep: "عدد الأيام التي شهدت حركة نقل نفايات فعلية.", basis: "عد الأيام الفريدة المسجلة في بيانات التوزين.", und: "يعكس استمرارية الخدمة على مدار العام." },
     exp_avg_trips_day: { rep: "متوسط عدد الرحلات التي تخرج يومياً للمكب.", basis: "إجمالي الرحلات مقسوماً على عدد الأيام التشغيلية.", und: "يساعد في تنظيم ورديات العمل وحركة الآليات." },
     exp_avg_load: { rep: "متوسط وزن النفايات في الرحلة الواحدة للضاغطة.", basis: "إجمالي الوزن مقسوماً على إجمالي الرحلات.", und: "انخفاضه يعني خروج الآليات غير ممتلئة (هدر)، وارتفاعه قد يعني حمولة زائدة." },
@@ -196,6 +208,18 @@ export const translations = {
     menu_drivers: "Driver Performance",
     menu_ai: "AI Fleet Insights",
     menu_utilization: "Utilization Analysis",
+    menu_route_planning: "Route Planning",
+
+    // Route Planning
+    sec_route_planning: "Operational Route Planning Tool",
+    rp_select_vehicle: "Select a compactor to plan its suggested route",
+    rp_target_landfill: "Al-Lajjun Landfill",
+    rp_start_point: "Area Starting Point",
+    rp_route_distance: "Suggested Route Distance",
+    rp_km: "km",
+    rp_planning_in_progress: "Planning optimal route via road network...",
+    rp_no_area: "Cannot determine starting point (Area undefined)",
+    rp_view_on_maps: "View Detailed Route on Maps",
 
     // Months
     jan: "January", feb: "February", mar: "March", apr: "April", may: "May", jun: "June",
@@ -294,7 +318,7 @@ export const translations = {
     exp_areas_served: { rep: "Number of administrative zones or neighborhoods reached by the service.", basis: "Number of defined administrative areas actively served.", und: "Reflects the geographic spread of municipal operations." },
     exp_workers_count: { rep: "Total human resources in the waste sector (drivers and workers).", basis: "Number of active employees in payroll resources.", und: "Identifies human capital investment in operations." },
     exp_total_trips: { rep: "Total number of trips made by compactors to the landfill.", basis: "Count of weight records in the weighbridge database.", und: "Reflects logistical activity, fuel consumption, and fleet wear." },
-    exp_op_days: { rep: "Number of days with actual waste transport activity.", basis: "Count of unique days in the weighing data.", und: "Reflects service continuity throughout the year." },
+    exp_op_days: { rep: "Number of days with actual waste transport activity.", basis: "Count of unique days in the weighing data.", resolve: "Reflects service continuity throughout the year." },
     exp_avg_trips_day: { rep: "Average number of trips sent to the landfill daily.", basis: "Total trips divided by operational days.", und: "Helps in planning shifts and fleet movement." },
     exp_avg_load: { rep: "Average weight of waste carried per compactor trip.", basis: "Total weight divided by total trips.", und: "Low loads indicate inefficiency, while high loads might cause vehicle damage." },
     exp_daily_waste_rate: { rep: "Daily average of waste collected by the municipality.", basis: "Total tons divided by total days in the year.", und: "Used for planning landfill and transfer station capacity." },

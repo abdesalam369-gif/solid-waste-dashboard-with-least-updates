@@ -2,6 +2,50 @@
 import { GoogleGenAI } from "@google/genai";
 import { VehicleTableData } from "../types";
 
+export interface RouteInfo {
+    distance: string;
+    mapLink: string;
+}
+
+export async function getOptimalRoute(startPoint: string): Promise<RouteInfo> {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const targetLandfill = "مكب نفايات اللجون";
+    
+    // Explicit instructions for grounding
+    const prompt = `Find the driving distance in kilometers from "${startPoint}" to "${targetLandfill}" in Jordan using road networks. 
+    Return only the numeric distance value and a Google Maps URL for the route. 
+    Format your response as a JSON: {"distance": "XX.X", "link": "https://..."}`;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+            tools: [{ googleMaps: {} }],
+        }
+    });
+
+    try {
+        const text = response.text || "{}";
+        const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+        const data = JSON.parse(jsonStr);
+        
+        // Use grounding chunks for links if JSON failed or for validation
+        const grounding = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+        const mapUri = grounding?.find(c => c.maps?.uri)?.maps?.uri || data.link || "";
+
+        return {
+            distance: data.distance || "—",
+            mapLink: mapUri || `https://www.google.com/maps/dir/${encodeURIComponent(startPoint)}/${encodeURIComponent(targetLandfill)}`
+        };
+    } catch (e) {
+        console.error("Route parsing error:", e);
+        return {
+            distance: "—",
+            mapLink: `https://www.google.com/maps/dir/${encodeURIComponent(startPoint)}/${encodeURIComponent(targetLandfill)}`
+        };
+    }
+}
+
 export async function generateFleetReport(
     data: VehicleTableData[],
     analysisType: string,
