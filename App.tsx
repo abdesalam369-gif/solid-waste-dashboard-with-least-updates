@@ -11,7 +11,6 @@ import TableSection from './components/TableSection';
 import AiAnalysisSection from './components/AiAnalysisSection';
 import UtilizationSection from './components/UtilizationSection';
 import Loader from './components/Loader';
-import AreaChartSection from './components/AreaChartSection';
 import AreaIntelligenceSection from './components/AreaIntelligenceSection';
 import DriverStatsSection from './components/DriverStatsSection';
 import PopulationAnalysisSection from './components/PopulationAnalysisSection';
@@ -19,7 +18,6 @@ import SalaryAnalysisSection from './components/SalaryAnalysisSection';
 import FinancialManagementSection from './components/FinancialManagementSection';
 import AnnualSummarySection from './components/AnnualSummarySection';
 import RoutePlanningSection from './components/RoutePlanningSection';
-import AdditionalCostsSection from './components/AdditionalCostsSection';
 import AiChat from './components/AiChat';
 import Sidebar from './components/Sidebar';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -56,7 +54,6 @@ const AppContent: React.FC = () => {
     const [aiError, setAiError] = useState<string>('');
     
     const lineChartRef = useRef<HTMLDivElement>(null);
-    const pieChartRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -183,39 +180,19 @@ const AppContent: React.FC = () => {
             const cap_m3 = parseFloat(vehRow['سعة المركبة بالمتر المكعب'] || '0');
             const density = parseFloat(vehRow['كثافة التحميل'] || '0');
             const cap_ton = cap_m3 * density;
-            
             const mfgYear = parseInt(vehRow['سنة التصنيع'] || year);
             const age = parseInt(year) - mfgYear;
-            let efficiencyRate = 0;
-            if (age < 7) efficiencyRate = 1.0;
-            else if (age <= 11) efficiencyRate = 0.5;
-            else efficiencyRate = 0.0;
-            
+            let efficiencyRate = age < 7 ? 1.0 : (age <= 11 ? 0.5 : 0.0);
             const actual_daily_cap = cap_m3 * 1 * 0.625 * 0.9 * 0.86 * efficiencyRate;
-
             const totalCost = fuel + maint;
             const cost_trip = trips ? totalCost / trips : 0;
             const cost_ton = tons ? totalCost / tons : 0;
-
             const distance = distRow ? (Number(distRow['المسافة المقطوعة (كم)']) || 0) : 0;
             const km_per_trip = trips ? distance / trips : 0;
 
             return {
-                veh: v,
-                area: areaRow['المنطقة'] || '',
-                drivers: [...drivers].join(', '),
-                year: vehRow['سنة التصنيع'] || '',
-                cap_m3,
-                cap_ton,
-                actual_daily_cap,
-                trips,
-                tons,
-                fuel,
-                maint,
-                cost_trip,
-                cost_ton,
-                distance,
-                km_per_trip
+                veh: v, area: areaRow['المنطقة'] || '', drivers: [...drivers].join(', '), year: vehRow['سنة التصنيع'] || '',
+                cap_m3, cap_ton, actual_daily_cap, trips, tons, fuel, maint, cost_trip, cost_ton, distance, km_per_trip
             };
         });
     };
@@ -232,7 +209,6 @@ const AppContent: React.FC = () => {
         return additionalCosts.find(c => c.year === selectedYear) || null;
     }, [additionalCosts, selectedYear]);
 
-    // Added Revenue Details calculation
     const currentRevenueDetail = useMemo(() => {
         const yearData = revenuesData.filter(r => r.year === selectedYear);
         const hh = yearData.reduce((sum, r) => sum + r.hhFees, 0);
@@ -257,48 +233,35 @@ const AppContent: React.FC = () => {
                 vehAreaMap.set(a['رقم المركبة'].trim(), a['المنطقة'].trim());
             }
         });
-
         const tonsByArea: { [key: string]: number } = {};
         filteredTrips.forEach(trip => {
             const vehicleId = (trip['رقم المركبة'] || '').trim();
             const area = vehAreaMap.get(vehicleId) || 'غير محدد';
             tonsByArea[area] = (tonsByArea[area] || 0) + (Number(trip['صافي التحميل'] || 0) / 1000);
         });
-
         const popDataForYear = populationData.filter(p => p.year === selectedYear);
-
         return popDataForYear.map(pop => {
             const areaName = pop.area.trim();
             const tons = tonsByArea[areaName] || 0;
             const population = pop.population || 0;
             const served = pop.served || 0;
-            const kgPerCapita = population > 0 ? (tons * 1000) / population : 0;
-            const coverageRate = population > 0 ? (served / population) * 100 : 0;
-            
             return {
-                area: areaName,
-                population,
-                served,
-                totalTons: tons,
-                kgPerCapita,
-                coverageRate
+                area: areaName, population, served, totalTons: tons,
+                kgPerCapita: population > 0 ? (tons * 1000) / population : 0,
+                coverageRate: population > 0 ? (served / population) * 100 : 0
             };
         }).sort((a, b) => b.kgPerCapita - a.kgPerCapita);
     }, [filteredTrips, areasData, populationData, selectedYear]);
 
     const populationTotals = useMemo(() => {
         let targetData = areaPopulationStats;
-        
         if (filters.vehicles.size > 0) {
             const activeAreas = new Set(filteredVehicleTableData.map(v => v.area));
             targetData = areaPopulationStats.filter(p => activeAreas.has(p.area));
         }
-
         const totalPop = targetData.reduce((sum, item) => sum + item.population, 0);
         const totalServed = targetData.reduce((sum, item) => sum + item.served, 0);
-        const coverageRate = totalPop > 0 ? (totalServed / totalPop) * 100 : 0;
-
-        return { totalPop, totalServed, coverageRate };
+        return { totalPop, totalServed, coverageRate: totalPop > 0 ? (totalServed / totalPop) * 100 : 0 };
     }, [areaPopulationStats, filters.vehicles, filteredVehicleTableData]);
 
     const handleGenerateReport = async (analysisType: string, options: any) => {
@@ -371,10 +334,10 @@ const AppContent: React.FC = () => {
                             <SalaryAnalysisSection workers={workersData} filters={filters} />
                         )}
                         {activeTab === 'financial' && (
-                            <FinancialManagementSection workers={workersData} vehicleData={filteredVehicleTableData} selectedYear={selectedYear} filters={filters} />
-                        )}
-                        {activeTab === 'additional_costs' && (
-                            <AdditionalCostsSection costs={additionalCosts} filters={filters} />
+                            <FinancialManagementSection 
+                                workers={workersData} vehicleData={filteredVehicleTableData} 
+                                additionalCosts={additionalCosts} selectedYear={selectedYear} filters={filters} 
+                            />
                         )}
                         {activeTab === 'intelligence' && (
                             <AreaIntelligenceSection workers={workersData} vehicleData={filteredVehicleTableData} population={populationData.filter(p => p.year === selectedYear)} selectedYear={selectedYear} filters={filters} />

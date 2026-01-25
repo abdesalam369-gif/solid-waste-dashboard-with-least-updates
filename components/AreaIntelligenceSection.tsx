@@ -10,7 +10,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { 
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
-    ResponsiveContainer, Legend, Cell, ComposedChart, Line
+    ResponsiveContainer, Legend, Cell, ComposedChart, Line, PieChart, Pie
 } from 'recharts';
 
 interface AreaIntelligenceSectionProps {
@@ -103,7 +103,8 @@ const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ worke
 
             if (ALLOWED_AREAS.includes(area)) {
                 const current = statsMap.get(area);
-                statsMap.set(area, { ...current, population: p.population });
+                current.population = p.population;
+                statsMap.set(area, current);
             }
         });
 
@@ -116,6 +117,7 @@ const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ worke
             
             return {
                 ...item,
+                value: item.tons, // for pie chart
                 operationalCost,
                 totalBudget,
                 costPerTon,
@@ -137,11 +139,21 @@ const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ worke
         return activeAreas.reduce((prev, current) => (prev.costPerTon < current.costPerTon) ? prev : current);
     }, [areaAnalysis]);
 
-    const formatCurrency = (val: number) => formatNumber(Math.round(val)) + ' ' + t('unit_jd');
+    const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+        const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+        const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
+        const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
+        if (percent < 0.05) return null;
+        return (
+            <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" className="text-[10px] font-black pointer-events-none">
+                {`${(percent * 100).toFixed(0)}%`}
+            </text>
+        );
+    };
 
     const handleExportExcel = () => {
         const rawData = extractTableData(tableContainerRef);
-        exportToExcel(rawData, `Area_Intelligence`);
+        exportToExcel(rawData, `Area_Intelligence_Report`);
     };
 
     return (
@@ -151,31 +163,33 @@ const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ worke
                     onExportPdf={() => printTable(tableContainerRef, t('sec_area_intel'), filters, t, language)}
                     onExportExcel={handleExportExcel}
                     onExportCsv={handleExportExcel}
-                    onExportImage={() => exportToImage(tableContainerRef, `Area_Intelligence_Export`)}
+                    onExportImage={() => exportToImage(tableContainerRef, `Area_Intelligence_Consolidated`)}
                 />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-xl border-r-8 border-indigo-500 relative overflow-hidden group">
-                    <div className="absolute -left-4 -top-4 text-6xl opacity-10 group-hover:scale-110 transition-transform">🏆</div>
-                    <div className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase mb-1 text-right">{t('kpi_top_weight_veh')}</div>
-                    <div className="text-2xl font-black text-slate-800 dark:text-slate-100 text-right">{topArea?.displayName}</div>
-                    <div className="text-indigo-600 dark:text-indigo-400 font-bold text-sm text-right mt-1">{formatNumber(topArea?.tons || 0)} {t('unit_ton')}</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 p-7 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden group">
+                    <div className="absolute -left-4 -top-4 text-7xl opacity-20 group-hover:scale-110 transition-transform">🏆</div>
+                    <div className="relative z-10">
+                        <div className="text-indigo-100 text-[10px] font-black mb-2 uppercase tracking-tighter opacity-80 text-right">{t('kpi_top_weight_veh')}</div>
+                        <div className="text-3xl font-black text-right">{topArea?.displayName}</div>
+                        <div className="text-indigo-200 font-bold text-sm text-right mt-1">{formatNumber(topArea?.tons || 0)} {t('unit_ton')}</div>
+                    </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-xl border-r-8 border-emerald-500 relative overflow-hidden group">
-                    <div className="absolute -left-4 -top-4 text-6xl opacity-10 group-hover:scale-110 transition-transform">💡</div>
-                    <div className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase mb-1 text-right">{t('kpi_cost_per_ton')}</div>
-                    <div className="text-2xl font-black text-slate-800 dark:text-slate-100 text-right">{mostEfficient?.displayName || '—'}</div>
+                <div className="bg-white dark:bg-slate-900 p-7 rounded-[2.5rem] shadow-lg border-b-8 border-emerald-500 transition-all hover:-translate-y-1 relative overflow-hidden group">
+                    <div className="absolute -left-6 -top-6 text-7xl opacity-5 group-hover:rotate-12 transition-transform">💡</div>
+                    <div className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase mb-2 text-right">{t('kpi_cost_per_ton')}</div>
+                    <div className="text-3xl font-black text-slate-800 dark:text-slate-100 text-right">{mostEfficient?.displayName || '—'}</div>
                     <div className="text-emerald-600 dark:text-emerald-400 font-bold text-sm text-right mt-1">
                         {mostEfficient ? `${formatNumber(mostEfficient.costPerTon, 1)} ${t('unit_jd')}/${t('unit_ton')}` : '—'}
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-xl border-r-8 border-amber-500 relative overflow-hidden group">
-                    <div className="absolute -left-4 -top-4 text-6xl opacity-10 group-hover:scale-110 transition-transform">👥</div>
-                    <div className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase mb-1 text-right">{t('th_emp_count')}</div>
-                    <div className="text-2xl font-black text-slate-800 dark:text-slate-100 text-right">
+                <div className="bg-white dark:bg-slate-900 p-7 rounded-[2.5rem] shadow-lg border-b-8 border-amber-500 transition-all hover:-translate-y-1 relative overflow-hidden group">
+                    <div className="absolute -left-6 -top-6 text-7xl opacity-5 group-hover:rotate-12 transition-transform">👥</div>
+                    <div className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase mb-2 text-right">{t('th_emp_count')}</div>
+                    <div className="text-3xl font-black text-slate-800 dark:text-slate-100 text-right">
                         {areaAnalysis.reduce((p, c) => (p.workersCount > c.workersCount) ? p : c, areaAnalysis[0])?.displayName}
                     </div>
                     <div className="text-amber-600 dark:text-amber-400 font-bold text-sm text-right mt-1">
@@ -184,66 +198,84 @@ const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ worke
                 </div>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-100 dark:border-slate-700 mb-10 shadow-inner">
-                <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-                    <div className="flex gap-2">
-                        <button 
-                            onClick={() => setActiveMetric('tons')}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeMetric === 'tons' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
-                        >
-                            {t('chart_tons')}
-                        </button>
-                        <button 
-                            onClick={() => setActiveMetric('budget')}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeMetric === 'budget' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
-                        >
-                            {t('th_budget')}
-                        </button>
-                        <button 
-                            onClick={() => setActiveMetric('efficiency')}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeMetric === 'efficiency' ? 'bg-amber-600 text-white shadow-lg' : 'bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
-                        >
-                            {t('menu_drivers')}
-                        </button>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
+                {/* Waste Distribution (Previously AreaChartSection) */}
+                <div className="bg-white dark:bg-slate-800/50 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-sm relative">
+                    <h4 className="text-sm font-black text-slate-700 dark:text-slate-300 mb-6 flex items-center gap-2 text-right">
+                        <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                        {t('sec_waste_dist')}
+                    </h4>
+                    <div className="h-72 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie 
+                                    data={areaAnalysis} 
+                                    cx="50%" cy="50%" 
+                                    labelLine={false} 
+                                    label={renderCustomizedLabel}
+                                    innerRadius={60}
+                                    outerRadius={100} 
+                                    paddingAngle={2}
+                                    dataKey="tons" 
+                                    nameKey="displayName"
+                                    stroke="none"
+                                >
+                                    {areaAnalysis.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                                </Pie>
+                                <Tooltip contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderRadius: '12px', border: 'none', color: isDark ? '#fff' : '#000', textAlign: 'right' }} />
+                                <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ color: axisColor, paddingLeft: '20px', fontSize: '11px', fontWeight: '700' }} />
+                            </PieChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
-                
-                <div className="h-80 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={areaAnalysis}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
-                            <XAxis dataKey="displayName" tick={{fontSize: 10, fontWeight: 700, fill: axisColor}} axisLine={false} tickLine={false} />
-                            <YAxis yAxisId="left" tick={{fontSize: 10, fill: axisColor}} axisLine={false} tickLine={false} />
-                            <YAxis yAxisId="right" orientation="right" tick={{fontSize: 10, fill: axisColor}} axisLine={false} tickLine={false} />
-                            <Tooltip 
-                                contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', textAlign: 'right', color: isDark ? '#fff' : '#000' }}
-                            />
-                            <Legend wrapperStyle={{ color: axisColor }} />
-                            {activeMetric === 'tons' && (
-                                <>
-                                    <Bar yAxisId="left" dataKey="tons" name={t('th_tons')} fill="#6366f1" radius={[6, 6, 0, 0]} />
-                                    <Line yAxisId="right" type="monotone" dataKey="trips" name={t('th_trips')} stroke="#f59e0b" strokeWidth={3} dot={{r: 4}} />
-                                </>
-                            )}
-                            {activeMetric === 'budget' && (
-                                <>
-                                    <Bar yAxisId="left" dataKey="totalBudget" name={t('th_budget')} fill="#10b981" radius={[6, 6, 0, 0]} />
-                                    <Line yAxisId="right" type="monotone" dataKey="costPerTon" name={t('th_cost_ton')} stroke="#ef4444" strokeWidth={3} />
-                                </>
-                            )}
-                            {activeMetric === 'efficiency' && (
-                                <>
-                                    <Bar yAxisId="left" dataKey="tonsPerWorker" name={t('th_avg_load')} fill="#f59e0b" radius={[6, 6, 0, 0]} />
-                                    <Line yAxisId="right" type="monotone" dataKey="workersCount" name={t('th_emp_count')} stroke="#3b82f6" strokeWidth={3} />
-                                </>
-                            )}
-                        </ComposedChart>
-                    </ResponsiveContainer>
+
+                {/* Comparative Analytics (Refined from original) */}
+                <div className="bg-white dark:bg-slate-800/50 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-sm relative">
+                    <div className="flex justify-between items-center mb-6">
+                        <h4 className="text-sm font-black text-slate-700 dark:text-slate-300 flex items-center gap-2 text-right">
+                            <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                            المقارنة المعيارية للمناطق
+                        </h4>
+                        <div className="flex gap-1">
+                            <button onClick={() => setActiveMetric('tons')} className={`p-1.5 rounded-lg text-[9px] font-black transition-all ${activeMetric === 'tons' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>أوزان</button>
+                            <button onClick={() => setActiveMetric('budget')} className={`p-1.5 rounded-lg text-[9px] font-black transition-all ${activeMetric === 'budget' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>ميزانية</button>
+                            <button onClick={() => setActiveMetric('efficiency')} className={`p-1.5 rounded-lg text-[9px] font-black transition-all ${activeMetric === 'efficiency' ? 'bg-amber-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>إنتاجية</button>
+                        </div>
+                    </div>
+                    <div className="h-72 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart data={areaAnalysis}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
+                                <XAxis dataKey="displayName" tick={{fontSize: 9, fontWeight: 700, fill: axisColor}} axisLine={false} tickLine={false} />
+                                <YAxis yAxisId="left" tick={{fontSize: 9, fill: axisColor}} axisLine={false} tickLine={false} />
+                                <YAxis yAxisId="right" orientation="right" tick={{fontSize: 9, fill: axisColor}} axisLine={false} tickLine={false} />
+                                <Tooltip contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', textAlign: 'right', color: isDark ? '#fff' : '#000' }} />
+                                {activeMetric === 'tons' && (
+                                    <>
+                                        <Bar yAxisId="left" dataKey="tons" name={t('th_tons')} fill="#6366f1" radius={[4, 4, 0, 0]} barSize={20} />
+                                        <Line yAxisId="right" type="monotone" dataKey="trips" name={t('th_trips')} stroke="#f59e0b" strokeWidth={3} dot={{r: 3}} />
+                                    </>
+                                )}
+                                {activeMetric === 'budget' && (
+                                    <>
+                                        <Bar yAxisId="left" dataKey="totalBudget" name={t('th_budget')} fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} />
+                                        <Line yAxisId="right" type="monotone" dataKey="costPerTon" name={t('th_cost_ton')} stroke="#ef4444" strokeWidth={3} dot={{r: 3}} />
+                                    </>
+                                )}
+                                {activeMetric === 'efficiency' && (
+                                    <>
+                                        <Bar yAxisId="left" dataKey="tonsPerWorker" name={t('th_avg_load')} fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={20} />
+                                        <Line yAxisId="right" type="monotone" dataKey="workersCount" name={t('th_emp_count')} stroke="#3b82f6" strokeWidth={3} dot={{r: 3}} />
+                                    </>
+                                )}
+                            </ComposedChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </div>
 
-            <div className="overflow-x-auto rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm" ref={tableContainerRef}>
-                <table className="w-full text-[11px] text-center border-collapse bg-white dark:bg-slate-900">
+            <div className="overflow-x-auto rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm" ref={tableContainerRef}>
+                <table className="w-full text-[10px] md:text-[11px] text-center border-collapse bg-white dark:bg-slate-900">
                     <thead className="bg-slate-50 dark:bg-slate-800">
                         <tr>
                             <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase text-right pr-10">{t('th_area')}</th>
@@ -252,8 +284,6 @@ const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ worke
                             <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_emp_count')}</th>
                             <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_tons')}</th>
                             <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_trips')}</th>
-                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_operational_cost')}</th>
-                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_total_salaries')}</th>
                             <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_budget')}</th>
                             <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_cost_ton')}</th>
                         </tr>
@@ -275,9 +305,9 @@ const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ worke
                                 </td>
                                 <td className="p-4 font-black text-slate-700 dark:text-slate-300">{formatNumber(area.tons, 1)}</td>
                                 <td className="p-4 text-slate-500 dark:text-slate-400">{area.trips}</td>
-                                <td className="p-4 text-amber-700 dark:text-amber-400 font-bold">{formatCurrency(area.operationalCost)}</td>
-                                <td className="p-4 text-indigo-700 dark:text-indigo-400 font-bold">{formatCurrency(area.salaries)}</td>
-                                <td className="p-4 font-black text-emerald-700 dark:text-emerald-400">{formatCurrency(area.totalBudget)}</td>
+                                <td className="p-4 font-black text-emerald-700 dark:text-emerald-400">
+                                    {formatNumber(Math.round(area.totalBudget))} {t('unit_jd')}
+                                </td>
                                 <td className="p-4">
                                     <div className={`font-black rounded-lg py-1 px-2 ${area.costPerTon > 40 ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'}`}>
                                         {formatNumber(area.costPerTon, 1)} {t('unit_jd')}
