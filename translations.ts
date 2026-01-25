@@ -24,8 +24,8 @@ export const translations = {
     search_placeholder: "ابحث بالاسم، الوظيفة أو المنطقة...",
     notes: "ملاحظات",
     all_employees: "كافة الموظفين",
-    by_job: "حسب المسمى الوظيفي",
-    by_area: "حسب المنطقة",
+    by_job: "بناءً على الوظيفة",
+    by_area: "بناءً على المنطقة",
     theme_dark: "الوضع الداكن",
     theme_light: "الوضع الفاتح",
 
@@ -43,6 +43,15 @@ export const translations = {
     menu_ai: "تحليل الذكاء الاصطناعي",
     menu_utilization: "استغلال المركبات",
     menu_route_planning: "تخطيط المسارات التشغيلية",
+    menu_additional_costs: "التكاليف الإضافية",
+
+    // Additional Costs
+    th_insurance: "التأمين والترخيص",
+    th_clothing: "ملابس العمال",
+    th_cleaning: "لوازم نظافة",
+    th_containers: "شراء حاويات",
+    th_total_extra: "مجموع التكاليف الإضافية",
+    sec_additional_costs: "تحليل التكاليف الإضافية وغير التشغيلية",
 
     // Route Planning
     sec_route_planning: "أداة تخطيط المسارات المقترحة (توجيه تشغيلي)",
@@ -194,12 +203,12 @@ export const translations = {
     notes: "Notes",
     all_employees: "All Employees",
     by_job: "By Job Category",
-    by_area: "By Service Area",
+    by_area: "By Area Category",
     theme_dark: "Dark Theme",
     theme_light: "Light Theme",
 
     // Sidebar
-    menu_summary: "Performance Summary",
+    menu_summary: "Annual Performance Summary",
     menu_kpi: "Detailed Indicators",
     menu_charts: "Time Series Analysis",
     menu_financial: "Financial Management",
@@ -212,6 +221,15 @@ export const translations = {
     menu_ai: "AI Fleet Insights",
     menu_utilization: "Utilization Analysis",
     menu_route_planning: "Route Planning",
+    menu_additional_costs: "Additional Costs",
+
+    // Additional Costs
+    th_insurance: "Insurance & Licensing",
+    th_clothing: "Staff Clothing",
+    th_cleaning: "Cleaning Supplies",
+    th_containers: "Containers Purchase",
+    th_total_extra: "Total Additional Costs",
+    sec_additional_costs: "Additional & Non-Operational Costs Analysis",
 
     // Route Planning
     sec_route_planning: "Operational Route Planning Tool",

@@ -84,6 +84,14 @@ export interface Worker {
     salary: number;
 }
 
+export interface AdditionalCost {
+    insurance: number;
+    clothing: number;
+    cleaning: number;
+    containers: number;
+    year: string;
+}
+
 export interface VehicleTableData {
     veh: string;
     area: string;

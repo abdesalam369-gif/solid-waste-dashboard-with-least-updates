@@ -1,5 +1,5 @@
 
-import { Trip, Vehicle, Fuel, Maintenance, Area, Population, Worker, Revenue, WasteTreatment, Distance } from '../types';
+import { Trip, Vehicle, Fuel, Maintenance, Area, Population, Worker, Revenue, WasteTreatment, Distance, AdditionalCost } from '../types';
 import { CONFIG } from '../constants';
 
 // Declare global Papa from script tag
@@ -10,6 +10,9 @@ async function fetchCSV<T>(url: string): Promise<T[]> {
     const text = await response.text();
     const lines = text.trim().split(/\r?\n/);
     if (lines.length < 2) return [];
+    
+    // Improved CSV parsing for comma handling within quotes if necessary
+    // Simple split for now as per previous logic
     const header = lines.shift()!.split(",");
     
     return lines.map(line => {
@@ -91,15 +94,28 @@ export async function loadWorkersData(): Promise<Worker[]> {
 }
 
 export async function loadAllData() {
-    const [trips, vehicles, fuel, maint, areas, workers, distance] = await Promise.all([
+    const [trips, vehicles, fuel, maint, areas, workers, distance, additionalCostsRaw] = await Promise.all([
         fetchCSV<Trip>(CONFIG.trips),
         fetchCSV<Vehicle>(CONFIG.vehicles),
         fetchCSV<Fuel>(CONFIG.fuel),
         fetchCSV<Maintenance>(CONFIG.maint),
         fetchCSV<Area>(CONFIG.areas),
         loadWorkersData(),
-        fetchCSV<Distance>(CONFIG.distance)
+        fetchCSV<Distance>(CONFIG.distance),
+        fetchCSV<any>(CONFIG.additionalCosts)
     ]);
+
+    // Parse Additional Costs
+    const additionalCosts: AdditionalCost[] = additionalCostsRaw.map(row => {
+        const parseNum = (val: any) => Number(String(val || "0").trim().replace(/,/g, '').replace(/[^\d.-]/g, ''));
+        return {
+            insurance: parseNum(row["تكاليف التأمين والترخيص"]),
+            clothing: parseNum(row["ملابس عمال"]),
+            cleaning: parseNum(row["لوازم نظافة"]),
+            containers: parseNum(row["شراء حاويات"]),
+            year: String(row["السنة"] || "").trim()
+        };
+    }).filter(c => c.year !== "");
 
     let population: Population[] = [];
     try {
@@ -154,7 +170,6 @@ export async function loadAllData() {
             });
 
             revenues = revRows.map(row => {
-                // دالة معالجة الأرقام لضمان تحويل الفراغ إلى صفر
                 const parseNum = (val: any) => {
                     const cleanVal = String(val || "").trim().replace(/,/g, '').replace(/[^\d.-]/g, '');
                     const num = Number(cleanVal);
@@ -164,7 +179,6 @@ export async function loadAllData() {
                 return {
                     year: String(row["year"] || "").trim(),
                     hhFees: parseNum(row["HH Fees"]),
-                    // تم تصحيح مسمى العمود ليتطابق مع مسمى الشيت (التحقق من lowercase 'f')
                     commercialFees: parseNum(row["Commercial fees"] || row["Commercial Fees"]),
                     recyclingRevenue: parseNum(row["Recycling Revenue"]),
                     area: row["المنطقة"] ? String(row["المنطقة"]).trim() : undefined
@@ -206,7 +220,7 @@ export async function loadAllData() {
         console.error("Error loading treatment data:", error);
     }
 
-    return { trips, vehicles, fuel, maint, areas, population, workers, revenues, treatment, distance };
+    return { trips, vehicles, fuel, maint, areas, population, workers, revenues, treatment, distance, additionalCosts };
 }
 
 export const formatNumber = (num: number | undefined | null, digits: number = 0): string => {

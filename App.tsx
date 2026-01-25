@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Trip, Vehicle, Fuel, Maintenance, Area, VehicleTableData, DriverStatsData, Population, AreaPopulationStats, Worker, Revenue, WasteTreatment, Distance } from './types';
+import { Trip, Vehicle, Fuel, Maintenance, Area, VehicleTableData, DriverStatsData, Population, AreaPopulationStats, Worker, Revenue, WasteTreatment, Distance, AdditionalCost } from './types';
 import { CONFIG, MONTHS_ORDER } from './constants';
 import { loadAllData } from './services/dataService';
 import { generateFleetReport } from './services/geminiService';
@@ -19,6 +19,7 @@ import SalaryAnalysisSection from './components/SalaryAnalysisSection';
 import FinancialManagementSection from './components/FinancialManagementSection';
 import AnnualSummarySection from './components/AnnualSummarySection';
 import RoutePlanningSection from './components/RoutePlanningSection';
+import AdditionalCostsSection from './components/AdditionalCostsSection';
 import AiChat from './components/AiChat';
 import Sidebar from './components/Sidebar';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -26,7 +27,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 
 const AppContent: React.FC = () => {
     const { language, t } = useLanguage();
-    const [loading, setLoading] = useState(true);
+    const [loading, setStatusLoading] = useState(true);
     const [tripsData, setTripsData] = useState<Trip[]>([]);
     const [vehiclesData, setVehiclesData] = useState<Vehicle[]>([]);
     const [fuelData, setFuelData] = useState<Fuel[]>([]);
@@ -37,6 +38,7 @@ const AppContent: React.FC = () => {
     const [revenuesData, setRevenuesData] = useState<Revenue[]>([]);
     const [treatmentData, setTreatmentData] = useState<WasteTreatment[]>([]);
     const [distanceData, setDistanceData] = useState<Distance[]>([]);
+    const [additionalCosts, setAdditionalCosts] = useState<AdditionalCost[]>([]);
     
     const [selectedYear, setSelectedYear] = useState<string>('');
     const [comparisonYear, setComparisonYear] = useState<string>('');
@@ -58,28 +60,29 @@ const AppContent: React.FC = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            setLoading(true);
+            setStatusLoading(true);
             try {
-                const { trips, vehicles, fuel, maint, areas, population, workers, revenues, treatment, distance } = await loadAllData();
-                setTripsData(trips);
-                setVehiclesData(vehicles);
-                setFuelData(fuel);
-                setMaintData(maint);
-                setAreasData(areas);
-                setPopulationData(population || []);
-                setWorkersData(workers || []);
-                setRevenuesData(revenues || []);
-                setTreatmentData(treatment || []);
-                setDistanceData(distance || []);
+                const data = await loadAllData();
+                setTripsData(data.trips);
+                setVehiclesData(data.vehicles);
+                setFuelData(data.fuel);
+                setMaintData(data.maint);
+                setAreasData(data.areas);
+                setPopulationData(data.population || []);
+                setWorkersData(data.workers || []);
+                setRevenuesData(data.revenues || []);
+                setTreatmentData(data.treatment || []);
+                setDistanceData(data.distance || []);
+                setAdditionalCosts(data.additionalCosts || []);
 
-                const years = [...new Set(trips.map(t => t['السنة']).filter(Boolean))].sort().reverse();
+                const years = [...new Set(data.trips.map(t => t['السنة']).filter(Boolean))].sort().reverse();
                 if (years.length > 0) {
                     setSelectedYear(years[0]);
                 }
             } catch (error) {
                 console.error("Failed to load data:", error);
             } finally {
-                setLoading(false);
+                setStatusLoading(false);
             }
         };
         fetchData();
@@ -181,7 +184,6 @@ const AppContent: React.FC = () => {
             const density = parseFloat(vehRow['كثافة التحميل'] || '0');
             const cap_ton = cap_m3 * density;
             
-            // احتساب السعة الفعلية اليومية (طن/يوم)
             const mfgYear = parseInt(vehRow['سنة التصنيع'] || year);
             const age = parseInt(year) - mfgYear;
             let efficiencyRate = 0;
@@ -189,7 +191,6 @@ const AppContent: React.FC = () => {
             else if (age <= 11) efficiencyRate = 0.5;
             else efficiencyRate = 0.0;
             
-            // السعة التشغيلية الفعلية اليومية = حجم المركبة (م³) × 1 (رحلة لكل وردية كمرجع) × 0.625 (كثافة) × 0.9 (معدل تحميل) × 0.86 (معدل تشغيل) × معدل الكفاءة
             const actual_daily_cap = cap_m3 * 1 * 0.625 * 0.9 * 0.86 * efficiencyRate;
 
             const totalCost = fuel + maint;
@@ -227,7 +228,79 @@ const AppContent: React.FC = () => {
         comparisonYear ? getVehicleTableData(comparisonTrips, comparisonYear) : [], 
     [comparisonTrips, vehiclesData, areasData, fuelData, maintData, filters.months, comparisonYear, distanceData]);
 
-    // Added logic for AI report generation
+    const currentAdditionalCosts = useMemo(() => {
+        return additionalCosts.find(c => c.year === selectedYear) || null;
+    }, [additionalCosts, selectedYear]);
+
+    // Added Revenue Details calculation
+    const currentRevenueDetail = useMemo(() => {
+        const yearData = revenuesData.filter(r => r.year === selectedYear);
+        const hh = yearData.reduce((sum, r) => sum + r.hhFees, 0);
+        const commercial = yearData.reduce((sum, r) => sum + r.commercialFees, 0);
+        const recycling = yearData.reduce((sum, r) => sum + r.recyclingRevenue, 0);
+        return { total: hh + commercial + recycling, hh, commercial, recycling };
+    }, [revenuesData, selectedYear]);
+
+    const comparisonRevenueDetail = useMemo(() => {
+        if (!comparisonYear) return null;
+        const yearData = revenuesData.filter(r => r.year === comparisonYear);
+        const hh = yearData.reduce((sum, r) => sum + r.hhFees, 0);
+        const commercial = yearData.reduce((sum, r) => sum + r.commercialFees, 0);
+        const recycling = yearData.reduce((sum, r) => sum + r.recyclingRevenue, 0);
+        return { total: hh + commercial + recycling, hh, commercial, recycling };
+    }, [revenuesData, comparisonYear]);
+
+    const areaPopulationStats = useMemo<AreaPopulationStats[]>(() => {
+        const vehAreaMap = new Map<string, string>();
+        areasData.forEach(a => {
+            if (a['رقم المركبة'] && a['المنطقة'] && (a['السنة'] === selectedYear || !a['السنة'])) {
+                vehAreaMap.set(a['رقم المركبة'].trim(), a['المنطقة'].trim());
+            }
+        });
+
+        const tonsByArea: { [key: string]: number } = {};
+        filteredTrips.forEach(trip => {
+            const vehicleId = (trip['رقم المركبة'] || '').trim();
+            const area = vehAreaMap.get(vehicleId) || 'غير محدد';
+            tonsByArea[area] = (tonsByArea[area] || 0) + (Number(trip['صافي التحميل'] || 0) / 1000);
+        });
+
+        const popDataForYear = populationData.filter(p => p.year === selectedYear);
+
+        return popDataForYear.map(pop => {
+            const areaName = pop.area.trim();
+            const tons = tonsByArea[areaName] || 0;
+            const population = pop.population || 0;
+            const served = pop.served || 0;
+            const kgPerCapita = population > 0 ? (tons * 1000) / population : 0;
+            const coverageRate = population > 0 ? (served / population) * 100 : 0;
+            
+            return {
+                area: areaName,
+                population,
+                served,
+                totalTons: tons,
+                kgPerCapita,
+                coverageRate
+            };
+        }).sort((a, b) => b.kgPerCapita - a.kgPerCapita);
+    }, [filteredTrips, areasData, populationData, selectedYear]);
+
+    const populationTotals = useMemo(() => {
+        let targetData = areaPopulationStats;
+        
+        if (filters.vehicles.size > 0) {
+            const activeAreas = new Set(filteredVehicleTableData.map(v => v.area));
+            targetData = areaPopulationStats.filter(p => activeAreas.has(p.area));
+        }
+
+        const totalPop = targetData.reduce((sum, item) => sum + item.population, 0);
+        const totalServed = targetData.reduce((sum, item) => sum + item.served, 0);
+        const coverageRate = totalPop > 0 ? (totalServed / totalPop) * 100 : 0;
+
+        return { totalPop, totalServed, coverageRate };
+    }, [areaPopulationStats, filters.vehicles, filteredVehicleTableData]);
+
     const handleGenerateReport = async (analysisType: string, options: any) => {
         setAiLoading(true);
         setAiError('');
@@ -241,7 +314,6 @@ const AppContent: React.FC = () => {
         }
     };
 
-    // Added return statement for AppContent to handle tab navigation and rendering
     return (
         <div className={`min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 flex ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
             <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
@@ -261,6 +333,7 @@ const AppContent: React.FC = () => {
                                 populationData={populationData} workers={workersData} 
                                 revenues={revenuesData} vehicleTableData={filteredVehicleTableData} 
                                 selectedYear={selectedYear} filters={filters} 
+                                additionalCosts={currentAdditionalCosts}
                             />
                         )}
                         {activeTab === 'kpi' && (
@@ -269,11 +342,18 @@ const AppContent: React.FC = () => {
                                 fuelData={fuelData} maintData={maintData} filters={filters} 
                                 selectedYear={selectedYear} comparisonYear={comparisonYear} 
                                 vehicleTableData={filteredVehicleTableData} comparisonVehicleTableData={comparisonVehicleTableData}
+                                totalPopulation={populationTotals.totalPop}
+                                totalServed={populationTotals.totalServed}
+                                coverageRate={populationTotals.coverageRate}
                                 workers={workersData}
+                                revenueDetail={currentRevenueDetail}
+                                comparisonRevenueDetail={comparisonRevenueDetail}
+                                additionalCosts={currentAdditionalCosts}
+                                comparisonAdditionalCosts={additionalCosts.find(c => c.year === comparisonYear) || null}
                             />
                         )}
                         {activeTab === 'charts' && (
-                            <ChartSection data={filteredTrips} comparisonData={comparisonTrips} isLoading={loading} filters={filters} selectedYear={selectedYear} comparisonYear={comparisonYear} chartRef={lineChartRef} />
+                            <ChartSection data={filteredTrips} comparisonData={comparisonTrips} isLoading={false} filters={filters} selectedYear={selectedYear} comparisonYear={comparisonYear} chartRef={lineChartRef} />
                         )}
                         {activeTab === 'ai' && (
                             <AiAnalysisSection 
@@ -293,14 +373,17 @@ const AppContent: React.FC = () => {
                         {activeTab === 'financial' && (
                             <FinancialManagementSection workers={workersData} vehicleData={filteredVehicleTableData} selectedYear={selectedYear} filters={filters} />
                         )}
+                        {activeTab === 'additional_costs' && (
+                            <AdditionalCostsSection costs={additionalCosts} filters={filters} />
+                        )}
                         {activeTab === 'intelligence' && (
-                            <AreaIntelligenceSection workers={workersData} vehicleData={filteredVehicleTableData} population={populationData} selectedYear={selectedYear} filters={filters} />
+                            <AreaIntelligenceSection workers={workersData} vehicleData={filteredVehicleTableData} population={populationData.filter(p => p.year === selectedYear)} selectedYear={selectedYear} filters={filters} />
                         )}
                         {activeTab === 'route_planning' && (
                             <RoutePlanningSection vehicles={filteredVehicleTableData} />
                         )}
                         {activeTab === 'population' && (
-                            <PopulationAnalysisSection tableData={[]} filters={filters} />
+                            <PopulationAnalysisSection tableData={areaPopulationStats} filters={filters} />
                         )}
                     </div>
                 )}
@@ -310,7 +393,6 @@ const AppContent: React.FC = () => {
     );
 };
 
-// Added App component to provide necessary contexts and export as default
 const App: React.FC = () => (
     <ThemeProvider>
         <LanguageProvider>

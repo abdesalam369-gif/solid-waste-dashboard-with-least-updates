@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState } from 'react';
-import { Trip, Fuel, Maintenance, VehicleTableData, Worker, WasteTreatment } from '../types';
+import { Trip, Fuel, Maintenance, VehicleTableData, Worker, WasteTreatment, AdditionalCost } from '../types';
 import { MONTHS_ORDER } from '../constants';
 import { formatNumber } from '../services/dataService';
 import KpiCard from './KpiCard';
@@ -25,6 +25,8 @@ interface KpiGridProps {
     comparisonRevenueDetail?: { total: number; hh: number; commercial: number; recycling: number } | null;
     treatment?: (WasteTreatment & { totalTreated: number }) | null;
     comparisonTreatment?: (WasteTreatment & { totalTreated: number }) | null;
+    additionalCosts?: AdditionalCost | null;
+    comparisonAdditionalCosts?: AdditionalCost | null;
 }
 
 const KpiGrid: React.FC<KpiGridProps> = ({ 
@@ -32,7 +34,8 @@ const KpiGrid: React.FC<KpiGridProps> = ({
     selectedYear, comparisonYear, vehicleTableData, comparisonVehicleTableData,
     totalPopulation, totalServed, coverageRate, workers,
     revenueDetail, comparisonRevenueDetail,
-    treatment, comparisonTreatment
+    treatment, comparisonTreatment,
+    additionalCosts, comparisonAdditionalCosts
 }) => {
     const { t } = useLanguage();
     const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
@@ -115,7 +118,11 @@ const KpiGrid: React.FC<KpiGridProps> = ({
     const metrics = useMemo(() => {
         if (!currentStats) return null;
         
-        const totalCosts = currentStats.totalFuel + currentStats.totalMaint + totalSalaries;
+        const extraCosts = additionalCosts ? (
+            additionalCosts.insurance + additionalCosts.clothing + additionalCosts.cleaning + additionalCosts.containers
+        ) : 0;
+
+        const totalCosts = currentStats.totalFuel + currentStats.totalMaint + totalSalaries + extraCosts;
         const costPerTon = currentStats.totalTons > 0 ? totalCosts / currentStats.totalTons : 0;
         const costPerTrip = currentStats.totalTrips > 0 ? totalCosts / currentStats.totalTrips : 0;
         const avgTonsPerTrip = currentStats.totalTrips > 0 ? currentStats.totalTons / currentStats.totalTrips : 0;
@@ -148,9 +155,9 @@ const KpiGrid: React.FC<KpiGridProps> = ({
             totalCosts, costPerTon, costPerTrip, avgTonsPerTrip, avgTripsPerDay, 
             kgPerCapita, areasCount, costPerCapita, costAffordability, avgTripsPerVehicle, 
             costRecovery, totalGenerated, recyclingRate, alternativeTreatmentRate,
-            cleanersCount, popPerCleaner, wastePerCapitaNSWMS
+            cleanersCount, popPerCleaner, wastePerCapitaNSWMS, extraCosts
         };
-    }, [currentStats, totalSalaries, totalPopulation, revenueDetail, treatment, workers]);
+    }, [currentStats, totalSalaries, totalPopulation, revenueDetail, treatment, workers, additionalCosts]);
 
     if (!currentStats || !metrics) return null;
 
@@ -212,8 +219,9 @@ const KpiGrid: React.FC<KpiGridProps> = ({
                 { value: formatNumber(Math.round(revenueDetail?.total || 0)) + ' ' + t('unit_jd'), label: t('kpi_total_revenue'), icon: '💰', color: 'text-blue-800', comp: comparisonRevenueDetail?.total ? formatNumber(Math.round(comparisonRevenueDetail.total)) : undefined, emphasized: true },
                 { value: formatNumber(Math.round(revenueDetail?.hh || 0)) + ' ' + t('unit_jd'), label: t('kpi_hh_revenue'), icon: '🏠', color: 'text-blue-600' },
                 { value: formatNumber(Math.round(revenueDetail?.commercial || 0)) + ' ' + t('unit_jd'), label: t('kpi_commercial_revenue'), icon: '🏢', color: 'text-indigo-600' },
-                { value: formatNumber(metrics.costRecovery, 1) + '%', label: t('kpi_cost_recovery'), icon: '📈', color: 'text-indigo-700' },
+                { value: formatNumber(metrics.costRecovery, 1) + '%', label: t('kpi_cost_recovery'), icon: '⚖️', color: 'text-indigo-700' },
                 { value: formatNumber(Math.round(totalSalaries)), label: t('kpi_total_salaries'), icon: '💵', color: 'text-emerald-700' },
+                { value: formatNumber(Math.round(metrics.extraCosts)), label: t('th_total_extra'), icon: '🧾', color: 'text-pink-600' },
                 { value: formatNumber(Math.round(currentStats.totalFuel)), label: t('kpi_fuel_cost'), icon: '⛽', color: 'text-orange-500', comp: comparisonStats?.totalFuel ? formatNumber(Math.round(comparisonStats.totalFuel)) : undefined },
                 { value: formatNumber(Math.round(currentStats.totalMaint)), label: t('kpi_maint_cost'), icon: '🔧', color: 'text-red-600', comp: comparisonStats?.totalMaint ? formatNumber(Math.round(comparisonStats.totalMaint)) : undefined },
                 { value: formatNumber(metrics.costPerTon, 1) + ' ' + t('unit_jd'), label: t('kpi_cost_per_ton'), icon: '💰', color: 'text-amber-600' },

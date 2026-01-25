@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState, useRef } from 'react';
-import { Trip, WasteTreatment, Population, Worker, Revenue, VehicleTableData } from '../types';
+import { Trip, WasteTreatment, Population, Worker, Revenue, VehicleTableData, AdditionalCost } from '../types';
 import { formatNumber } from '../services/dataService';
 import KpiCard from './KpiCard';
 import KpiExplanationModal from './KpiExplanationModal';
@@ -17,10 +17,11 @@ interface AnnualSummarySectionProps {
     vehicleTableData: VehicleTableData[];
     selectedYear: string;
     filters: { vehicles: Set<string>; months: Set<string> };
+    additionalCosts?: AdditionalCost | null;
 }
 
 const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({ 
-    filteredTrips, treatment, populationData, workers, revenues, vehicleTableData, selectedYear, filters 
+    filteredTrips, treatment, populationData, workers, revenues, vehicleTableData, selectedYear, filters, additionalCosts 
 }) => {
     const { t, language } = useLanguage();
     const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
@@ -36,14 +37,22 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
         const wastePerCapita = totalPopulation > 0 ? (totalGeneratedTons * 1000) / totalPopulation / 365 : 0;
         const wastePerCapitaNSWMS = 0.87;
         const coverageRate = totalPopulation > 0 ? (totalServed / totalPopulation) * 100 : 0;
+        
         const monthsCount = filters.months.size > 0 ? filters.months.size : 12;
         const totalSalaries = workers.reduce((sum, w) => sum + (w.salary / 12) * monthsCount, 0);
         const totalFuel = vehicleTableData.reduce((sum, v) => sum + v.fuel, 0);
         const totalMaint = vehicleTableData.reduce((sum, v) => sum + v.maint, 0);
-        const totalCost = totalSalaries + totalFuel + totalMaint;
+        
+        // Include Additional Costs
+        const extraCosts = additionalCosts ? (
+            additionalCosts.insurance + additionalCosts.clothing + additionalCosts.cleaning + additionalCosts.containers
+        ) : 0;
+
+        const totalCost = totalSalaries + totalFuel + totalMaint + extraCosts;
         const costPerTon = totalGeneratedTons > 0 ? totalCost / totalGeneratedTons : 0;
         const costPerCapita = totalPopulation > 0 ? totalCost / totalPopulation : 0;
         const costAffordability = (costPerCapita / 4.9) * 100;
+        
         const yearRevenues = revenues.filter(r => r.year === selectedYear);
         const totalRevenue = yearRevenues.reduce((sum, r) => sum + r.hhFees + r.commercialFees + r.recyclingRevenue, 0);
         const costRecovery = totalCost > 0 ? (totalRevenue / totalCost) * 100 : 0;
@@ -53,9 +62,9 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
         return {
             totalGeneratedTons, wastePerCapita, wastePerCapitaNSWMS, totalPopulation,
             coverageRate, totalCost, costPerTon, costPerCapita, costAffordability,
-            totalRevenue, costRecovery, recyclingRate, diversionRate
+            totalRevenue, costRecovery, recyclingRate, diversionRate, extraCosts
         };
-    }, [filteredTrips, treatment, populationData, workers, revenues, vehicleTableData, selectedYear, filters.months]);
+    }, [filteredTrips, treatment, populationData, workers, revenues, vehicleTableData, selectedYear, filters.months, additionalCosts]);
 
     const groups = [
         {
