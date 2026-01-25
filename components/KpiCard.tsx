@@ -17,7 +17,7 @@ const KpiCard: React.FC<KpiCardProps> = ({ value, label, icon, color, comparison
     return (
         <div 
             onClick={onClick}
-            className={`kpi-card group bg-white dark:bg-slate-900 rounded-[2.5rem] p-7 shadow-sm dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col items-center text-center transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/10 dark:hover:bg-slate-800/80 hover:-translate-y-3 h-full relative overflow-hidden ${onClick ? 'cursor-help' : ''}`}
+            className={`kpi-card group bg-white dark:bg-slate-900 rounded-[2.5rem] p-7 shadow-sm dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col items-center text-center transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/10 dark:hover:bg-slate-800/80 hover:-translate-y-3 h-full relative overflow-hidden active:scale-95 ${onClick ? 'cursor-help' : ''}`}
         >
             <div className={`absolute top-0 inset-x-0 h-2 opacity-40 transition-opacity group-hover:opacity-100 ${color.replace('text', 'bg')}`}></div>
             
