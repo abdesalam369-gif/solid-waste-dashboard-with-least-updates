@@ -71,6 +71,26 @@ export const translations = {
     rp_no_area: "لا يمكن تحديد نقطة انطلاق لهذه المركبة (المنطقة غير معرفة)",
     rp_view_on_maps: "عرض المسار التفصيلي على الخرائط",
 
+    // Financial Section Specifics
+    btn_fin_comparison: "المقارنة المالية الشاملة",
+    btn_fin_expenses: "تحليل المصاريف",
+    btn_fin_revenues: "تحليل الإيرادات",
+    lbl_total_expenses: "إجمالي المصاريف",
+    lbl_for_total: "لإجمالي",
+    lbl_at_rate: "بمعدل",
+    lbl_recovery_suffix: "استرداد",
+    lbl_net_position: "صافي المركز المالي",
+    lbl_total_cost_ton: "تكلفة الطن الكلية",
+    chart_exp_breakdown: "هيكل المصاريف لعام",
+    chart_rev_streams: "مصادر الدخل لعام",
+    chart_area_comparison: "مقارنة المصاريف مقابل الإيرادات لكل منطقة",
+    th_collected_revenue: "الإيرادات المحصلة",
+    th_net_profit: "الصافي الربحي",
+    th_recovery_efficiency: "كفاءة الاسترداد",
+    footer_total_financials: "إجمالي الحسابات المالية لعام",
+    lbl_admin_non_op_costs: "التكاليف الإدارية وغير التشغيلية",
+    lbl_total_additions: "إجمالي الإضافات",
+
     // Months
     jan: "يناير", feb: "فبراير", mar: "مارس", apr: "أبريل", may: "مايو", jun: "يونيو",
     july: "يوليو", aug: "أغسطس", sep: "سبتمبر", oct: "أكتوبر", nov: "نوفمبر", dec: "ديسمبر",
@@ -256,6 +276,26 @@ export const translations = {
     rp_planning_in_progress: "Planning optimal route via road network...",
     rp_no_area: "Cannot determine starting point (Area undefined)",
     rp_view_on_maps: "View Detailed Route on Maps",
+
+    // Financial Section Specifics
+    btn_fin_comparison: "Comprehensive Financial Comparison",
+    btn_fin_expenses: "Expenses Analysis",
+    btn_fin_revenues: "Revenue Analysis",
+    lbl_total_expenses: "Total Expenses",
+    lbl_for_total: "For total",
+    lbl_at_rate: "At rate",
+    lbl_recovery_suffix: "recovery",
+    lbl_net_position: "Net Financial Position",
+    lbl_total_cost_ton: "Total Cost per Ton",
+    chart_exp_breakdown: "Expenses Breakdown for",
+    chart_rev_streams: "Revenue Streams for",
+    chart_area_comparison: "Expenses vs Revenue by Area",
+    th_collected_revenue: "Collected Revenue",
+    th_net_profit: "Net Balance",
+    th_recovery_efficiency: "Recovery Efficiency",
+    footer_total_financials: "Total Financial Accounts for",
+    lbl_admin_non_op_costs: "Administrative & Non-Operational Costs",
+    lbl_total_additions: "Total Additions",
 
     // Months
     jan: "January", feb: "February", mar: "March", apr: "April", may: "May", jun: "June",
