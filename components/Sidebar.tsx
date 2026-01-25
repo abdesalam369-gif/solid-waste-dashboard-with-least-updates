@@ -24,7 +24,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, setI
         { id: 'vehicles', label: t('menu_vehicles'), icon: '🚛' },
         { id: 'drivers', label: t('menu_drivers'), icon: '👷' },
         { id: 'ai', label: t('menu_ai'), icon: '🤖' },
-        { id: 'utilization', label: t('menu_utilization'), icon: '🔄' },
     ];
 
     const isRtl = language === 'ar';

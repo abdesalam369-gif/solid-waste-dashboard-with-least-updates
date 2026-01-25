@@ -44,6 +44,7 @@ export const translations = {
     menu_utilization: "استغلال المركبات",
     menu_route_planning: "تخطيط المسارات التشغيلية",
     menu_additional_costs: "التكاليف الإضافية",
+    menu_revenue_analysis: "تحليل الإيرادات",
 
     // Additional Costs
     th_insurance: "التأمين والترخيص",
@@ -52,6 +53,15 @@ export const translations = {
     th_containers: "شراء حاويات",
     th_total_extra: "مجموع التكاليف الإضافية",
     sec_additional_costs: "تحليل التكاليف الإضافية وغير التشغيلية",
+
+    // Revenue Analysis
+    sec_revenue_analysis: "تحليل الإيرادات والموارد المالية",
+    th_hh_fees: "رسوم المنازل",
+    th_commercial_fees: "الرسوم التجارية",
+    th_recycling_revenue: "عوائد التدوير",
+    th_total_revenue: "إجمالي الإيرادات",
+    rev_source_dist: "توزيع مصادر الإيرادات",
+    rev_area_dist: "توزيع الإيرادات حسب المنطقة",
 
     // Route Planning
     sec_route_planning: "أداة تخطيط المسارات المقترحة (توجيه تشغيلي)",
@@ -222,6 +232,7 @@ export const translations = {
     menu_utilization: "Utilization Analysis",
     menu_route_planning: "Route Planning",
     menu_additional_costs: "Additional Costs",
+    menu_revenue_analysis: "Revenue Analysis",
 
     // Additional Costs
     th_insurance: "Insurance & Licensing",
@@ -230,6 +241,15 @@ export const translations = {
     th_containers: "Containers Purchase",
     th_total_extra: "Total Additional Costs",
     sec_additional_costs: "Additional & Non-Operational Costs Analysis",
+
+    // Revenue Analysis
+    sec_revenue_analysis: "Revenue & Financial Resources Analysis",
+    th_hh_fees: "Household Fees",
+    th_commercial_fees: "Commercial Fees",
+    th_recycling_revenue: "Recycling Revenue",
+    th_total_revenue: "Total Revenue",
+    rev_source_dist: "Revenue Source Distribution",
+    rev_area_dist: "Revenue Distribution by Area",
 
     // Route Planning
     sec_route_planning: "Operational Route Planning Tool",

@@ -9,7 +9,6 @@ import KpiGrid from './components/KpiGrid';
 import ChartSection from './components/ChartSection';
 import TableSection from './components/TableSection';
 import AiAnalysisSection from './components/AiAnalysisSection';
-import UtilizationSection from './components/UtilizationSection';
 import Loader from './components/Loader';
 import AreaIntelligenceSection from './components/AreaIntelligenceSection';
 import DriverStatsSection from './components/DriverStatsSection';
@@ -327,16 +326,18 @@ const AppContent: React.FC = () => {
                         {activeTab === 'vehicles' && (
                             <TableSection tableData={filteredVehicleTableData} filters={filters} />
                         )}
-                        {activeTab === 'utilization' && (
-                            <UtilizationSection tableData={filteredVehicleTableData} filters={filters} />
-                        )}
                         {activeTab === 'salaries' && (
                             <SalaryAnalysisSection workers={workersData} filters={filters} />
                         )}
                         {activeTab === 'financial' && (
                             <FinancialManagementSection 
-                                workers={workersData} vehicleData={filteredVehicleTableData} 
-                                additionalCosts={additionalCosts} selectedYear={selectedYear} filters={filters} 
+                                workers={workersData} 
+                                vehicleData={filteredVehicleTableData} 
+                                additionalCosts={additionalCosts} 
+                                revenues={revenuesData}
+                                selectedYear={selectedYear} 
+                                comparisonYear={comparisonYear}
+                                filters={filters} 
                             />
                         )}
                         {activeTab === 'intelligence' && (
