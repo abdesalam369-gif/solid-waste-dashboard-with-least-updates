@@ -1,47 +1,63 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { VehicleTableData } from "../types";
+import { VehicleTableData, RouteInfo, RouteOption } from "../types";
 
-export interface RouteInfo {
-    distance: string;
-    mapLink: string;
-}
-
-export async function getOptimalRoute(startPoint: string): Promise<RouteInfo> {
+export async function getOptimalRoute(start: string, destination: string): Promise<RouteInfo> {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const targetLandfill = "مكب نفايات اللجون";
     
-    // Explicit instructions for grounding
-    const prompt = `Find the driving distance in kilometers from "${startPoint}" to "${targetLandfill}" in Jordan using road networks. 
-    Return only the numeric distance value and a Google Maps URL for the route. 
-    Format your response as a JSON: {"distance": "XX.X", "link": "https://..."}`;
-
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-            tools: [{ googleMaps: {} }],
-        }
-    });
+    const prompt = `Find the 3 best driving routes from "${start}" to "${destination}" in Jordan.
+    For each route, provide:
+    1. A descriptive name (e.g., "Main Highway", "Scenic Route", "Shortest Path").
+    2. The distance in kilometers.
+    3. The estimated travel time (duration).
+    4. A direct Google Maps URL for that specific route if possible.
+    
+    Return the response ONLY as a JSON object in this format:
+    {
+      "routes": [
+        {"name": "...", "distance": "XX.X km", "duration": "XX mins", "mapLink": "https://..."},
+        ...
+      ],
+      "summary": "Brief overall advice on which route is best for waste management vehicles."
+    }`;
 
     try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                tools: [{ googleMaps: {} }],
+            }
+        });
+
         const text = response.text || "{}";
         const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
         const data = JSON.parse(jsonStr);
-        
-        // Use grounding chunks for links if JSON failed or for validation
-        const grounding = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-        const mapUri = grounding?.find(c => c.maps?.uri)?.maps?.uri || data.link || "";
 
-        return {
-            distance: data.distance || "—",
-            mapLink: mapUri || `https://www.google.com/maps/dir/${encodeURIComponent(startPoint)}/${encodeURIComponent(targetLandfill)}`
-        };
+        // Fallback for empty or invalid routes
+        if (!data.routes || data.routes.length === 0) {
+            return {
+                routes: [{
+                    name: "Default Route",
+                    distance: "—",
+                    duration: "—",
+                    mapLink: `https://www.google.com/maps/dir/${encodeURIComponent(start)}/${encodeURIComponent(destination)}`
+                }],
+                summary: "Standard route via main roads."
+            };
+        }
+
+        return data as RouteInfo;
     } catch (e) {
-        console.error("Route parsing error:", e);
+        console.error("Route calculation error:", e);
         return {
-            distance: "—",
-            mapLink: `https://www.google.com/maps/dir/${encodeURIComponent(startPoint)}/${encodeURIComponent(targetLandfill)}`
+            routes: [{
+                name: "Primary Route",
+                distance: "—",
+                duration: "—",
+                mapLink: `https://www.google.com/maps/dir/${encodeURIComponent(start)}/${encodeURIComponent(destination)}`
+            }],
+            summary: "Error occurred while calculating alternative routes. Falling back to primary link."
         };
     }
 }

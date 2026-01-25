@@ -204,6 +204,29 @@ const AppContent: React.FC = () => {
         comparisonYear ? getVehicleTableData(comparisonTrips, comparisonYear) : [], 
     [comparisonTrips, vehiclesData, areasData, fuelData, maintData, filters.months, comparisonYear, distanceData]);
 
+    const driverStatsData = useMemo<DriverStatsData[]>(() => {
+        const groups: { [key: string]: { trips: number; tons: number; vehicles: Set<string> } } = {};
+        filteredTrips.forEach(t => {
+            const driver = t['السائق'] || 'غير محدد';
+            const veh = t['رقم المركبة'] || 'غير معروف';
+            const tons = (Number(t['صافي التحميل']) || 0) / 1000;
+            if (!groups[driver]) groups[driver] = { trips: 0, tons: 0, vehicles: new Set() };
+            groups[driver].trips += 1;
+            groups[driver].tons += tons;
+            groups[driver].vehicles.add(veh);
+        });
+        return Object.keys(groups).map(driver => {
+            const { trips, tons, vehicles } = groups[driver];
+            return {
+                driver,
+                trips,
+                tons,
+                avgTonsPerTrip: trips > 0 ? tons / trips : 0,
+                vehicles: Array.from(vehicles).join(', ')
+            };
+        });
+    }, [filteredTrips]);
+
     const currentAdditionalCosts = useMemo(() => {
         return additionalCosts.find(c => c.year === selectedYear) || null;
     }, [additionalCosts, selectedYear]);
@@ -348,6 +371,9 @@ const AppContent: React.FC = () => {
                         )}
                         {activeTab === 'population' && (
                             <PopulationAnalysisSection tableData={areaPopulationStats} filters={filters} />
+                        )}
+                        {activeTab === 'drivers' && (
+                            <DriverStatsSection tableData={driverStatsData} filters={filters} />
                         )}
                     </div>
                 )}

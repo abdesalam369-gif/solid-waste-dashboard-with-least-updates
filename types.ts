@@ -126,3 +126,15 @@ export interface AreaPopulationStats {
     kgPerCapita: number;
     coverageRate: number;
 }
+
+export interface RouteOption {
+    name: string;
+    distance: string;
+    duration: string;
+    mapLink: string;
+}
+
+export interface RouteInfo {
+    routes: RouteOption[];
+    summary?: string;
+}

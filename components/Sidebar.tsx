@@ -61,32 +61,34 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, setI
                 </button>
             </div>
 
-            <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1 custom-scrollbar">
+            <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-2 custom-scrollbar">
                 {menuItems.map((item) => (
                     <button
                         key={item.id}
                         onClick={() => setActiveTab(item.id)}
-                        className={`w-full flex items-center gap-4 p-3.5 rounded-2xl transition-all group relative ${
+                        className={`tab-button w-full flex items-center gap-4 p-3.5 rounded-2xl transition-all duration-300 group relative border-2 ${
                             activeTab === item.id 
-                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 shadow-sm' 
-                            : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200'
+                            ? 'bg-blue-600 dark:bg-blue-700 text-white shadow-xl shadow-blue-600/20 border-blue-500 scale-[1.02]' 
+                            : 'bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 border-transparent'
                         }`}
                     >
-                        <span className="text-xl shrink-0 filter drop-shadow-sm">{item.icon}</span>
+                        <span className={`text-xl shrink-0 transition-transform duration-500 ${activeTab === item.id ? 'scale-110 rotate-3' : 'group-hover:rotate-6'}`}>
+                            {item.icon}
+                        </span>
                         {isOpen && (
-                            <span className="text-[13px] font-bold whitespace-nowrap overflow-hidden text-ellipsis">
+                            <span className={`text-[13px] font-black whitespace-nowrap overflow-hidden text-ellipsis ${activeTab === item.id ? 'translate-x-1' : ''} transition-transform`}>
                                 {item.label}
                             </span>
                         )}
                         
                         {!isOpen && (
-                            <div className={`absolute ${isRtl ? 'right-full mr-2' : 'left-full ml-2'} px-3 py-1 bg-slate-800 dark:bg-slate-700 text-white text-[10px] rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap font-bold shadow-lg z-50`}>
+                            <div className={`absolute ${isRtl ? 'right-full mr-4' : 'left-full ml-4'} px-3 py-1.5 bg-slate-800 dark:bg-slate-700 text-white text-[11px] rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap font-black shadow-2xl z-50 transform translate-x-2 group-hover:translate-x-0`}>
                                 {item.label}
                             </div>
                         )}
 
                         {activeTab === item.id && (
-                            <div className={`absolute ${isRtl ? 'left-0' : 'right-0'} w-1 h-6 bg-blue-600 dark:bg-blue-400 rounded-${isRtl ? 'r' : 'l'}-full`}></div>
+                            <div className={`absolute ${isRtl ? 'left-2' : 'right-2'} w-1.5 h-1.5 bg-white rounded-full animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)]`}></div>
                         )}
                     </button>
                 ))}
@@ -94,11 +96,11 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, setI
 
             <div className="p-4 border-t border-slate-50 dark:border-slate-800 text-center">
                 {isOpen ? (
-                    <div className="text-[10px] text-slate-400 dark:text-slate-500 font-bold tracking-tight">
+                    <div className="text-[10px] text-slate-400 dark:text-slate-500 font-black tracking-widest uppercase">
                         {t('footer_text')}
                     </div>
                 ) : (
-                    <span className="text-xs opacity-50">📍</span>
+                    <span className="text-xs opacity-50 animate-bounce block">📍</span>
                 )}
             </div>
         </aside>

@@ -10,7 +10,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { 
     PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
-    BarChart, Bar, XAxis, YAxis, CartesianGrid
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList
 } from 'recharts';
 
 interface FinancialManagementSectionProps {
@@ -57,7 +57,6 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
     const financialStats = useMemo(() => {
         const monthsCount = filters.months.size > 0 ? filters.months.size : 12;
         
-        // Expenses Calculation
         const totalSalaries = workers.reduce((sum, w) => sum + (w.salary / 12) * monthsCount, 0);
         const totalFuel = vehicleData.reduce((sum, v) => sum + v.fuel, 0);
         const totalMaint = vehicleData.reduce((sum, v) => sum + v.maint, 0);
@@ -65,7 +64,6 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
         const extrasTotal = currentYearExtras.insurance + currentYearExtras.clothing + currentYearExtras.cleaning + currentYearExtras.containers;
         const grandTotalExpenses = totalSalaries + totalFuel + totalMaint + extrasTotal;
 
-        // Revenue Calculation
         const currentYearRevenues = revenues.filter(r => r.year === selectedYear);
         const hhFees = currentYearRevenues.reduce((s, r) => s + r.hhFees, 0);
         const commercialFees = currentYearRevenues.reduce((s, r) => s + r.commercialFees, 0);
@@ -75,11 +73,9 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
         const costRecovery = grandTotalExpenses > 0 ? (totalRevenue / grandTotalExpenses) * 100 : 0;
         const costPerTon = totalTons > 0 ? grandTotalExpenses / totalTons : 0;
 
-        // Comparisons
         const compYearRevenues = revenues.filter(r => r.year === comparisonYear);
         const totalCompRevenue = compYearRevenues.reduce((s, r) => s + (r.hhFees + r.commercialFees + r.recyclingRevenue), 0);
 
-        // Chart Data
         const expenseAllocation = [
             { name: t('th_total_salaries'), value: totalSalaries },
             { name: t('kpi_fuel_cost'), value: totalFuel },
@@ -107,7 +103,6 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
     const areaFinancials = useMemo(() => {
         const stats = new Map<string, { exp: number; rev: number; salaries: number; op: number; hh: number; comm: number; rec: number }>();
         
-        // 1. Operational Expenses
         vehicleData.forEach(v => {
             const area = v.area || 'غير محدد';
             const current = stats.get(area) || { exp: 0, rev: 0, salaries: 0, op: 0, hh: 0, comm: 0, rec: 0 };
@@ -116,7 +111,6 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
             stats.set(area, current);
         });
 
-        // 2. Salaries
         const monthsCount = filters.months.size > 0 ? filters.months.size : 12;
         workers.forEach(w => {
             const area = w.area || 'غير محدد';
@@ -127,7 +121,6 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
             stats.set(area, current);
         });
 
-        // 3. Revenues
         revenues.filter(r => r.year === selectedYear).forEach(r => {
             const area = r.area || 'غير محدد';
             const current = stats.get(area) || { exp: 0, rev: 0, salaries: 0, op: 0, hh: 0, comm: 0, rec: 0 };
@@ -157,22 +150,22 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
     return (
         <CollapsibleSection title={t('sec_financial_mgmt')}>
             <div className="flex flex-wrap items-center justify-between gap-6 mb-10">
-                <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-[1.5rem] shadow-inner">
+                <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-[1.5rem] shadow-inner border border-slate-200 dark:border-slate-700">
                     <button 
                         onClick={() => setViewMode('comparison')}
-                        className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-300 ${viewMode === 'comparison' ? 'bg-white dark:bg-slate-700 shadow-md text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`tab-button px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-300 ${viewMode === 'comparison' ? 'bg-white dark:bg-slate-700 shadow-xl text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-600' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         المقارنة المالية الشاملة
                     </button>
                     <button 
                         onClick={() => setViewMode('expenses')}
-                        className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-300 ${viewMode === 'expenses' ? 'bg-white dark:bg-slate-700 shadow-md text-red-600 dark:text-red-400' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`tab-button px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-300 ${viewMode === 'expenses' ? 'bg-white dark:bg-slate-700 shadow-xl text-red-600 dark:text-red-400 border border-slate-200 dark:border-slate-600' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         تحليل المصاريف
                     </button>
                     <button 
                         onClick={() => setViewMode('revenues')}
-                        className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-300 ${viewMode === 'revenues' ? 'bg-white dark:bg-slate-700 shadow-md text-emerald-600 dark:text-emerald-400' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`tab-button px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-300 ${viewMode === 'revenues' ? 'bg-white dark:bg-slate-700 shadow-xl text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-600' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         تحليل الإيرادات
                     </button>
@@ -215,7 +208,6 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
 
             {/* Visual Analytics Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
-                {/* Expense Allocation View */}
                 <div className={`bg-white dark:bg-slate-800/50 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-sm transition-all duration-500 ${viewMode === 'revenues' ? 'opacity-40 grayscale' : 'scale-100'}`}>
                     <h4 className="text-sm font-black text-slate-700 dark:text-slate-300 mb-6 flex items-center justify-between">
                          <span className="text-xs px-3 py-1 bg-red-50 text-red-600 rounded-full font-black uppercase tracking-widest">Expenses Breakdown</span>
@@ -247,7 +239,6 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                     </div>
                 </div>
 
-                {/* Revenue Allocation View */}
                 <div className={`bg-white dark:bg-slate-800/50 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-sm transition-all duration-500 ${viewMode === 'expenses' ? 'opacity-40 grayscale' : 'scale-100'}`}>
                     <h4 className="text-sm font-black text-slate-700 dark:text-slate-300 mb-6 flex items-center justify-between">
                         <span className="text-xs px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full font-black uppercase tracking-widest">Revenue Streams</span>
@@ -280,15 +271,25 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                 </div>
             </div>
 
-            {/* Consolidated Performance Comparison (Bar Chart) */}
+            {/* Consolidated Performance Comparison (Bar Chart with Gradients and Labels) */}
             <div className="bg-white dark:bg-slate-800/50 p-10 rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-sm mb-10">
                 <h4 className="text-sm font-black text-slate-700 dark:text-slate-300 mb-8 text-right flex items-center gap-3 justify-end">
                     <span>مقارنة المصاريف مقابل الإيرادات لكل منطقة</span>
                     <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
                 </h4>
-                <div className="h-80 w-full">
+                <div className="h-96 w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={areaFinancials}>
+                        <BarChart data={areaFinancials} margin={{ top: 30, right: 30, left: 20, bottom: 20 }}>
+                            <defs>
+                                <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.9} />
+                                    <stop offset="95%" stopColor="#881337" stopOpacity={0.9} />
+                                </linearGradient>
+                                <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.9} />
+                                    <stop offset="95%" stopColor="#064e3b" stopOpacity={0.9} />
+                                </linearGradient>
+                            </defs>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
                             <XAxis dataKey="displayName" tick={{fontSize: 11, fontWeight: 800, fill: axisColor}} axisLine={false} tickLine={false} />
                             <YAxis tick={{fontSize: 10, fill: axisColor}} axisLine={false} tickLine={false} />
@@ -297,9 +298,23 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                                 contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', color: isDark ? '#fff' : '#000', textAlign: 'right' }}
                                 formatter={(val: number) => formatCurrency(val)} 
                             />
-                            <Legend wrapperStyle={{paddingTop: '30px', fontWeight: 700}} />
-                            <Bar dataKey="exp" name="إجمالي المصاريف" fill="#f43f5e" radius={[10, 10, 0, 0]} barSize={35} />
-                            <Bar dataKey="rev" name="إجمالي الإيرادات" fill="#10b981" radius={[10, 10, 0, 0]} barSize={35} />
+                            <Legend verticalAlign="top" align="center" wrapperStyle={{paddingBottom: '30px', fontWeight: 700}} />
+                            <Bar dataKey="exp" name="إجمالي المصاريف" fill="url(#expenseGradient)" radius={[8, 8, 0, 0]} barSize={40}>
+                                <LabelList 
+                                    dataKey="exp" 
+                                    position="top" 
+                                    formatter={(val: number) => Math.round(val / 1000) + 'k'} 
+                                    style={{ fontSize: 10, fontWeight: 800, fill: isDark ? '#fb7185' : '#e11d48' }}
+                                />
+                            </Bar>
+                            <Bar dataKey="rev" name="إجمالي الإيرادات" fill="url(#revenueGradient)" radius={[8, 8, 0, 0]} barSize={40}>
+                                <LabelList 
+                                    dataKey="rev" 
+                                    position="top" 
+                                    formatter={(val: number) => Math.round(val / 1000) + 'k'} 
+                                    style={{ fontSize: 10, fontWeight: 800, fill: isDark ? '#34d399' : '#059669' }}
+                                />
+                            </Bar>
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
