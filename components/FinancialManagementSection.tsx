@@ -55,35 +55,58 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
     }, [additionalCosts, selectedYear]);
 
     const financialStats = useMemo(() => {
+        // Calculate the time ratio. If specific months are selected, we prorate annual costs (Maint, Extras).
+        // Fuel is already summed based on selected months in the parent component.
+        // Salaries are calculated monthly below.
         const monthsCount = filters.months.size > 0 ? filters.months.size : 12;
+        const timeRatio = monthsCount / 12; 
         
+        // 1. Salaries: Monthly Salary * Number of Selected Months
         const totalSalaries = workers.reduce((sum, w) => sum + (w.salary / 12) * monthsCount, 0);
+        
+        // 2. Fuel: Already filtered by month in App.tsx before being passed here
         const totalFuel = vehicleData.reduce((sum, v) => sum + v.fuel, 0);
-        const totalMaint = vehicleData.reduce((sum, v) => sum + v.maint, 0);
-        const totalTons = vehicleData.reduce((sum, v) => sum + v.tons, 0);
-        const extrasTotal = currentYearExtras.insurance + currentYearExtras.clothing + currentYearExtras.cleaning + currentYearExtras.containers;
+        
+        // 3. Maintenance: Annual cost * Time Ratio
+        const totalMaint = vehicleData.reduce((sum, v) => sum + v.maint, 0) * timeRatio;
+        
+        // 4. Non-Operational (Extras): Annual cost * Time Ratio
+        const extrasRaw = {
+            insurance: currentYearExtras.insurance * timeRatio,
+            clothing: currentYearExtras.clothing * timeRatio,
+            cleaning: currentYearExtras.cleaning * timeRatio,
+            containers: currentYearExtras.containers * timeRatio
+        };
+        const extrasTotal = extrasRaw.insurance + extrasRaw.clothing + extrasRaw.cleaning + extrasRaw.containers;
+
+        // 5. Grand Total Expenses
         const grandTotalExpenses = totalSalaries + totalFuel + totalMaint + extrasTotal;
 
+        const totalTons = vehicleData.reduce((sum, v) => sum + v.tons, 0);
+
+        // Revenue Calculations
         const currentYearRevenues = revenues.filter(r => r.year === selectedYear);
-        const hhFees = currentYearRevenues.reduce((s, r) => s + r.hhFees, 0);
-        const commercialFees = currentYearRevenues.reduce((s, r) => s + r.commercialFees, 0);
-        const recyclingRevenue = currentYearRevenues.reduce((s, r) => s + r.recyclingRevenue, 0);
+        // Note: Revenues usually come as annual totals in this dataset. We apply the same time ratio for fair comparison.
+        const applyRatio = (val: number) => val * (filters.months.size > 0 ? 1 : 1); // Revenues might be realized annually, keep as is or prorate? 
+        // Usually revenues like fees are annual. If comparing vs 1 month of expenses, we should arguably prorate revenue too.
+        // For safety/standard display, we'll prorate revenue to match the expense window.
+        
+        const hhFees = currentYearRevenues.reduce((s, r) => s + r.hhFees, 0) * timeRatio;
+        const commercialFees = currentYearRevenues.reduce((s, r) => s + r.commercialFees, 0) * timeRatio;
+        const recyclingRevenue = currentYearRevenues.reduce((s, r) => s + r.recyclingRevenue, 0) * timeRatio;
         const totalRevenue = hhFees + commercialFees + recyclingRevenue;
 
         const costRecovery = grandTotalExpenses > 0 ? (totalRevenue / grandTotalExpenses) * 100 : 0;
         const costPerTon = totalTons > 0 ? grandTotalExpenses / totalTons : 0;
 
-        const compYearRevenues = revenues.filter(r => r.year === comparisonYear);
-        const totalCompRevenue = compYearRevenues.reduce((s, r) => s + (r.hhFees + r.commercialFees + r.recyclingRevenue), 0);
-
         const expenseAllocation = [
             { name: t('th_total_salaries'), value: totalSalaries },
             { name: t('kpi_fuel_cost'), value: totalFuel },
             { name: t('kpi_maint_cost'), value: totalMaint },
-            { name: t('th_insurance'), value: currentYearExtras.insurance },
-            { name: t('th_clothing'), value: currentYearExtras.clothing },
-            { name: t('th_cleaning'), value: currentYearExtras.cleaning },
-            { name: t('th_containers'), value: currentYearExtras.containers }
+            { name: t('th_insurance'), value: extrasRaw.insurance },
+            { name: t('th_clothing'), value: extrasRaw.clothing },
+            { name: t('th_cleaning'), value: extrasRaw.cleaning },
+            { name: t('th_containers'), value: extrasRaw.containers }
         ].filter(item => item.value > 0);
 
         const revenueAllocation = [
@@ -95,23 +118,31 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
         return {
             totalSalaries, totalFuel, totalMaint, extrasTotal, grandTotalExpenses,
             hhFees, commercialFees, recyclingRevenue, totalRevenue,
-            costRecovery, costPerTon, totalCompRevenue,
-            expenseAllocation, revenueAllocation, totalTons
+            costRecovery, costPerTon,
+            expenseAllocation, revenueAllocation, totalTons,
+            extrasRaw
         };
     }, [workers, vehicleData, currentYearExtras, revenues, selectedYear, comparisonYear, t, filters.months]);
 
     const areaFinancials = useMemo(() => {
         const stats = new Map<string, { exp: number; rev: number; salaries: number; op: number; hh: number; comm: number; rec: number }>();
-        
+        const monthsCount = filters.months.size > 0 ? filters.months.size : 12;
+        const timeRatio = monthsCount / 12;
+
+        // Distribute Operational Costs (Fuel + Maint)
         vehicleData.forEach(v => {
             const area = v.area || 'غير محدد';
             const current = stats.get(area) || { exp: 0, rev: 0, salaries: 0, op: 0, hh: 0, comm: 0, rec: 0 };
-            current.op += (v.fuel + v.maint);
-            current.exp += (v.fuel + v.maint);
+            
+            // Fuel is already sum of months. Maint is annual, so prorate it.
+            const operationalCost = v.fuel + (v.maint * timeRatio);
+            
+            current.op += operationalCost;
+            current.exp += operationalCost;
             stats.set(area, current);
         });
 
-        const monthsCount = filters.months.size > 0 ? filters.months.size : 12;
+        // Distribute Salaries
         workers.forEach(w => {
             const area = w.area || 'غير محدد';
             const current = stats.get(area) || { exp: 0, rev: 0, salaries: 0, op: 0, hh: 0, comm: 0, rec: 0 };
@@ -121,15 +152,25 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
             stats.set(area, current);
         });
 
+        // Distribute Revenues (Prorated)
         revenues.filter(r => r.year === selectedYear).forEach(r => {
             const area = r.area || 'غير محدد';
             const current = stats.get(area) || { exp: 0, rev: 0, salaries: 0, op: 0, hh: 0, comm: 0, rec: 0 };
-            current.hh += r.hhFees;
-            current.comm += r.commercialFees;
-            current.rec += r.recyclingRevenue;
-            current.rev += (r.hhFees + r.commercialFees + r.recyclingRevenue);
+            
+            const r_hh = r.hhFees * timeRatio;
+            const r_comm = r.commercialFees * timeRatio;
+            const r_rec = r.recyclingRevenue * timeRatio;
+
+            current.hh += r_hh;
+            current.comm += r_comm;
+            current.rec += r_rec;
+            current.rev += (r_hh + r_comm + r_rec);
             stats.set(area, current);
         });
+
+        // NOTE: Additional Costs (Non-operational) are generally not distributed by Area in the source data.
+        // The table totals will sum up to (Salaries + Fuel + Maint).
+        // The "Grand Total" card includes Extras. This explains the difference if any.
 
         return Array.from(stats.entries()).map(([area, data]) => ({
             name: area,
@@ -386,10 +427,10 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         {[
-                            { label: t('th_insurance'), val: currentYearExtras.insurance, color: 'text-blue-400', bg: 'bg-blue-400/5' },
-                            { label: t('th_clothing'), val: currentYearExtras.clothing, color: 'text-emerald-400', bg: 'bg-emerald-400/5' },
-                            { label: t('th_cleaning'), val: currentYearExtras.cleaning, color: 'text-amber-400', bg: 'bg-amber-400/5' },
-                            { label: t('th_containers'), val: currentYearExtras.containers, color: 'text-pink-400', bg: 'bg-pink-400/5' }
+                            { label: t('th_insurance'), val: financialStats.extrasRaw.insurance, color: 'text-blue-400', bg: 'bg-blue-400/5' },
+                            { label: t('th_clothing'), val: financialStats.extrasRaw.clothing, color: 'text-emerald-400', bg: 'bg-emerald-400/5' },
+                            { label: t('th_cleaning'), val: financialStats.extrasRaw.cleaning, color: 'text-amber-400', bg: 'bg-amber-400/5' },
+                            { label: t('th_containers'), val: financialStats.extrasRaw.containers, color: 'text-pink-400', bg: 'bg-pink-400/5' }
                         ].map((item, i) => (
                             <div key={i} className={`${item.bg} p-8 rounded-[2.5rem] border border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105 group cursor-default`}>
                                 <div className={`${item.color} text-[10px] font-black uppercase mb-3 tracking-[0.2em] group-hover:translate-x-1 transition-transform ${language === 'ar' ? 'text-right' : 'text-left'}`}>{item.label}</div>

@@ -80,6 +80,38 @@ export async function generateFleetReport(
         case 'holistic_ranking':
             userRequest = "Perform a holistic ranking of all vehicles from best to worst, as specified in the critical instructions. The ranking must be the primary focus of the report. Provide a detailed justification for each vehicle's position, explaining its strengths and weaknesses based on the provided data.";
             break;
+        case 'municipality_reality':
+            userRequest = `
+            أنت نظام تحليل ذكي مدمج داخل لوحة تحكم لإدارة النفايات الصلبة في بلدية.
+            لديك وصول مباشر إلى بيانات اللوحة للفترة الزمنية المختارة، وتشمل البيانات السكانية، التشغيلية، والمالية.
+
+            المطلوب:
+            أنشئ تقريرًا تحليليًا متكاملًا عن واقع البلدية اعتمادًا فقط على البيانات المتاحة في لوحة التحكم، دون افتراض أو معلومات خارجية.
+
+            يجب أن يتضمن التقرير الأقسام التالية، مع تعبئتها تلقائيًا من البيانات:
+            1. لمحة عامة عن البلدية والفترة الزمنية محل التحليل
+            2. الخصائص السكانية المخدومة
+            3. حجم النفايات المتولدة والمنقولة (إجمالي، متوسط يومي، اتجاه زمني)
+            4. الأداء التشغيلي (عدد الرحلات، المركبات العاملة، كفاءة التشغيل)
+            5. التحليل المالي (كلفة الوقود، كلفة الصيانة، كلفة الرحلة، كلفة الطن)
+            6. قراءة تحليلية للعلاقة بين الكلفة والأداء
+            7. أبرز نقاط القوة
+            8. أبرز التحديات والملاحظات التشغيلية
+            9. توصيات عملية مبنية على الأرقام
+
+            أسلوب التقرير:
+            - رسمي ومهني
+            - لغة واضحة غير معقدة
+            - يربط الأرقام بالتحليل (لا يكتفي بعرضها)
+            - مناسب لعرضه على إدارة بلدية أو جهة رقابية أو مانح
+
+            ملاحظات مهمة:
+            - لا تذكر أسماء مؤشرات أو أعمدة تقنية
+            - لا تستخدم عبارات عامة أو إنشائية
+            - إذا كان هناك نقص بيانات، أشر إليه بوضوح
+            - اعتمد على المقارنات الداخلية والاتجاهات الزمنية إن وجدت
+            `;
+            break;
         case 'detailed':
             userRequest = "Provide a detailed report for each vehicle individually. Analyze its performance, costs, and efficiency, and provide specific recommendations for each one.";
             break;

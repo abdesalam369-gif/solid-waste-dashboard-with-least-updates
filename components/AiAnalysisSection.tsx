@@ -77,13 +77,14 @@ const AiAnalysisSection: React.FC<AiAnalysisSectionProps> = ({ vehicles, onGener
                             onChange={(e) => setAnalysisType(e.target.value)}
                             className="w-full p-2 border border-slate-300 rounded-lg bg-white"
                         >
-                            <option value="general">تحليل عام للأسطول</option>
-                            <option value="holistic_ranking">تصنيف شامل للمركبات</option>
-                            <option value="detailed">تقرير مفصل لكل مركبة</option>
-                            <option value="specific">تقرير لمركبة محددة</option>
-                            <option value="comparison">مقارنة بين مركبات</option>
-                            <option value="best_worst">تحديد أفضل وأسوأ المركبات</option>
-                            <option value="custom">طلب مخصص</option>
+                            <option value="general">{t('ai_opt_general')}</option>
+                            <option value="holistic_ranking">{t('ai_opt_holistic')}</option>
+                            <option value="municipality_reality">{t('ai_opt_municipality_reality')}</option>
+                            <option value="detailed">{t('ai_opt_detailed')}</option>
+                            <option value="specific">{t('ai_opt_specific')}</option>
+                            <option value="comparison">{t('ai_opt_comparison')}</option>
+                            <option value="best_worst">{t('ai_opt_best_worst')}</option>
+                            <option value="custom">{t('ai_opt_custom')}</option>
                         </select>
                     </div>
 
