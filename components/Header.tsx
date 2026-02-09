@@ -119,37 +119,45 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                 day: 'numeric'
             });
 
-            const sections = container.querySelectorAll('div.space-y-6');
+            // الحصول على جميع الأقسام (المجموعات)
+            const sectionWrappers = container.querySelectorAll('.space-y-6');
             let fullHtml = '';
 
-            sections.forEach(section => {
+            sectionWrappers.forEach(section => {
                 const titleNode = section.querySelector('h3');
                 const title = titleNode?.textContent || '';
-                const cardNodes = section.querySelectorAll('div.group');
+                // البحث عن بطاقات المؤشرات داخل هذا القسم
+                const cardNodes = section.querySelectorAll('.kpi-card');
 
                 if (cardNodes.length === 0) return;
 
                 let sectionCardsHtml = '';
                 cardNodes.forEach(card => {
-                    const iconSpan = card.querySelector('span.text-3xl');
+                    // استخراج الأيقونة
+                    const iconSpan = card.querySelector('.text-4xl');
                     const icon = iconSpan?.textContent || '';
 
-                    const valueNode = card.querySelector('div.text-2xl.font-black');
+                    // استخراج القيمة (الرقم) - نستخدم كلاس text-3xl المحدث
+                    const valueNode = card.querySelector('.text-3xl');
                     const value = valueNode?.textContent || '';
+                    
+                    // محاولة استخراج لون النص لتطبيقه في الطباعة
                     const colorClass = Array.from(valueNode?.classList || []).find(c => c.startsWith('text-')) || 'text-slate-800';
 
-                    const labelNode = card.querySelector('div.text-\\[11px\\]');
+                    // استخراج العنوان
+                    const labelNode = card.querySelector('.text-\\[11px\\]');
                     const label = labelNode?.textContent || '';
 
-                    const compNode = card.querySelector('div.text-\\[10px\\] span.text-slate-600');
-                    const compValue = compNode?.textContent || '';
+                    // استخراج قيم المقارنة إن وجدت
+                    const compSpan = card.querySelector('.tracking-tight');
+                    const compValue = compSpan?.textContent || '';
 
                     sectionCardsHtml += `
-                        <div class="kpi-card">
-                            <div class="kpi-icon">${icon}</div>
-                            <div class="kpi-value ${colorClass}">${value}</div>
-                            <div class="kpi-label">${label}</div>
-                            ${compValue ? `<div class="kpi-comparison">${t('comparison')}: ${compValue}</div>` : ''}
+                        <div class="kpi-card-print">
+                            <div class="kpi-icon-print">${icon}</div>
+                            <div class="kpi-value-print ${colorClass}">${value}</div>
+                            <div class="kpi-label-print">${label}</div>
+                            ${compValue ? `<div class="kpi-comparison-print">${t('comparison')}: ${compValue}</div>` : ''}
                         </div>
                     `;
                 });
@@ -217,7 +225,7 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                             grid-template-columns: repeat(3, 1fr);
                             gap: 15px;
                         }
-                        .kpi-card {
+                        .kpi-card-print {
                             border: 1px solid #e2e8f0;
                             border-radius: 15px;
                             padding: 20px;
@@ -225,49 +233,50 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                             background-color: #ffffff;
                             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
                         }
-                        .kpi-icon {
+                        .kpi-icon-print {
                             font-size: 24px;
                             margin-bottom: 10px;
                         }
-                        .kpi-value {
+                        .kpi-value-print {
                             font-size: 26px;
                             font-weight: 800;
                             margin-bottom: 5px;
                         }
-                        .kpi-label {
+                        .kpi-label-print {
                             font-size: 13px;
                             font-weight: 700;
                             color: #64748b;
                             text-transform: uppercase;
                         }
-                        .kpi-comparison {
+                        .kpi-comparison-print {
                             font-size: 10px;
                             color: #94a3b8;
                             margin-top: 10px;
                             border-top: 1px solid #f1f5f9;
                             padding-top: 5px;
                         }
-                        .text-blue-600 { color: #2563eb; }
-                        .text-sky-500 { color: #0ea5e9; }
-                        .text-orange-500 { color: #f97316; }
-                        .text-red-600 { color: #dc2626; }
-                        .text-green-600 { color: #16a34a; }
-                        .text-pink-600 { color: #db2777; }
-                        .text-purple-600 { color: #9333ea; }
-                        .text-indigo-600 { color: #4f46e5; }
-                        .text-teal-500 { color: #14b8a6; }
-                        .text-amber-500 { color: #f59e0b; }
-                        .text-emerald-800 { color: #064e3b; }
-                        .text-cyan-600 { color: #0891b2; }
-                        .text-rose-500 { color: #f43f5e; }
-                        .text-slate-700 { color: #334155; }
-                        .text-slate-800 { color: #1e293b; }
-                        .text-indigo-500 { color: #6366f1; }
-                        .text-amber-600 { color: #d97706; }
-                        .text-blue-700 { color: #1d4ed8; }
-                        .text-teal-600 { color: #0d9488; }
-                        .text-orange-600 { color: #ea580c; }
-                        .text-emerald-700 { color: #047857; }
+                        /* Tailwind Colors for Print */
+                        .text-blue-600 { color: #2563eb !important; }
+                        .text-sky-500 { color: #0ea5e9 !important; }
+                        .text-orange-500 { color: #f97316 !important; }
+                        .text-red-600 { color: #dc2626 !important; }
+                        .text-green-600 { color: #16a34a !important; }
+                        .text-pink-600 { color: #db2777 !important; }
+                        .text-purple-600 { color: #9333ea !important; }
+                        .text-indigo-600 { color: #4f46e5 !important; }
+                        .text-teal-500 { color: #14b8a6 !important; }
+                        .text-amber-500 { color: #f59e0b !important; }
+                        .text-emerald-800 { color: #064e3b !important; }
+                        .text-cyan-600 { color: #0891b2 !important; }
+                        .text-rose-500 { color: #f43f5e !important; }
+                        .text-slate-700 { color: #334155 !important; }
+                        .text-slate-800 { color: #1e293b !important; }
+                        .text-indigo-500 { color: #6366f1 !important; }
+                        .text-amber-600 { color: #d97706 !important; }
+                        .text-blue-700 { color: #1d4ed8 !important; }
+                        .text-teal-600 { color: #0d9488 !important; }
+                        .text-orange-600 { color: #ea580c !important; }
+                        .text-emerald-700 { color: #047857 !important; }
 
                         @media print {
                             body { margin: 20px; }

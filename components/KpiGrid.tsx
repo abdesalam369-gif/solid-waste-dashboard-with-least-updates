@@ -1,10 +1,12 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { Trip, Fuel, Maintenance, VehicleTableData, Worker, WasteTreatment, AdditionalCost } from '../types';
 import { MONTHS_ORDER } from '../constants';
 import { formatNumber } from '../services/dataService';
 import KpiCard from './KpiCard';
 import KpiExplanationModal from './KpiExplanationModal';
+import ExportDropdown from './ExportDropdown';
+import { exportToExcel, exportToImage } from '../services/exportService';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface KpiGridProps {
@@ -37,8 +39,9 @@ const KpiGrid: React.FC<KpiGridProps> = ({
     treatment, comparisonTreatment,
     additionalCosts, comparisonAdditionalCosts
 }) => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     
     const calculateStats = (trips: Trip[], year: string, tableData: VehicleTableData[]) => {
         if (!trips.length && !year) return null;
@@ -243,8 +246,35 @@ const KpiGrid: React.FC<KpiGridProps> = ({
         return "md:grid-cols-3 lg:grid-cols-4";
     };
 
+    const handleExportExcel = () => {
+        const data = sections.flatMap(section => 
+            section.cards.map(card => ({
+                Category: section.title,
+                KPI: card.label,
+                Value: card.value,
+                Comparison: card.comp || ''
+            }))
+        );
+        exportToExcel(data, `Detailed_KPIs_${selectedYear}`);
+    };
+
     return (
-        <div id="kpi-grid" className="space-y-12 mb-12">
+        <div id="kpi-grid" ref={containerRef} className="space-y-12 mb-12 animate-in fade-in duration-500">
+            {/* New Header with Export Options */}
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] shadow-sm dark:shadow-none border border-slate-100 dark:border-slate-800 flex justify-between items-center transition-colors">
+                <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
+                    {t('sec_kpi_main')} - {selectedYear}
+                </h2>
+                <div className="flex gap-4">
+                    <ExportDropdown 
+                        onExportPdf={() => window.print()}
+                        onExportExcel={handleExportExcel}
+                        onExportCsv={handleExportExcel}
+                        onExportImage={() => exportToImage(containerRef, `KPIs_${selectedYear}`)}
+                    />
+                </div>
+            </div>
+
             {sections.map((section, sIdx) => (
                 <div key={sIdx} className="space-y-6 bg-slate-50/40 dark:bg-slate-900/40 p-8 rounded-[40px] border border-slate-100/50 dark:border-slate-800/50 shadow-sm transition-all duration-300">
                     <div className="flex items-center gap-4 px-2">
