@@ -103,9 +103,12 @@ export interface VehicleTableData {
     trips: number;
     tons: number;
     fuel: number;
+    fuelLiters: number;
     maint: number;
     cost_trip: number;
     cost_ton: number;
+    liters_per_trip: number;
+    liters_per_ton: number;
     distance: number;
     km_per_trip: number;
 }

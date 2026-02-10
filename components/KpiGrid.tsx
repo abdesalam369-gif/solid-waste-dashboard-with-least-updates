@@ -152,15 +152,19 @@ const KpiGrid: React.FC<KpiGridProps> = ({
             ? totalPopulation / cleanersCount 
             : 0;
 
+        const totalLiters = vehicleTableData.reduce((sum, v) => sum + v.fuelLiters, 0);
+        const avgLitersPerTon = currentStats.totalTons > 0 ? totalLiters / currentStats.totalTons : 0;
+
         const wastePerCapitaNSWMS = 0.87;
 
         return { 
             totalCosts, costPerTon, costPerTrip, avgTonsPerTrip, avgTripsPerDay, 
             kgPerCapita, areasCount, costPerCapita, costAffordability, avgTripsPerVehicle, 
             costRecovery, totalGenerated, recyclingRate, alternativeTreatmentRate,
-            cleanersCount, popPerCleaner, wastePerCapitaNSWMS, extraCosts
+            cleanersCount, popPerCleaner, wastePerCapitaNSWMS, extraCosts,
+            totalLiters, avgLitersPerTon
         };
-    }, [currentStats, totalSalaries, totalPopulation, revenueDetail, treatment, workers, additionalCosts]);
+    }, [currentStats, totalSalaries, totalPopulation, revenueDetail, treatment, workers, additionalCosts, vehicleTableData]);
 
     if (!currentStats || !metrics) return null;
 
@@ -220,8 +224,8 @@ const KpiGrid: React.FC<KpiGridProps> = ({
             cards: [
                 { value: formatNumber(Math.round(metrics.totalCosts)) + ' ' + t('unit_jd'), label: t('kpi_total_annual_expenses'), icon: '📈', color: 'text-emerald-800', emphasized: true },
                 { value: formatNumber(Math.round(revenueDetail?.total || 0)) + ' ' + t('unit_jd'), label: t('kpi_total_revenue'), icon: '💰', color: 'text-blue-800', comp: comparisonRevenueDetail?.total ? formatNumber(Math.round(comparisonRevenueDetail.total)) : undefined, emphasized: true },
-                { value: formatNumber(Math.round(revenueDetail?.hh || 0)) + ' ' + t('unit_jd'), label: t('kpi_hh_revenue'), icon: '🏠', color: 'text-blue-600' },
-                { value: formatNumber(Math.round(revenueDetail?.commercial || 0)) + ' ' + t('unit_jd'), label: t('kpi_commercial_revenue'), icon: '🏢', color: 'text-indigo-600' },
+                { value: formatNumber(Math.round(metrics.totalLiters)) + ' ' + t('unit_liter'), label: t('kpi_total_fuel_liters'), icon: '⛽', color: 'text-orange-600' },
+                { value: formatNumber(metrics.avgLitersPerTon, 1) + ' ' + t('unit_liter'), label: t('kpi_avg_liters_ton'), icon: '📊', color: 'text-orange-500' },
                 { value: formatNumber(metrics.costRecovery, 1) + '%', label: t('kpi_cost_recovery'), icon: '⚖️', color: 'text-indigo-700' },
                 { value: formatNumber(Math.round(totalSalaries)), label: t('kpi_total_salaries'), icon: '💵', color: 'text-emerald-700' },
                 { value: formatNumber(Math.round(metrics.extraCosts)), label: t('th_total_extra'), icon: '🧾', color: 'text-pink-600' },

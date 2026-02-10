@@ -12,7 +12,6 @@ async function fetchCSV<T>(url: string): Promise<T[]> {
     if (lines.length < 2) return [];
     
     // Improved CSV parsing for comma handling within quotes if necessary
-    // Simple split for now as per previous logic
     const header = lines.shift()!.split(",");
     
     return lines.map(line => {
@@ -94,10 +93,11 @@ export async function loadWorkersData(): Promise<Worker[]> {
 }
 
 export async function loadAllData() {
-    const [trips, vehicles, fuel, maint, areas, workers, distance, additionalCostsRaw] = await Promise.all([
+    const [trips, vehicles, fuel, fuelLiters, maint, areas, workers, distance, additionalCostsRaw] = await Promise.all([
         fetchCSV<Trip>(CONFIG.trips),
         fetchCSV<Vehicle>(CONFIG.vehicles),
         fetchCSV<Fuel>(CONFIG.fuel),
+        fetchCSV<Fuel>(CONFIG.fuelLiters),
         fetchCSV<Maintenance>(CONFIG.maint),
         fetchCSV<Area>(CONFIG.areas),
         loadWorkersData(),
@@ -220,7 +220,7 @@ export async function loadAllData() {
         console.error("Error loading treatment data:", error);
     }
 
-    return { trips, vehicles, fuel, maint, areas, population, workers, revenues, treatment, distance, additionalCosts };
+    return { trips, vehicles, fuel, fuelLiters, maint, areas, population, workers, revenues, treatment, distance, additionalCosts };
 }
 
 export const formatNumber = (num: number | undefined | null, digits: number = 0): string => {

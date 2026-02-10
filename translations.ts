@@ -41,7 +41,7 @@ export const translations = {
     menu_vehicles: "كفاءة واستغلال الأسطول",
     menu_drivers: "أداء السائقين",
     menu_ai: "تحليل الذكاء الاصطناعي",
-    menu_route_planning: "تخطيط المسارات التشغيلية",
+    menu_route_planning: "تخطيط المسارات",
 
     // Additional Costs
     th_insurance: "التأمين والترخيص",
@@ -139,7 +139,11 @@ export const translations = {
     th_actual_daily_cap: "السعة الفعلية (طن/يوم)",
     th_actual_daily_cap_desc: "السعة التشغيلية الفعلية تأخذ بعين الاعتبار ظروف التشغيل الواقعية (الصيانة، الأعطال، أيام العمل) وكفاءة الآلية حسب عمرها، مما يوضح القدرة الحقيقية للجمع مقارنة بالسعة النظرية.",
     th_trips: "الرحلات", th_tons: "الأطنان",
-    th_fuel: "الوقود", th_maint: "الصيانة", th_cost_trip: "كلفة الرحلة", th_cost_ton: "كلفة الطن",
+    th_fuel: "الوقود (JD)", 
+    th_fuel_liters: "الوقود (لتر)",
+    th_liters_trip: "لتر/رحلة",
+    th_liters_ton: "لتر/طن",
+    th_maint: "الصيانة", th_cost_trip: "كلفة الرحلة", th_cost_ton: "كلفة الطن",
     th_distance: "المسافة (كم)", th_km_trip: "كم/رحلة", th_pop: "السكان", th_served_pop: "المخدومين",
     th_coverage: "التغطية (%)", th_kg_capita: "نصيب الفرد", th_emp_name: "الاسم",
     th_job_title: "المسمى الوظيفي", th_annual_salary: "الراتب", th_emp_count: "العدد",
@@ -163,6 +167,8 @@ export const translations = {
     kpi_recyclables: "المواد القابلة للتدوير", kpi_biowaste: "النفايات الحيوية", kpi_total_treated: "إجمالي المعالج",
     kpi_pop_per_cleaner: "سكان لكل عامل", kpi_total_revenue: "إجمالي الإيرادات",
     kpi_cost_affordability: "نسبة كلفة القدرة على التحمل",
+    kpi_avg_liters_ton: "معدل اللترات/طن",
+    kpi_total_fuel_liters: "إجمالي الديزل (لتر)",
 
     // AI & Charts
     ai_agent_name: "المساعد الذكي", ai_agent_connected: "متصل", ai_how_can_help: "كيف يمكنني مساعدتك؟",
@@ -177,7 +183,7 @@ export const translations = {
     ai_opt_municipality_reality: "تقرير واقع البلدية المتكامل",
     chart_monthly: "شهري", chart_daily: "يومي", chart_trips: "عدد الرحلات", chart_tons: "الأوزان (طن)",
     chart_grouping: "التجميع:", chart_value: "المقياس:", chart_no_data: "لا توجد بيانات", chart_amount: "الكمية:",
-    unit_ton: "طن", unit_kg: "كغم", unit_jd: "د.أ", unit_capita: "فرد", unit_worker: "موظف",
+    unit_ton: "طن", unit_kg: "كغم", unit_jd: "د.أ", unit_capita: "فرد", unit_worker: "موظف", unit_liter: "لتر",
     comparison: "مقارنة", primary_kpi: "المؤشرات الأساسية", total_avg: "الإجمالي/المتوسط",
 
     // Explanations
@@ -226,7 +232,7 @@ export const translations = {
     reset: "Reset",
     print_kpis: "Print Indicators",
     loading: "Loading Dashboard...",
-    footer_text: "Mu'tah & Al-Mazar Municipality © 2025",
+    footer_text: "Mu't&Mazar Municipality © 2025",
     data_portal: "Data Portal",
     print: "Print",
     print_report: "Print Report",
@@ -353,7 +359,11 @@ export const translations = {
     th_actual_daily_cap: "Actual Cap (Ton/Day)",
     th_actual_daily_cap_desc: "Actual daily operational capacity accounts for real-world operating conditions (maintenance, breakdowns, workdays) and vehicle efficiency based on age.",
     th_trips: "Total Trips", th_tons: "Total Tons",
-    th_fuel: "Fuel Cost", th_maint: "Maintenance", th_cost_trip: "Cost/Trip", th_cost_ton: "Cost/Ton",
+    th_fuel: "Fuel Cost (JD)", 
+    th_fuel_liters: "Fuel (Liters)",
+    th_liters_trip: "Liters/Trip",
+    th_liters_ton: "Liters/Ton",
+    th_maint: "Maintenance", th_cost_trip: "Cost/Trip", th_cost_ton: "Cost/Ton",
     th_distance: "Distance (km)", th_km_trip: "km/Trip", th_pop: "Population", th_served_pop: "Served Pop",
     th_coverage: "Coverage %", th_kg_capita: "kg/Capita", th_emp_name: "Employee Name",
     th_job_title: "Role / Position", th_annual_salary: "Annual Salary", th_emp_count: "Staff Count",
@@ -377,6 +387,8 @@ export const translations = {
     kpi_recyclables: "Recyclable Materials", kpi_biowaste: "Organic Waste", kpi_total_treated: "Total Processed",
     kpi_pop_per_cleaner: "Citizens per Worker", kpi_total_revenue: "Total Revenue",
     kpi_cost_affordability: "Affordability Index",
+    kpi_avg_liters_ton: "Avg Liters/Ton",
+    kpi_total_fuel_liters: "Total Fuel (Liters)",
 
     // AI & Charts
     ai_agent_name: "AI Analytics Assistant", ai_agent_connected: "Online", ai_how_can_help: "How can I assist you today?",
@@ -391,7 +403,7 @@ export const translations = {
     ai_opt_municipality_reality: "Integrated Municipality Reality Report",
     chart_monthly: "Monthly View", chart_daily: "Daily View", chart_trips: "Number of Trips", chart_tons: "Weight (Tons)",
     chart_grouping: "Group By:", chart_value: "Metric:", chart_no_data: "No Data Available", chart_amount: "Amount:",
-    unit_ton: "Tons", unit_kg: "kg", unit_jd: "JOD", unit_capita: "Capita", unit_worker: "Staff",
+    unit_ton: "Tons", unit_kg: "kg", unit_jd: "JOD", unit_capita: "Capita", unit_worker: "Staff", unit_liter: "Liters",
     comparison: "Comparison", primary_kpi: "Primary Indicators", total_avg: "Total/Average",
 
     // Explanations (English)

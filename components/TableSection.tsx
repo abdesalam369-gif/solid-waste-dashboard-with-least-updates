@@ -28,6 +28,8 @@ const TableSection: React.FC<TableSectionProps> = ({ tableData, filters, title }
         { key: 'tons', label: t('th_tons') },
         { key: 'avg_load', label: t('th_avg_load') },
         { key: 'utilization', label: t('th_utilization') },
+        { key: 'fuelLiters', label: t('th_fuel_liters') },
+        { key: 'liters_per_ton', label: t('th_liters_ton') },
         { key: 'fuel', label: t('th_fuel') }, 
         { key: 'maint', label: t('th_maint') },
         { key: 'cost_ton', label: t('th_cost_ton') },
@@ -59,19 +61,22 @@ const TableSection: React.FC<TableSectionProps> = ({ tableData, filters, title }
         const totalTrips = sortedData.reduce((s, r) => s + r.trips, 0);
         const totalTons = sortedData.reduce((s, r) => s + r.tons, 0);
         const totalFuel = sortedData.reduce((s, r) => s + r.fuel, 0);
+        const totalFuelLiters = sortedData.reduce((s, r) => s + r.fuelLiters, 0);
         const totalMaint = sortedData.reduce((s, r) => s + r.maint, 0);
-        const totalCap = sortedData.reduce((s, r) => s + r.cap_ton, 0);
         
         const totalCost = totalFuel + totalMaint;
         const avgUtilization = sortedData.reduce((s, r) => s + r.utilization, 0) / sortedData.length;
+        const avgLitersTon = totalTons > 0 ? totalFuelLiters / totalTons : 0;
         
         return { 
             totalTrips, 
             totalTons, 
             totalFuel, 
+            totalFuelLiters,
             totalMaint, 
             avgUtilization,
-            avgCostTon: totalTons > 0 ? totalCost / totalTons : 0
+            avgCostTon: totalTons > 0 ? totalCost / totalTons : 0,
+            avgLitersTon
         };
     }, [sortedData]);
 
@@ -124,6 +129,8 @@ const TableSection: React.FC<TableSectionProps> = ({ tableData, filters, title }
                                         {row.utilization < 50 && <span title="Underutilized">⚠️</span>}
                                     </div>
                                 </td>
+                                <td className="p-3 text-slate-600 dark:text-slate-400">{formatNumber(row.fuelLiters, 0)}</td>
+                                <td className="p-3 text-orange-600 font-black">{formatNumber(row.liters_per_ton, 1)}</td>
                                 <td className="p-3 text-slate-600 dark:text-slate-400">{formatNumber(row.fuel, 0)}</td>
                                 <td className="p-3 text-slate-600 dark:text-slate-400">{formatNumber(row.maint, 0)}</td>
                                 <td className="p-3 font-black text-blue-700 dark:text-blue-400 bg-slate-50/50 dark:bg-slate-800/30">{formatNumber(row.cost_ton, 1)}</td>
@@ -139,6 +146,8 @@ const TableSection: React.FC<TableSectionProps> = ({ tableData, filters, title }
                                 <td className="p-4">{formatNumber(totals.totalTons, 0)}</td>
                                 <td className="p-4 text-indigo-700 dark:text-indigo-300">—</td>
                                 <td className={`p-4 ${totals.avgUtilization < 60 ? 'text-rose-600' : 'text-emerald-600'}`}>{formatNumber(totals.avgUtilization, 1)}%</td>
+                                <td className="p-4">{formatNumber(totals.totalFuelLiters, 0)}</td>
+                                <td className="p-4 text-orange-700">{formatNumber(totals.avgLitersTon, 1)}</td>
                                 <td className="p-4">{formatNumber(totals.totalFuel, 0)}</td>
                                 <td className="p-4">{formatNumber(totals.totalMaint, 0)}</td>
                                 <td className="p-4 text-blue-700 dark:text-blue-300">{formatNumber(totals.avgCostTon, 1)}</td>

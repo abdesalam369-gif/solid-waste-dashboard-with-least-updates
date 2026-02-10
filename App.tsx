@@ -28,6 +28,7 @@ const AppContent: React.FC = () => {
     const [tripsData, setTripsData] = useState<Trip[]>([]);
     const [vehiclesData, setVehiclesData] = useState<Vehicle[]>([]);
     const [fuelData, setFuelData] = useState<Fuel[]>([]);
+    const [fuelLitersData, setFuelLitersData] = useState<Fuel[]>([]);
     const [maintData, setMaintData] = useState<Maintenance[]>([]);
     const [areasData, setAreasData] = useState<Area[]>([]);
     const [populationData, setPopulationData] = useState<Population[]>([]);
@@ -62,6 +63,7 @@ const AppContent: React.FC = () => {
                 setTripsData(data.trips);
                 setVehiclesData(data.vehicles);
                 setFuelData(data.fuel);
+                setFuelLitersData(data.fuelLiters || []);
                 setMaintData(data.maint);
                 setAreasData(data.areas);
                 setPopulationData(data.population || []);
@@ -164,14 +166,22 @@ const AppContent: React.FC = () => {
             const vehRow = vehiclesData.find(x => x['رقم المركبة'] === v) || {};
             const areaRow = areasData.find(x => x['رقم المركبة'] === v && (x['السنة'] === year || !x['السنة'])) || {};
             const fuelRow = fuelData.find(x => x['رقم المركبة'] === v && x['السنة'] === year) || {};
+            const fuelLitersRow = fuelLitersData.find(x => x['رقم المركبة'] === v && x['السنة'] === year) || {};
             const maintRow = maintData.find(x => x['رقم المركبة'] === v && x['السنة'] === year) || {};
             const distRow = distanceData.find(x => x['رقم المركبة'] === v && x['السنة'] === year);
 
             let fuel = 0;
+            let fuelLiters = 0;
+            const monthsToSum = filters.months.size > 0 ? Array.from(filters.months) : MONTHS_ORDER;
+            
             if(fuelRow) {
-                const monthsToSum = filters.months.size > 0 ? Array.from(filters.months) : MONTHS_ORDER;
                 monthsToSum.forEach(m => {
                     fuel += (Number(fuelRow[m as keyof Fuel]) || 0);
+                });
+            }
+            if(fuelLitersRow) {
+                monthsToSum.forEach(m => {
+                    fuelLiters += (Number(fuelLitersRow[m as keyof Fuel]) || 0);
                 });
             }
             
@@ -186,23 +196,28 @@ const AppContent: React.FC = () => {
             const totalCost = fuel + maint;
             const cost_trip = trips ? totalCost / trips : 0;
             const cost_ton = tons ? totalCost / tons : 0;
+            
+            const liters_per_trip = trips ? fuelLiters / trips : 0;
+            const liters_per_ton = tons ? fuelLiters / tons : 0;
+
             const distance = distRow ? (Number(distRow['المسافة المقطوعة (كم)']) || 0) : 0;
             const km_per_trip = trips ? distance / trips : 0;
 
             return {
                 veh: v, area: areaRow['المنطقة'] || '', drivers: [...drivers].join(', '), year: vehRow['سنة التصنيع'] || '',
-                cap_m3, cap_ton, actual_daily_cap, trips, tons, fuel, maint, cost_trip, cost_ton, distance, km_per_trip
+                cap_m3, cap_ton, actual_daily_cap, trips, tons, fuel, fuelLiters, maint, cost_trip, cost_ton, distance, km_per_trip,
+                liters_per_trip, liters_per_ton
             };
         });
     };
 
     const filteredVehicleTableData = useMemo<VehicleTableData[]>(() => 
         getVehicleTableData(filteredTrips, selectedYear), 
-    [filteredTrips, vehiclesData, areasData, fuelData, maintData, filters.months, selectedYear, distanceData]);
+    [filteredTrips, vehiclesData, areasData, fuelData, fuelLitersData, maintData, filters.months, selectedYear, distanceData]);
 
     const comparisonVehicleTableData = useMemo<VehicleTableData[]>(() => 
         comparisonYear ? getVehicleTableData(comparisonTrips, comparisonYear) : [], 
-    [comparisonTrips, vehiclesData, areasData, fuelData, maintData, filters.months, comparisonYear, distanceData]);
+    [comparisonTrips, vehiclesData, areasData, fuelData, fuelLitersData, maintData, filters.months, comparisonYear, distanceData]);
 
     const driverStatsData = useMemo<DriverStatsData[]>(() => {
         const groups: { [key: string]: { trips: number; tons: number; vehicles: Set<string> } } = {};
