@@ -102,35 +102,38 @@ const RevenueAnalysisSection: React.FC<RevenueAnalysisSectionProps> = ({
                 />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-                <KpiCard 
-                    value={formatCurrency(revenueStats.current.total)} 
-                    label={t('th_total_revenue')} 
-                    icon="💰" 
-                    color="text-indigo-600"
-                    comparisonValue={revenueStats.comp ? formatCurrency(revenueStats.comp.total) : undefined}
-                />
-                <KpiCard 
-                    value={formatCurrency(revenueStats.current.hh)} 
-                    label={t('th_hh_fees')} 
-                    icon="🏠" 
-                    color="text-blue-600"
-                    comparisonValue={revenueStats.comp ? formatCurrency(revenueStats.comp.hh) : undefined}
-                />
-                <KpiCard 
-                    value={formatCurrency(revenueStats.current.commercial)} 
-                    label={t('th_commercial_fees')} 
-                    icon="🏢" 
-                    color="text-emerald-600"
-                    comparisonValue={revenueStats.comp ? formatCurrency(revenueStats.comp.commercial) : undefined}
-                />
-                <KpiCard 
-                    value={formatCurrency(revenueStats.current.recycling)} 
-                    label={t('th_recycling_revenue')} 
-                    icon="♻️" 
-                    color="text-amber-600"
-                    comparisonValue={revenueStats.comp ? formatCurrency(revenueStats.comp.recycling) : undefined}
-                />
+            <div id="revenue-kpi-grid" className="kpi-section">
+                <h3 className="hidden">{t('sec_revenue_analysis')}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+                    <KpiCard 
+                        value={formatCurrency(revenueStats.current.total)} 
+                        label={t('th_total_revenue')} 
+                        icon="💰" 
+                        color="text-indigo-600"
+                        comparisonValue={revenueStats.comp ? formatCurrency(revenueStats.comp.total) : undefined}
+                    />
+                    <KpiCard 
+                        value={formatCurrency(revenueStats.current.hh)} 
+                        label={t('th_hh_fees')} 
+                        icon="🏠" 
+                        color="text-blue-600"
+                        comparisonValue={revenueStats.comp ? formatCurrency(revenueStats.comp.hh) : undefined}
+                    />
+                    <KpiCard 
+                        value={formatCurrency(revenueStats.current.commercial)} 
+                        label={t('th_commercial_fees')} 
+                        icon="🏢" 
+                        color="text-emerald-600"
+                        comparisonValue={revenueStats.comp ? formatCurrency(revenueStats.comp.commercial) : undefined}
+                    />
+                    <KpiCard 
+                        value={formatCurrency(revenueStats.current.recycling)} 
+                        label={t('th_recycling_revenue')} 
+                        icon="♻️" 
+                        color="text-amber-600"
+                        comparisonValue={revenueStats.comp ? formatCurrency(revenueStats.comp.recycling) : undefined}
+                    />
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">

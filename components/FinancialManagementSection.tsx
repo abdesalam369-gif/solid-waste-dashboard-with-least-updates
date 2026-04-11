@@ -222,29 +222,37 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
             </div>
 
             {/* Comprehensive Financial KPIs */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-5 mb-8 md:mb-10">
-                <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-xl text-white transform transition-transform hover:scale-105">
-                    <div className={`text-slate-400 text-[9px] sm:text-[10px] font-black mb-1 sm:mb-2 uppercase tracking-widest ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('lbl_total_expenses')}</div>
-                    <div className="text-lg sm:text-2xl font-black">{formatCurrency(financialStats.grandTotalExpenses)}</div>
-                    <div className="text-[8px] sm:text-[10px] mt-1 sm:mt-2 text-slate-500 font-bold">{t('lbl_for_total')} {formatNumber(financialStats.totalTons)} {t('unit_ton')}</div>
-                </div>
-                <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-xl text-white transform transition-transform hover:scale-105">
-                    <div className={`text-blue-200 text-[9px] sm:text-[10px] font-black mb-1 sm:mb-2 uppercase tracking-widest ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('th_total_revenue')}</div>
-                    <div className="text-lg sm:text-2xl font-black">{formatCurrency(financialStats.totalRevenue)}</div>
-                    <div className="text-[8px] sm:text-[10px] mt-1 sm:mt-2 text-blue-200/60 font-bold">{t('lbl_at_rate')} {formatNumber(financialStats.costRecovery, 1)}% {t('lbl_recovery_suffix')}</div>
-                </div>
-                <div className="bg-white dark:bg-slate-900 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-lg border-b-4 sm:border-b-8 border-indigo-500 transition-all hover:-translate-y-2">
-                    <div className={`text-slate-400 dark:text-slate-500 text-[9px] sm:text-[10px] font-black mb-1 sm:mb-2 uppercase ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('kpi_sum_cost_recovery')}</div>
-                    <div className="text-2xl sm:text-4xl font-black text-indigo-600 dark:text-indigo-400">{formatNumber(financialStats.costRecovery, 1)}%</div>
-                </div>
-                <div className="bg-white dark:bg-slate-900 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-lg border-b-4 sm:border-b-8 border-red-500 transition-all hover:-translate-y-2">
-                    <div className={`text-slate-400 dark:text-slate-500 text-[9px] sm:text-[10px] font-black mb-1 sm:mb-2 uppercase ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('lbl_total_cost_ton')}</div>
-                    <div className="text-lg sm:text-2xl font-black text-red-600 dark:text-red-400">{formatNumber(financialStats.costPerTon, 1)} <span className="text-[10px] sm:text-xs font-bold">{t('unit_jd')}</span></div>
-                </div>
-                <div className="bg-white dark:bg-slate-900 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-lg border-b-4 sm:border-b-8 border-emerald-500 transition-all hover:-translate-y-2 col-span-2 lg:col-span-1">
-                    <div className={`text-slate-400 dark:text-slate-500 text-[9px] sm:text-[10px] font-black mb-1 sm:mb-2 uppercase ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('lbl_net_position')}</div>
-                    <div className={`text-xl sm:text-2xl font-black ${financialStats.totalRevenue - financialStats.grandTotalExpenses >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                        {formatCurrency(financialStats.totalRevenue - financialStats.grandTotalExpenses)}
+            <div id="financial-kpi-grid" className="kpi-section">
+                <h3 className="hidden">{t('sec_financial_mgmt')}</h3>
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-5 mb-8 md:mb-10">
+                    <div className="kpi-card bg-gradient-to-br from-slate-800 to-slate-900 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-xl text-white transform transition-transform hover:scale-105">
+                        <div className="hidden kpi-icon">💰</div>
+                        <div className={`kpi-label text-slate-400 text-[9px] sm:text-[10px] font-black mb-1 sm:mb-2 uppercase tracking-widest ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('lbl_total_expenses')}</div>
+                        <div className="kpi-value text-lg sm:text-2xl font-black">{formatCurrency(financialStats.grandTotalExpenses)}</div>
+                        <div className="kpi-comparison text-[8px] sm:text-[10px] mt-1 sm:mt-2 text-slate-500 font-bold">{t('lbl_for_total')} {formatNumber(financialStats.totalTons)} {t('unit_ton')}</div>
+                    </div>
+                    <div className="kpi-card bg-gradient-to-br from-blue-600 to-blue-800 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-xl text-white transform transition-transform hover:scale-105">
+                        <div className="hidden kpi-icon">💵</div>
+                        <div className={`kpi-label text-blue-200 text-[9px] sm:text-[10px] font-black mb-1 sm:mb-2 uppercase tracking-widest ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('th_total_revenue')}</div>
+                        <div className="kpi-value text-lg sm:text-2xl font-black">{formatCurrency(financialStats.totalRevenue)}</div>
+                        <div className="kpi-comparison text-[8px] sm:text-[10px] mt-1 sm:mt-2 text-blue-200/60 font-bold">{t('lbl_at_rate')} {formatNumber(financialStats.costRecovery, 1)}% {t('lbl_recovery_suffix')}</div>
+                    </div>
+                    <div className="kpi-card bg-white dark:bg-slate-900 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-lg border-b-4 sm:border-b-8 border-indigo-500 transition-all hover:-translate-y-2">
+                        <div className="hidden kpi-icon">⚖️</div>
+                        <div className={`kpi-label text-slate-400 dark:text-slate-500 text-[9px] sm:text-[10px] font-black mb-1 sm:mb-2 uppercase ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('kpi_sum_cost_recovery')}</div>
+                        <div className="kpi-value text-2xl sm:text-4xl font-black text-indigo-600 dark:text-indigo-400">{formatNumber(financialStats.costRecovery, 1)}%</div>
+                    </div>
+                    <div className="kpi-card bg-white dark:bg-slate-900 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-lg border-b-4 sm:border-b-8 border-red-500 transition-all hover:-translate-y-2">
+                        <div className="hidden kpi-icon">📉</div>
+                        <div className={`kpi-label text-slate-400 dark:text-slate-500 text-[9px] sm:text-[10px] font-black mb-1 sm:mb-2 uppercase ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('lbl_total_cost_ton')}</div>
+                        <div className="kpi-value text-lg sm:text-2xl font-black text-red-600 dark:text-red-400">{formatNumber(financialStats.costPerTon, 1)} <span className="text-[10px] sm:text-xs font-bold">{t('unit_jd')}</span></div>
+                    </div>
+                    <div className="kpi-card bg-white dark:bg-slate-900 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-lg border-b-4 sm:border-b-8 border-emerald-500 transition-all hover:-translate-y-2 col-span-2 lg:col-span-1">
+                        <div className="hidden kpi-icon">📈</div>
+                        <div className={`kpi-label text-slate-400 dark:text-slate-500 text-[9px] sm:text-[10px] font-black mb-1 sm:mb-2 uppercase ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('lbl_net_position')}</div>
+                        <div className={`kpi-value text-xl sm:text-2xl font-black ${financialStats.totalRevenue - financialStats.grandTotalExpenses >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {formatCurrency(financialStats.totalRevenue - financialStats.grandTotalExpenses)}
+                        </div>
                     </div>
                 </div>
             </div>

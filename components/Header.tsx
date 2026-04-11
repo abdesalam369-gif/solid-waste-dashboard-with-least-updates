@@ -112,6 +112,9 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
         } else if (activeTab === 'maint_analysis') {
             targetId = 'maint-kpi-grid';
             reportTitle = t('sec_maint_analysis');
+        } else if (activeTab === 'financial') {
+            targetId = 'financial-kpi-grid';
+            reportTitle = t('menu_financial');
         } else {
             window.print();
             return;
@@ -132,7 +135,10 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
             });
 
             // الحصول على جميع الأقسام (المجموعات)
-            const sectionWrappers = container.querySelectorAll('.kpi-section');
+            let sectionWrappers = Array.from(container.querySelectorAll('.kpi-section'));
+            if (sectionWrappers.length === 0 && container.classList.contains('kpi-section')) {
+                sectionWrappers = [container];
+            }
             let fullHtml = '';
 
             sectionWrappers.forEach(section => {

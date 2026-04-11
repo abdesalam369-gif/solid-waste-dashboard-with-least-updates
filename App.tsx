@@ -330,7 +330,20 @@ const AppContent: React.FC = () => {
     };
 
     return (
-        <div className={`min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 flex ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'} overflow-x-hidden`}>
+        <div className={`min-h-screen transition-colors duration-300 flex ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'} overflow-x-hidden relative`}>
+            {/* Background Image Layer */}
+            <div 
+                className="fixed inset-0 z-[-2]"
+                style={{
+                    backgroundImage: "url('/dashboard-bg.png')",
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundAttachment: 'fixed',
+                }}
+            />
+            {/* Overlay Layer (Light/Dark mode responsive) */}
+            <div className="fixed inset-0 z-[-1] bg-slate-50/90 dark:bg-slate-950/85 transition-colors duration-300 backdrop-blur-[2px]" />
+
             <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
             <main className={`flex-1 w-full min-w-0 transition-all duration-300 ${isSidebarOpen ? (language === 'ar' ? 'md:mr-72' : 'md:ml-72') : (language === 'ar' ? 'md:mr-20' : 'md:ml-20')}`}>
                 <Header 
