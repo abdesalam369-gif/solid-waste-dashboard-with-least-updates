@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Trip, Vehicle, Fuel, Maintenance, Area, VehicleTableData, DriverStatsData, Population, AreaPopulationStats, Worker, Revenue, WasteTreatment, Distance, AdditionalCost } from './types';
+import { Trip, Vehicle, Fuel, Maintenance, Area, VehicleTableData, DriverStatsData, Population, AreaPopulationStats, Worker, Revenue, WasteTreatment, Distance, AdditionalCost, MaintenanceRecord } from './types';
 import { CONFIG, MONTHS_ORDER } from './constants';
 import { loadAllData } from './services/dataService';
 import { generateFleetReport } from './services/geminiService';
@@ -17,6 +17,8 @@ import SalaryAnalysisSection from './components/SalaryAnalysisSection';
 import FinancialManagementSection from './components/FinancialManagementSection';
 import AnnualSummarySection from './components/AnnualSummarySection';
 import RoutePlanningSection from './components/RoutePlanningSection';
+import MaintenanceAnalysisSection from './components/MaintenanceAnalysisSection';
+import OperationalPerformanceSection from './components/OperationalPerformanceSection';
 import AiChat from './components/AiChat';
 import Sidebar from './components/Sidebar';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -30,6 +32,7 @@ const AppContent: React.FC = () => {
     const [fuelData, setFuelData] = useState<Fuel[]>([]);
     const [fuelLitersData, setFuelLitersData] = useState<Fuel[]>([]);
     const [maintData, setMaintData] = useState<Maintenance[]>([]);
+    const [maintRecords, setMaintRecords] = useState<MaintenanceRecord[]>([]);
     const [areasData, setAreasData] = useState<Area[]>([]);
     const [populationData, setPopulationData] = useState<Population[]>([]);
     const [workersData, setWorkersData] = useState<Worker[]>([]);
@@ -41,7 +44,7 @@ const AppContent: React.FC = () => {
     const [selectedYear, setSelectedYear] = useState<string>('');
     const [comparisonYear, setComparisonYear] = useState<string>('');
     const [activeTab, setActiveTab] = useState<string>('summary');
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
 
     const [filters, setFilters] = useState<{ vehicles: Set<string>; months: Set<string> }>({
         vehicles: new Set(),
@@ -65,6 +68,7 @@ const AppContent: React.FC = () => {
                 setFuelData(data.fuel);
                 setFuelLitersData(data.fuelLiters || []);
                 setMaintData(data.maint);
+                setMaintRecords(data.maintRecords || []);
                 setAreasData(data.areas);
                 setPopulationData(data.population || []);
                 setWorkersData(data.workers || []);
@@ -167,7 +171,7 @@ const AppContent: React.FC = () => {
             const areaRow = areasData.find(x => x['رقم المركبة'] === v && (x['السنة'] === year || !x['السنة'])) || {};
             const fuelRow = fuelData.find(x => x['رقم المركبة'] === v && x['السنة'] === year) || {};
             const fuelLitersRow = fuelLitersData.find(x => x['رقم المركبة'] === v && x['السنة'] === year) || {};
-            const maintRow = maintData.find(x => x['رقم المركبة'] === v && x['السنة'] === year) || {};
+            const vehicleMaint = maintData.filter(x => x['رقم المركبة'] === v && x['السنة'] === year);
             const distRow = distanceData.find(x => x['رقم المركبة'] === v && x['السنة'] === year);
 
             let fuel = 0;
@@ -185,7 +189,18 @@ const AppContent: React.FC = () => {
                 });
             }
             
-            const maint = Number(maintRow?.['كلفة الصيانة'] || 0);
+            let maint = 0;
+            if (filters.months.size > 0) {
+                vehicleMaint.forEach(m => {
+                    if (m['الشهر'] && filters.months.has(m['الشهر'].toLowerCase())) {
+                        maint += Number(m['كلفة الصيانة'] || 0);
+                    }
+                });
+            } else {
+                vehicleMaint.forEach(m => {
+                    maint += Number(m['كلفة الصيانة'] || 0);
+                });
+            }
             const cap_m3 = parseFloat(vehRow['سعة المركبة بالمتر المكعب'] || '0');
             const density = parseFloat(vehRow['كثافة التحميل'] || '0');
             const cap_ton = cap_m3 * density;
@@ -315,13 +330,14 @@ const AppContent: React.FC = () => {
     };
 
     return (
-        <div className={`min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 flex ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
+        <div className={`min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 flex ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'} overflow-x-hidden`}>
             <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-            <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? (language === 'ar' ? 'mr-72' : 'ml-72') : (language === 'ar' ? 'mr-20' : 'ml-20')}`}>
+            <main className={`flex-1 w-full min-w-0 transition-all duration-300 ${isSidebarOpen ? (language === 'ar' ? 'md:mr-72' : 'md:ml-72') : (language === 'ar' ? 'md:mr-20' : 'md:ml-20')}`}>
                 <Header 
                     tripsData={tripsData} filters={filters} selectedYear={selectedYear} 
                     comparisonYear={comparisonYear} activeTab={activeTab} onYearChange={handleYearChange} 
                     onComparisonYearChange={handleComparisonYearChange} onFilterToggle={handleFilterToggle} onResetFilters={resetFilters} 
+                    toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
                 />
                 
                 {loading || isFiltering ? <Loader /> : (
@@ -383,6 +399,24 @@ const AppContent: React.FC = () => {
                         )}
                         {activeTab === 'route_planning' && (
                             <RoutePlanningSection vehicles={filteredVehicleTableData} />
+                        )}
+                        {activeTab === 'maint_analysis' && (
+                            <MaintenanceAnalysisSection 
+                                maintRecords={maintRecords}
+                                selectedYear={selectedYear}
+                                filters={filters}
+                            />
+                        )}
+                        {activeTab === 'op_perf' && (
+                            <OperationalPerformanceSection 
+                                distanceData={distanceData}
+                                maintData={maintData}
+                                fuelData={fuelData}
+                                fuelLitersData={fuelLitersData}
+                                tripsData={tripsData}
+                                filters={filters}
+                                selectedYear={selectedYear}
+                            />
                         )}
                         {activeTab === 'population' && (
                             <PopulationAnalysisSection tableData={areaPopulationStats} filters={filters} />

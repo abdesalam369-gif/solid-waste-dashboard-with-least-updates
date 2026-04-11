@@ -63,6 +63,7 @@ const TableSection: React.FC<TableSectionProps> = ({ tableData, filters, title }
         const totalFuel = sortedData.reduce((s, r) => s + r.fuel, 0);
         const totalFuelLiters = sortedData.reduce((s, r) => s + r.fuelLiters, 0);
         const totalMaint = sortedData.reduce((s, r) => s + r.maint, 0);
+        const totalDistance = sortedData.reduce((s, r) => s + r.distance, 0);
         
         const totalCost = totalFuel + totalMaint;
         const avgUtilization = sortedData.reduce((s, r) => s + r.utilization, 0) / sortedData.length;
@@ -74,6 +75,7 @@ const TableSection: React.FC<TableSectionProps> = ({ tableData, filters, title }
             totalFuel, 
             totalFuelLiters,
             totalMaint, 
+            totalDistance,
             avgUtilization,
             avgCostTon: totalTons > 0 ? totalCost / totalTons : 0,
             avgLitersTon
@@ -87,20 +89,22 @@ const TableSection: React.FC<TableSectionProps> = ({ tableData, filters, title }
 
     return (
         <CollapsibleSection title={title || t('sec_veh_eff')}>
-             <div className="flex items-center justify-between gap-4 mb-6 text-sm">
-                <div>
+             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 text-sm">
+                <div className="w-full sm:w-auto">
                     <label className="ml-2 font-black text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-widest">{t('chart_grouping')}</label>
                     <select value={sortBy} onChange={e => setSortBy(e.target.value as any)}
-                        className="p-2.5 border-2 border-indigo-50 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                        className="p-2.5 w-full sm:w-auto border-2 border-indigo-50 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
                         {headers.map(h => <option key={h.key} value={h.key}>{h.label}</option>)}
                     </select>
                 </div>
-                <ExportDropdown 
-                    onExportPdf={() => printTable(tableContainerRef, title || t('sec_veh_eff'), filters, t, language)}
-                    onExportExcel={handleExportExcel}
-                    onExportCsv={handleExportExcel}
-                    onExportImage={() => exportToImage(tableContainerRef, `Efficiency_Table`)}
-                />
+                <div className="w-full sm:w-auto flex justify-end">
+                    <ExportDropdown 
+                        onExportPdf={() => printTable(tableContainerRef, title || t('sec_veh_eff'), filters, t, language)}
+                        onExportExcel={handleExportExcel}
+                        onExportCsv={handleExportExcel}
+                        onExportImage={() => exportToImage(tableContainerRef, `Efficiency_Table`)}
+                    />
+                </div>
             </div>
             <div className="overflow-x-auto rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm" ref={tableContainerRef}>
                 <table className="w-full text-[11px] text-center border-collapse bg-white dark:bg-slate-900">
@@ -151,7 +155,7 @@ const TableSection: React.FC<TableSectionProps> = ({ tableData, filters, title }
                                 <td className="p-4">{formatNumber(totals.totalFuel, 0)}</td>
                                 <td className="p-4">{formatNumber(totals.totalMaint, 0)}</td>
                                 <td className="p-4 text-blue-700 dark:text-blue-300">{formatNumber(totals.avgCostTon, 1)}</td>
-                                <td className="p-4">—</td>
+                                <td className="p-4 font-black">{formatNumber(totals.totalDistance, 0)}</td>
                             </tr>
                         </tfoot>
                     )}

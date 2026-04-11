@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Trip } from '../types';
+import { MONTHS_ORDER } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -14,6 +15,7 @@ interface HeaderProps {
     onComparisonYearChange: (year: string) => void;
     onFilterToggle: (type: 'vehicles' | 'months', value: string) => void;
     onResetFilters: () => void;
+    toggleSidebar: () => void;
 }
 
 const FilterDropdown: React.FC<{
@@ -26,6 +28,7 @@ const FilterDropdown: React.FC<{
 }> = ({ buttonText, items, selectedItems, onToggle, isSingle = false, activeColor = 'bg-blue-700' }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const { t } = useLanguage();
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -65,7 +68,7 @@ const FilterDropdown: React.FC<{
                                 }}
                                 className="form-checkbox h-4 w-4 text-blue-600 rounded"
                             />
-                            <span className="text-sm text-slate-700 dark:text-slate-200">{item}</span>
+                            <span className="text-sm text-slate-700 dark:text-slate-200">{t(item)}</span>
                         </label>
                     ))}
                     {isSingle && selectedItems && (
@@ -82,12 +85,15 @@ const FilterDropdown: React.FC<{
     );
 };
 
-const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, comparisonYear, activeTab, onYearChange, onComparisonYearChange, onFilterToggle, onResetFilters }) => {
+const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, comparisonYear, activeTab, onYearChange, onComparisonYearChange, onFilterToggle, onResetFilters, toggleSidebar }) => {
     const { t, language, setLanguage } = useLanguage();
     const { theme, toggleTheme } = useTheme();
     
     const vehicles = useMemo(() => [...new Set(tripsData.map(r => r['رقم المركبة']).filter(Boolean))].sort(), [tripsData]);
-    const months = useMemo(() => [...new Set(tripsData.map(r => (r['الشهر'] || '').toLowerCase()).filter(Boolean))], [tripsData]);
+    const months = useMemo(() => {
+        const uniqueMonths = [...new Set(tripsData.map(r => (r['الشهر'] || '').toLowerCase()).filter(Boolean))] as string[];
+        return uniqueMonths.sort((a, b) => MONTHS_ORDER.indexOf(a) - MONTHS_ORDER.indexOf(b));
+    }, [tripsData]);
     const years = useMemo(() => [...new Set(tripsData.map(r => r['السنة']).filter(Boolean))].sort().reverse(), [tripsData]);
 
     const printKPIs = () => {
@@ -307,10 +313,20 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
     };
 
     return (
-        <header className="bg-gradient-to-l from-blue-600 to-sky-500 text-white p-5 shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="text-right">
-                <h1 className="text-xl md:text-2xl font-bold leading-tight">{t('app_title')}</h1>
-                <h2 className="text-lg md:text-xl font-semibold">{t('municipality_name')}</h2>
+        <header className="bg-gradient-to-l from-blue-600 to-sky-500 text-white p-5 shadow-lg flex flex-col md:flex-row justify-between items-center gap-4 relative">
+            <div className="flex items-center justify-between w-full md:w-auto">
+                <button 
+                    onClick={toggleSidebar}
+                    className="md:hidden p-2 bg-white/20 hover:bg-white/30 rounded-lg transition border border-white/10"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                <div className="text-center md:text-right flex-1">
+                    <h1 className="text-xl md:text-2xl font-bold leading-tight">{t('app_title')}</h1>
+                    <h2 className="text-lg md:text-xl font-semibold">{t('municipality_name')}</h2>
+                </div>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2">
                 <button

@@ -58,8 +58,20 @@ const KpiGrid: React.FC<KpiGridProps> = ({
         };
 
         const maintForVehicle = (veh: string): number => {
-            const row = maintData.find(x => x['رقم المركبة'] === veh && x['السنة'] === year);
-            return row ? (Number(row['كلفة الصيانة']) || 0) : 0;
+            const vehicleMaint = maintData.filter(x => x['رقم المركبة'] === veh && x['السنة'] === year);
+            let total = 0;
+            if (filters.months.size > 0) {
+                vehicleMaint.forEach(m => {
+                    if (m['الشهر'] && filters.months.has(m['الشهر'].toLowerCase())) {
+                        total += Number(m['كلفة الصيانة'] || 0);
+                    }
+                });
+            } else {
+                vehicleMaint.forEach(m => {
+                    total += Number(m['كلفة الصيانة'] || 0);
+                });
+            }
+            return total;
         };
         
         let totalFuel = 0;
@@ -263,13 +275,13 @@ const KpiGrid: React.FC<KpiGridProps> = ({
     };
 
     return (
-        <div id="kpi-grid" ref={containerRef} className="space-y-12 mb-12 animate-in fade-in duration-500">
+        <div id="kpi-grid" ref={containerRef} className="space-y-8 md:space-y-12 mb-8 md:mb-12 animate-in fade-in duration-500">
             {/* New Header with Export Options */}
-            <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] shadow-sm dark:shadow-none border border-slate-100 dark:border-slate-800 flex justify-between items-center transition-colors">
-                <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
+            <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-3xl md:rounded-[40px] shadow-sm dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 transition-colors">
+                <h2 className="text-lg md:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight text-center md:text-right">
                     {t('sec_kpi_main')} - {selectedYear}
                 </h2>
-                <div className="flex gap-4">
+                <div className="flex gap-4 w-full md:w-auto justify-center md:justify-end">
                     <ExportDropdown 
                         onExportPdf={() => window.print()}
                         onExportExcel={handleExportExcel}
@@ -280,16 +292,16 @@ const KpiGrid: React.FC<KpiGridProps> = ({
             </div>
 
             {sections.map((section, sIdx) => (
-                <div key={sIdx} className="space-y-6 bg-slate-50/40 dark:bg-slate-900/40 p-8 rounded-[40px] border border-slate-100/50 dark:border-slate-800/50 shadow-sm transition-all duration-300">
-                    <div className="flex items-center gap-4 px-2">
-                        <div className="h-10 w-2 bg-blue-600 rounded-full shadow-sm shadow-blue-200"></div>
-                        <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
+                <div key={sIdx} className="space-y-4 md:space-y-6 bg-slate-50/40 dark:bg-slate-900/40 p-4 md:p-8 rounded-3xl md:rounded-[40px] border border-slate-100/50 dark:border-slate-800/50 shadow-sm transition-all duration-300">
+                    <div className="flex items-center gap-3 md:gap-4 px-1 md:px-2">
+                        <div className="h-8 md:h-10 w-1.5 md:w-2 bg-blue-600 rounded-full shadow-sm shadow-blue-200"></div>
+                        <h3 className="text-lg md:text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
                             {section.title}
                         </h3>
                         <div className="flex-1 h-px bg-gradient-to-l from-slate-200 dark:from-slate-800 to-transparent"></div>
                     </div>
                     
-                    <div className={`grid grid-cols-1 sm:grid-cols-2 ${getGridColsClass(section.cards.length)} gap-6 justify-center`}>
+                    <div className={`grid grid-cols-2 sm:grid-cols-2 ${getGridColsClass(section.cards.length)} gap-3 md:gap-6 justify-center`}>
                         {section.cards.map((kpi, kIdx) => (
                             <div key={`${sIdx}-${kIdx}`} className={kpi.emphasized ? 'transform lg:scale-105 z-10' : ''}>
                                 <KpiCard 

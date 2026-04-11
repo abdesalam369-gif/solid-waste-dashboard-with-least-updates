@@ -93,20 +93,22 @@ const DriverStatsSection: React.FC<DriverStatsSectionProps> = ({ tableData, filt
                 ))}
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-8 text-sm">
-                <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 text-sm">
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                     <label htmlFor="driverSort" className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">{t('chart_grouping')}</label>
                     <select id="driverSort" value={sortBy} onChange={e => setSortBy(e.target.value as keyof DriverStatsData)}
-                        className="bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl p-2 px-4 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-100 shadow-sm">
+                        className="bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl p-2 px-4 w-full sm:w-auto text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-100 shadow-sm">
                         {headers.map(h => <option key={h.key} value={h.key}>{h.label}</option>)}
                     </select>
                 </div>
-                <ExportDropdown 
-                    onExportPdf={handlePrint}
-                    onExportExcel={handleExportExcel}
-                    onExportCsv={handleExportExcel}
-                    onExportImage={() => exportToImage(tableContainerRef, `Drivers_Performance`)}
-                />
+                <div className="w-full sm:w-auto flex justify-end">
+                    <ExportDropdown 
+                        onExportPdf={handlePrint}
+                        onExportExcel={handleExportExcel}
+                        onExportCsv={handleExportExcel}
+                        onExportImage={() => exportToImage(tableContainerRef, `Drivers_Performance`)}
+                    />
+                </div>
             </div>
 
             <div className="overflow-x-auto rounded-[2.5rem] border border-slate-200 dark:border-slate-700 shadow-sm" ref={tableContainerRef}>

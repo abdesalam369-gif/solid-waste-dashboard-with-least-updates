@@ -167,45 +167,45 @@ const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ worke
                 />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 p-7 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden group">
-                    <div className="absolute -left-4 -top-4 text-7xl opacity-20 group-hover:scale-110 transition-transform">🏆</div>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 mb-8 md:mb-10">
+                <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-xl text-white relative overflow-hidden group">
+                    <div className="absolute -left-2 -top-2 sm:-left-4 sm:-top-4 text-4xl sm:text-7xl opacity-20 group-hover:scale-110 transition-transform">🏆</div>
                     <div className="relative z-10">
-                        <div className="text-indigo-100 text-[10px] font-black mb-2 uppercase tracking-tighter opacity-80 text-right">{t('kpi_top_weight_veh')}</div>
-                        <div className="text-3xl font-black text-right">{topArea?.displayName}</div>
-                        <div className="text-indigo-200 font-bold text-sm text-right mt-1">{formatNumber(topArea?.tons || 0)} {t('unit_ton')}</div>
+                        <div className="text-indigo-100 text-[8px] sm:text-[10px] font-black mb-1 sm:mb-2 uppercase tracking-tighter opacity-80 text-right">{t('kpi_top_weight_veh')}</div>
+                        <div className="text-lg sm:text-3xl font-black text-right">{topArea?.displayName}</div>
+                        <div className="text-indigo-200 font-bold text-[10px] sm:text-sm text-right mt-0.5 sm:mt-1">{formatNumber(topArea?.tons || 0)} {t('unit_ton')}</div>
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-7 rounded-[2.5rem] shadow-lg border-b-8 border-emerald-500 transition-all hover:-translate-y-1 relative overflow-hidden group">
-                    <div className="absolute -left-6 -top-6 text-7xl opacity-5 group-hover:rotate-12 transition-transform">💡</div>
-                    <div className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase mb-2 text-right">{t('kpi_cost_per_ton')}</div>
-                    <div className="text-3xl font-black text-slate-800 dark:text-slate-100 text-right">{mostEfficient?.displayName || '—'}</div>
-                    <div className="text-emerald-600 dark:text-emerald-400 font-bold text-sm text-right mt-1">
+                <div className="bg-white dark:bg-slate-900 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-lg border-b-4 sm:border-b-8 border-emerald-500 transition-all hover:-translate-y-1 relative overflow-hidden group">
+                    <div className="absolute -left-3 -top-3 sm:-left-6 sm:-top-6 text-4xl sm:text-7xl opacity-5 group-hover:rotate-12 transition-transform">💡</div>
+                    <div className="text-slate-400 dark:text-slate-500 text-[8px] sm:text-[10px] font-black uppercase mb-1 sm:mb-2 text-right">{t('kpi_cost_per_ton')}</div>
+                    <div className="text-lg sm:text-3xl font-black text-slate-800 dark:text-slate-100 text-right">{mostEfficient?.displayName || '—'}</div>
+                    <div className="text-emerald-600 dark:text-emerald-400 font-bold text-[10px] sm:text-sm text-right mt-0.5 sm:mt-1">
                         {mostEfficient ? `${formatNumber(mostEfficient.costPerTon, 1)} ${t('unit_jd')}/${t('unit_ton')}` : '—'}
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-7 rounded-[2.5rem] shadow-lg border-b-8 border-amber-500 transition-all hover:-translate-y-1 relative overflow-hidden group">
-                    <div className="absolute -left-6 -top-6 text-7xl opacity-5 group-hover:rotate-12 transition-transform">👥</div>
-                    <div className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase mb-2 text-right">{t('th_emp_count')}</div>
-                    <div className="text-3xl font-black text-slate-800 dark:text-slate-100 text-right">
+                <div className="bg-white dark:bg-slate-900 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-lg border-b-4 sm:border-b-8 border-amber-500 transition-all hover:-translate-y-1 relative overflow-hidden group col-span-2 lg:col-span-1">
+                    <div className="absolute -left-3 -top-3 sm:-left-6 sm:-top-6 text-4xl sm:text-7xl opacity-5 group-hover:rotate-12 transition-transform">👥</div>
+                    <div className="text-slate-400 dark:text-slate-500 text-[8px] sm:text-[10px] font-black uppercase mb-1 sm:mb-2 text-right">{t('th_emp_count')}</div>
+                    <div className="text-lg sm:text-3xl font-black text-slate-800 dark:text-slate-100 text-right">
                         {areaAnalysis.reduce((p, c) => (p.workersCount > c.workersCount) ? p : c, areaAnalysis[0])?.displayName}
                     </div>
-                    <div className="text-amber-600 dark:text-amber-400 font-bold text-sm text-right mt-1">
+                    <div className="text-amber-600 dark:text-amber-400 font-bold text-[10px] sm:text-sm text-right mt-0.5 sm:mt-1">
                         {areaAnalysis.reduce((p, c) => (p.workersCount > c.workersCount) ? p : c, areaAnalysis[0])?.workersCount} {t('unit_worker')}
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10 mb-8 md:mb-10">
                 {/* Waste Distribution (Previously AreaChartSection) */}
-                <div className="bg-white dark:bg-slate-800/50 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-sm relative">
-                    <h4 className="text-sm font-black text-slate-700 dark:text-slate-300 mb-6 flex items-center gap-2 text-right">
+                <div className="bg-white dark:bg-slate-800/50 p-5 md:p-8 rounded-3xl md:rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-sm relative">
+                    <h4 className="text-xs md:text-sm font-black text-slate-700 dark:text-slate-300 mb-4 md:mb-6 flex items-center gap-2 text-right">
                         <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
                         {t('sec_waste_dist')}
                     </h4>
-                    <div className="h-72 w-full">
+                    <div className="h-64 md:h-72 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie 
@@ -213,8 +213,8 @@ const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ worke
                                     cx="50%" cy="50%" 
                                     labelLine={false} 
                                     label={renderCustomizedLabel}
-                                    innerRadius={60}
-                                    outerRadius={100} 
+                                    innerRadius={window.innerWidth < 768 ? 50 : 60}
+                                    outerRadius={window.innerWidth < 768 ? 80 : 100} 
                                     paddingAngle={2}
                                     dataKey="tons" 
                                     nameKey="displayName"
@@ -223,49 +223,49 @@ const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ worke
                                     {areaAnalysis.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                                 </Pie>
                                 <Tooltip contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderRadius: '12px', border: 'none', color: isDark ? '#fff' : '#000', textAlign: 'right' }} />
-                                <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ color: axisColor, paddingLeft: '20px', fontSize: '11px', fontWeight: '700' }} />
+                                <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ color: axisColor, paddingLeft: '10px', fontSize: '10px', fontWeight: '700' }} />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
                 {/* Comparative Analytics (Refined from original) */}
-                <div className="bg-white dark:bg-slate-800/50 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-sm relative">
-                    <div className="flex justify-between items-center mb-6">
-                        <h4 className="text-sm font-black text-slate-700 dark:text-slate-300 flex items-center gap-2 text-right">
+                <div className="bg-white dark:bg-slate-800/50 p-5 md:p-8 rounded-3xl md:rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-sm relative">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 md:mb-6">
+                        <h4 className="text-xs md:text-sm font-black text-slate-700 dark:text-slate-300 flex items-center gap-2 text-right">
                             <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
                             المقارنة المعيارية للمناطق
                         </h4>
-                        <div className="flex gap-1">
-                            <button onClick={() => setActiveMetric('tons')} className={`p-1.5 rounded-lg text-[9px] font-black transition-all ${activeMetric === 'tons' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>أوزان</button>
-                            <button onClick={() => setActiveMetric('budget')} className={`p-1.5 rounded-lg text-[9px] font-black transition-all ${activeMetric === 'budget' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>ميزانية</button>
-                            <button onClick={() => setActiveMetric('efficiency')} className={`p-1.5 rounded-lg text-[9px] font-black transition-all ${activeMetric === 'efficiency' ? 'bg-amber-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>إنتاجية</button>
+                        <div className="flex flex-wrap gap-1 w-full sm:w-auto">
+                            <button onClick={() => setActiveMetric('tons')} className={`flex-1 sm:flex-none p-1.5 rounded-lg text-[8px] sm:text-[9px] font-black transition-all ${activeMetric === 'tons' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>أوزان</button>
+                            <button onClick={() => setActiveMetric('budget')} className={`flex-1 sm:flex-none p-1.5 rounded-lg text-[8px] sm:text-[9px] font-black transition-all ${activeMetric === 'budget' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>ميزانية</button>
+                            <button onClick={() => setActiveMetric('efficiency')} className={`flex-1 sm:flex-none p-1.5 rounded-lg text-[8px] sm:text-[9px] font-black transition-all ${activeMetric === 'efficiency' ? 'bg-amber-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>إنتاجية</button>
                         </div>
                     </div>
-                    <div className="h-72 w-full">
+                    <div className="h-64 md:h-72 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <ComposedChart data={areaAnalysis}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
-                                <XAxis dataKey="displayName" tick={{fontSize: 9, fontWeight: 700, fill: axisColor}} axisLine={false} tickLine={false} />
-                                <YAxis yAxisId="left" tick={{fontSize: 9, fill: axisColor}} axisLine={false} tickLine={false} />
-                                <YAxis yAxisId="right" orientation="right" tick={{fontSize: 9, fill: axisColor}} axisLine={false} tickLine={false} />
+                                <XAxis dataKey="displayName" tick={{fontSize: 8, fontWeight: 700, fill: axisColor}} axisLine={false} tickLine={false} />
+                                <YAxis yAxisId="left" tick={{fontSize: 8, fill: axisColor}} axisLine={false} tickLine={false} />
+                                <YAxis yAxisId="right" orientation="right" tick={{fontSize: 8, fill: axisColor}} axisLine={false} tickLine={false} />
                                 <Tooltip contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', textAlign: 'right', color: isDark ? '#fff' : '#000' }} />
                                 {activeMetric === 'tons' && (
                                     <>
-                                        <Bar yAxisId="left" dataKey="tons" name={t('th_tons')} fill="#6366f1" radius={[4, 4, 0, 0]} barSize={20} />
-                                        <Line yAxisId="right" type="monotone" dataKey="trips" name={t('th_trips')} stroke="#f59e0b" strokeWidth={3} dot={{r: 3}} />
+                                        <Bar yAxisId="left" dataKey="tons" name={t('th_tons')} fill="#6366f1" radius={[4, 4, 0, 0]} barSize={window.innerWidth < 768 ? 12 : 20} />
+                                        <Line yAxisId="right" type="monotone" dataKey="trips" name={t('th_trips')} stroke="#f59e0b" strokeWidth={2} dot={{r: 2}} />
                                     </>
                                 )}
                                 {activeMetric === 'budget' && (
                                     <>
-                                        <Bar yAxisId="left" dataKey="totalBudget" name={t('th_budget')} fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} />
-                                        <Line yAxisId="right" type="monotone" dataKey="costPerTon" name={t('th_cost_ton')} stroke="#ef4444" strokeWidth={3} dot={{r: 3}} />
+                                        <Bar yAxisId="left" dataKey="totalBudget" name={t('th_budget')} fill="#10b981" radius={[4, 4, 0, 0]} barSize={window.innerWidth < 768 ? 12 : 20} />
+                                        <Line yAxisId="right" type="monotone" dataKey="costPerTon" name={t('th_cost_ton')} stroke="#ef4444" strokeWidth={2} dot={{r: 2}} />
                                     </>
                                 )}
                                 {activeMetric === 'efficiency' && (
                                     <>
-                                        <Bar yAxisId="left" dataKey="tonsPerWorker" name={t('th_avg_load')} fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={20} />
-                                        <Line yAxisId="right" type="monotone" dataKey="workersCount" name={t('th_emp_count')} stroke="#3b82f6" strokeWidth={3} dot={{r: 3}} />
+                                        <Bar yAxisId="left" dataKey="tonsPerWorker" name={t('th_avg_load')} fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={window.innerWidth < 768 ? 12 : 20} />
+                                        <Line yAxisId="right" type="monotone" dataKey="workersCount" name={t('th_emp_count')} stroke="#3b82f6" strokeWidth={2} dot={{r: 2}} />
                                     </>
                                 )}
                             </ComposedChart>
@@ -274,42 +274,42 @@ const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ worke
                 </div>
             </div>
 
-            <div className="overflow-x-auto rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm" ref={tableContainerRef}>
+            <div className="overflow-x-auto rounded-3xl md:rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm" ref={tableContainerRef}>
                 <table className="w-full text-[10px] md:text-[11px] text-center border-collapse bg-white dark:bg-slate-900">
                     <thead className="bg-slate-50 dark:bg-slate-800">
                         <tr>
-                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase text-right pr-10">{t('th_area')}</th>
-                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_pop')}</th>
-                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_veh_no')}</th>
-                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_emp_count')}</th>
-                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_tons')}</th>
-                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_trips')}</th>
-                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_budget')}</th>
-                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_cost_ton')}</th>
+                            <th className="p-3 md:p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase text-right pr-6 md:pr-10">{t('th_area')}</th>
+                            <th className="p-3 md:p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_pop')}</th>
+                            <th className="p-3 md:p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_veh_no')}</th>
+                            <th className="p-3 md:p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_emp_count')}</th>
+                            <th className="p-3 md:p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_tons')}</th>
+                            <th className="p-3 md:p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_trips')}</th>
+                            <th className="p-3 md:p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_budget')}</th>
+                            <th className="p-3 md:p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase">{t('th_cost_ton')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {areaAnalysis.map((area, idx) => (
                             <tr key={idx} className="hover:bg-indigo-50/30 dark:hover:bg-slate-800/50 transition-colors">
-                                <td className="p-4 font-black text-slate-800 dark:text-slate-200 text-right pr-10">{area.displayName}</td>
-                                <td className="p-4 text-slate-600 dark:text-slate-300 font-bold">{formatNumber(area.population)}</td>
-                                <td className="p-4 font-black text-blue-800 dark:text-blue-300">
-                                    <span className="bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg">
+                                <td className="p-3 md:p-4 font-black text-slate-800 dark:text-slate-200 text-right pr-6 md:pr-10">{area.displayName}</td>
+                                <td className="p-3 md:p-4 text-slate-600 dark:text-slate-300 font-bold">{formatNumber(area.population)}</td>
+                                <td className="p-3 md:p-4 font-black text-blue-800 dark:text-blue-300">
+                                    <span className="bg-slate-100 dark:bg-slate-800 px-2 md:px-3 py-1 rounded-lg">
                                         {area.vehiclesCount}
                                     </span>
                                 </td>
-                                <td className="p-4">
-                                    <span className="bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full font-black">
+                                <td className="p-3 md:p-4">
+                                    <span className="bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-2 md:px-3 py-1 rounded-full font-black">
                                         {area.workersCount}
                                     </span>
                                 </td>
-                                <td className="p-4 font-black text-slate-700 dark:text-slate-300">{formatNumber(area.tons, 1)}</td>
-                                <td className="p-4 text-slate-500 dark:text-slate-400">{area.trips}</td>
-                                <td className="p-4 font-black text-emerald-700 dark:text-emerald-400">
+                                <td className="p-3 md:p-4 font-black text-slate-700 dark:text-slate-300">{formatNumber(area.tons, 1)}</td>
+                                <td className="p-3 md:p-4 text-slate-500 dark:text-slate-400">{area.trips}</td>
+                                <td className="p-3 md:p-4 font-black text-emerald-700 dark:text-emerald-400">
                                     {formatNumber(Math.round(area.totalBudget))} {t('unit_jd')}
                                 </td>
-                                <td className="p-4">
-                                    <div className={`font-black rounded-lg py-1 px-2 ${area.costPerTon > 40 ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'}`}>
+                                <td className="p-3 md:p-4">
+                                    <div className={`font-black rounded-lg py-1 px-1.5 md:px-2 ${area.costPerTon > 40 ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'}`}>
                                         {formatNumber(area.costPerTon, 1)} {t('unit_jd')}
                                     </div>
                                 </td>

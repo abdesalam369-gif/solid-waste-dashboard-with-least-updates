@@ -38,8 +38,18 @@ export interface Fuel {
 export interface Maintenance {
     'رقم المركبة': string;
     'السنة': string;
+    'الشهر'?: string;
     'كلفة الصيانة': string;
+    'عدد العمليات'?: number;
     [key: string]: any;
+}
+
+export interface MaintenanceRecord {
+    'التاريخ': string;
+    'المبلغ': number;
+    'رقم المركبة': string;
+    'السنة': string;
+    'الشهر': string;
 }
 
 export interface Area {

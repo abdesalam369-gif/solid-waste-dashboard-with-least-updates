@@ -1,5 +1,5 @@
 
-import { Trip, Vehicle, Fuel, Maintenance, Area, Population, Worker, Revenue, WasteTreatment, Distance, AdditionalCost } from '../types';
+import { Trip, Vehicle, Fuel, Maintenance, Area, Population, Worker, Revenue, WasteTreatment, Distance, AdditionalCost, MaintenanceRecord } from '../types';
 import { CONFIG } from '../constants';
 
 // Declare global Papa from script tag
@@ -11,14 +11,14 @@ async function fetchCSV<T>(url: string): Promise<T[]> {
     const lines = text.trim().split(/\r?\n/);
     if (lines.length < 2) return [];
     
-    // Improved CSV parsing for comma handling within quotes if necessary
-    const header = lines.shift()!.split(",");
+    // Improved CSV parsing for comma handling within quotes
+    const header = splitCsvLine(lines.shift()!).map(h => h.replace(/^"|"$/g, '').trim());
     
     return lines.map(line => {
-        const values = line.split(",");
+        const values = splitCsvLine(line);
         const obj: { [key: string]: string } = {};
         header.forEach((h, i) => {
-            obj[h.trim()] = (values[i] || "").trim();
+            obj[h] = (values[i] || "").replace(/^"|"$/g, '').trim();
         });
         return obj as T;
     });
@@ -93,17 +93,58 @@ export async function loadWorkersData(): Promise<Worker[]> {
 }
 
 export async function loadAllData() {
-    const [trips, vehicles, fuel, fuelLiters, maint, areas, workers, distance, additionalCostsRaw] = await Promise.all([
+    const [trips, vehicles, fuel, fuelLiters, maintRaw, areas, workers, distance, additionalCostsRaw] = await Promise.all([
         fetchCSV<Trip>(CONFIG.trips),
         fetchCSV<Vehicle>(CONFIG.vehicles),
         fetchCSV<Fuel>(CONFIG.fuel),
         fetchCSV<Fuel>(CONFIG.fuelLiters),
-        fetchCSV<Maintenance>(CONFIG.maint),
+        fetchCSV<any>(CONFIG.maint),
         fetchCSV<Area>(CONFIG.areas),
         loadWorkersData(),
         fetchCSV<Distance>(CONFIG.distance),
         fetchCSV<any>(CONFIG.additionalCosts)
     ]);
+
+    // Parse Maintenance Data
+    const maintMap = new Map<string, { total: number; count: number }>();
+    const maintRecords: MaintenanceRecord[] = [];
+    
+    maintRaw.forEach(row => {
+        const vehicle = String(row["رقم المركبة"] || "").trim();
+        const year = String(row["السنة"] || "").trim();
+        const month = String(row["الشهر"] || "").trim().toLowerCase();
+        const date = String(row["التاريخ"] || "").trim();
+        const amountRaw = row["المبلغ"] || row["كلفة الصيانة"];
+        const amount = Number(String(amountRaw || "0").trim().replace(/,/g, '').replace(/[^\d.-]/g, ''));
+        
+        if (vehicle && year) {
+            const key = `${vehicle}-${year}-${month}`;
+            const current = maintMap.get(key) || { total: 0, count: 0 };
+            maintMap.set(key, { total: current.total + amount, count: current.count + 1 });
+            
+            maintRecords.push({
+                'التاريخ': date,
+                'المبلغ': amount,
+                'رقم المركبة': vehicle,
+                'السنة': year,
+                'الشهر': month
+            });
+        }
+    });
+
+    const maint: Maintenance[] = Array.from(maintMap.entries()).map(([key, data]) => {
+        const parts = key.split('-');
+        const vehicle = parts[0];
+        const year = parts[1];
+        const month = parts[2];
+        return {
+            'رقم المركبة': vehicle,
+            'السنة': year,
+            'الشهر': month,
+            'كلفة الصيانة': String(data.total),
+            'عدد العمليات': data.count
+        };
+    });
 
     // Parse Additional Costs
     const additionalCosts: AdditionalCost[] = additionalCostsRaw.map(row => {
@@ -220,7 +261,7 @@ export async function loadAllData() {
         console.error("Error loading treatment data:", error);
     }
 
-    return { trips, vehicles, fuel, fuelLiters, maint, areas, population, workers, revenues, treatment, distance, additionalCosts };
+    return { trips, vehicles, fuel, fuelLiters, maint, maintRecords, areas, population, workers, revenues, treatment, distance, additionalCosts };
 }
 
 export const formatNumber = (num: number | undefined | null, digits: number = 0): string => {

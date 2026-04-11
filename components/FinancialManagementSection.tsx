@@ -67,8 +67,8 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
         // 2. Fuel: Already filtered by month in App.tsx before being passed here
         const totalFuel = vehicleData.reduce((sum, v) => sum + v.fuel, 0);
         
-        // 3. Maintenance: Annual cost * Time Ratio
-        const totalMaint = vehicleData.reduce((sum, v) => sum + v.maint, 0) * timeRatio;
+        // 3. Maintenance: Already filtered by month in App.tsx
+        const totalMaint = vehicleData.reduce((sum, v) => sum + v.maint, 0);
         
         // 4. Non-Operational (Extras): Annual cost * Time Ratio
         const extrasRaw = {
@@ -134,8 +134,8 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
             const area = v.area || 'غير محدد';
             const current = stats.get(area) || { exp: 0, rev: 0, salaries: 0, op: 0, hh: 0, comm: 0, rec: 0 };
             
-            // Fuel is already sum of months. Maint is annual, so prorate it.
-            const operationalCost = v.fuel + (v.maint * timeRatio);
+            // Fuel and Maint are already sum of months if filtered.
+            const operationalCost = v.fuel + v.maint;
             
             current.op += operationalCost;
             current.exp += operationalCost;
@@ -190,78 +190,80 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
 
     return (
         <CollapsibleSection title={t('sec_financial_mgmt')}>
-            <div className="flex flex-wrap items-center justify-between gap-6 mb-10">
-                <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-[1.5rem] shadow-inner border border-slate-200 dark:border-slate-700">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 md:gap-6 mb-6 md:mb-10">
+                <div className="flex flex-wrap justify-center bg-slate-100 dark:bg-slate-800 p-1 md:p-1.5 rounded-2xl md:rounded-[1.5rem] shadow-inner border border-slate-200 dark:border-slate-700 w-full sm:w-auto">
                     <button 
                         onClick={() => setViewMode('comparison')}
-                        className={`tab-button px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-300 ${viewMode === 'comparison' ? 'bg-white dark:bg-slate-700 shadow-xl text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-600' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`tab-button px-3 sm:px-6 py-2 md:py-2.5 rounded-xl text-[10px] sm:text-xs font-black transition-all duration-300 ${viewMode === 'comparison' ? 'bg-white dark:bg-slate-700 shadow-xl text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-600' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         {t('btn_fin_comparison')}
                     </button>
                     <button 
                         onClick={() => setViewMode('expenses')}
-                        className={`tab-button px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-300 ${viewMode === 'expenses' ? 'bg-white dark:bg-slate-700 shadow-xl text-red-600 dark:text-red-400 border border-slate-200 dark:border-slate-600' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`tab-button px-3 sm:px-6 py-2 md:py-2.5 rounded-xl text-[10px] sm:text-xs font-black transition-all duration-300 ${viewMode === 'expenses' ? 'bg-white dark:bg-slate-700 shadow-xl text-red-600 dark:text-red-400 border border-slate-200 dark:border-slate-600' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         {t('btn_fin_expenses')}
                     </button>
                     <button 
                         onClick={() => setViewMode('revenues')}
-                        className={`tab-button px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-300 ${viewMode === 'revenues' ? 'bg-white dark:bg-slate-700 shadow-xl text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-600' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`tab-button px-3 sm:px-6 py-2 md:py-2.5 rounded-xl text-[10px] sm:text-xs font-black transition-all duration-300 ${viewMode === 'revenues' ? 'bg-white dark:bg-slate-700 shadow-xl text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-600' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         {t('btn_fin_revenues')}
                     </button>
                 </div>
-                <ExportDropdown 
-                    onExportPdf={() => printTable(tableContainerRef, t('sec_financial_mgmt'), filters, t, language)}
-                    onExportExcel={handleExportExcel}
-                    onExportCsv={handleExportExcel}
-                    onExportImage={() => exportToImage(tableContainerRef, `Financial_Consolidated_Export`)}
-                />
+                <div className="w-full sm:w-auto flex justify-end">
+                    <ExportDropdown 
+                        onExportPdf={() => printTable(tableContainerRef, t('sec_financial_mgmt'), filters, t, language)}
+                        onExportExcel={handleExportExcel}
+                        onExportCsv={handleExportExcel}
+                        onExportImage={() => exportToImage(tableContainerRef, `Financial_Consolidated_Export`)}
+                    />
+                </div>
             </div>
 
             {/* Comprehensive Financial KPIs */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-5 mb-10">
-                <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-7 rounded-[2.5rem] shadow-xl text-white transform transition-transform hover:scale-105">
-                    <div className={`text-slate-400 text-[10px] font-black mb-2 uppercase tracking-widest ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('lbl_total_expenses')}</div>
-                    <div className="text-2xl font-black">{formatCurrency(financialStats.grandTotalExpenses)}</div>
-                    <div className="text-[10px] mt-2 text-slate-500 font-bold">{t('lbl_for_total')} {formatNumber(financialStats.totalTons)} {t('unit_ton')}</div>
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-5 mb-8 md:mb-10">
+                <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-xl text-white transform transition-transform hover:scale-105">
+                    <div className={`text-slate-400 text-[9px] sm:text-[10px] font-black mb-1 sm:mb-2 uppercase tracking-widest ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('lbl_total_expenses')}</div>
+                    <div className="text-lg sm:text-2xl font-black">{formatCurrency(financialStats.grandTotalExpenses)}</div>
+                    <div className="text-[8px] sm:text-[10px] mt-1 sm:mt-2 text-slate-500 font-bold">{t('lbl_for_total')} {formatNumber(financialStats.totalTons)} {t('unit_ton')}</div>
                 </div>
-                <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-7 rounded-[2.5rem] shadow-xl text-white transform transition-transform hover:scale-105">
-                    <div className={`text-blue-200 text-[10px] font-black mb-2 uppercase tracking-widest ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('th_total_revenue')}</div>
-                    <div className="text-2xl font-black">{formatCurrency(financialStats.totalRevenue)}</div>
-                    <div className="text-[10px] mt-2 text-blue-200/60 font-bold">{t('lbl_at_rate')} {formatNumber(financialStats.costRecovery, 1)}% {t('lbl_recovery_suffix')}</div>
+                <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-xl text-white transform transition-transform hover:scale-105">
+                    <div className={`text-blue-200 text-[9px] sm:text-[10px] font-black mb-1 sm:mb-2 uppercase tracking-widest ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('th_total_revenue')}</div>
+                    <div className="text-lg sm:text-2xl font-black">{formatCurrency(financialStats.totalRevenue)}</div>
+                    <div className="text-[8px] sm:text-[10px] mt-1 sm:mt-2 text-blue-200/60 font-bold">{t('lbl_at_rate')} {formatNumber(financialStats.costRecovery, 1)}% {t('lbl_recovery_suffix')}</div>
                 </div>
-                <div className="bg-white dark:bg-slate-900 p-7 rounded-[2.5rem] shadow-lg border-b-8 border-indigo-500 transition-all hover:-translate-y-2">
-                    <div className={`text-slate-400 dark:text-slate-500 text-[10px] font-black mb-2 uppercase ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('kpi_sum_cost_recovery')}</div>
-                    <div className="text-4xl font-black text-indigo-600 dark:text-indigo-400">{formatNumber(financialStats.costRecovery, 1)}%</div>
+                <div className="bg-white dark:bg-slate-900 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-lg border-b-4 sm:border-b-8 border-indigo-500 transition-all hover:-translate-y-2">
+                    <div className={`text-slate-400 dark:text-slate-500 text-[9px] sm:text-[10px] font-black mb-1 sm:mb-2 uppercase ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('kpi_sum_cost_recovery')}</div>
+                    <div className="text-2xl sm:text-4xl font-black text-indigo-600 dark:text-indigo-400">{formatNumber(financialStats.costRecovery, 1)}%</div>
                 </div>
-                <div className="bg-white dark:bg-slate-900 p-7 rounded-[2.5rem] shadow-lg border-b-8 border-red-500 transition-all hover:-translate-y-2">
-                    <div className={`text-slate-400 dark:text-slate-500 text-[10px] font-black mb-2 uppercase ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('lbl_total_cost_ton')}</div>
-                    <div className="text-2xl font-black text-red-600 dark:text-red-400">{formatNumber(financialStats.costPerTon, 1)} <span className="text-xs font-bold">{t('unit_jd')}</span></div>
+                <div className="bg-white dark:bg-slate-900 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-lg border-b-4 sm:border-b-8 border-red-500 transition-all hover:-translate-y-2">
+                    <div className={`text-slate-400 dark:text-slate-500 text-[9px] sm:text-[10px] font-black mb-1 sm:mb-2 uppercase ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('lbl_total_cost_ton')}</div>
+                    <div className="text-lg sm:text-2xl font-black text-red-600 dark:text-red-400">{formatNumber(financialStats.costPerTon, 1)} <span className="text-[10px] sm:text-xs font-bold">{t('unit_jd')}</span></div>
                 </div>
-                <div className="bg-white dark:bg-slate-900 p-7 rounded-[2.5rem] shadow-lg border-b-8 border-emerald-500 transition-all hover:-translate-y-2">
-                    <div className={`text-slate-400 dark:text-slate-500 text-[10px] font-black mb-2 uppercase ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('lbl_net_position')}</div>
-                    <div className={`text-2xl font-black ${financialStats.totalRevenue - financialStats.grandTotalExpenses >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                <div className="bg-white dark:bg-slate-900 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] shadow-lg border-b-4 sm:border-b-8 border-emerald-500 transition-all hover:-translate-y-2 col-span-2 lg:col-span-1">
+                    <div className={`text-slate-400 dark:text-slate-500 text-[9px] sm:text-[10px] font-black mb-1 sm:mb-2 uppercase ${language === 'ar' ? 'text-right' : 'text-left'}`}>{t('lbl_net_position')}</div>
+                    <div className={`text-xl sm:text-2xl font-black ${financialStats.totalRevenue - financialStats.grandTotalExpenses >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                         {formatCurrency(financialStats.totalRevenue - financialStats.grandTotalExpenses)}
                     </div>
                 </div>
             </div>
 
             {/* Visual Analytics Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
-                <div className={`bg-white dark:bg-slate-800/50 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-sm transition-all duration-500 ${viewMode === 'revenues' ? 'opacity-40 grayscale' : 'scale-100'}`}>
-                    <h4 className="text-sm font-black text-slate-700 dark:text-slate-300 mb-6 flex items-center justify-between">
-                         <span className="text-xs px-3 py-1 bg-red-50 text-red-600 rounded-full font-black uppercase tracking-widest">Expenses Breakdown</span>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10 mb-8 md:mb-10">
+                <div className={`bg-white dark:bg-slate-800/50 p-5 md:p-8 rounded-3xl md:rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-sm transition-all duration-500 ${viewMode === 'revenues' ? 'opacity-40 grayscale' : 'scale-100'}`}>
+                    <h4 className="text-xs md:text-sm font-black text-slate-700 dark:text-slate-300 mb-4 md:mb-6 flex items-center justify-between">
+                         <span className="text-[10px] px-2 md:px-3 py-1 bg-red-50 text-red-600 rounded-full font-black uppercase tracking-widest">Expenses Breakdown</span>
                          <span>{t('chart_exp_breakdown')} {selectedYear}</span>
                     </h4>
-                    <div className="h-72 w-full">
+                    <div className="h-64 md:h-72 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
                                     data={financialStats.expenseAllocation}
                                     cx="50%" cy="50%"
-                                    innerRadius={70}
-                                    outerRadius={100}
+                                    innerRadius={60}
+                                    outerRadius={90}
                                     paddingAngle={5}
                                     dataKey="value"
                                     stroke="none"
@@ -274,25 +276,25 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                                     contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderRadius: '16px', border: 'none', color: isDark ? '#fff' : '#000', textAlign: language === 'ar' ? 'right' : 'left' }}
                                     formatter={(val: number) => formatCurrency(val)} 
                                 />
-                                <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ color: axisColor, paddingLeft: '20px', fontSize: '11px', fontWeight: 700 }} />
+                                <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ color: axisColor, paddingLeft: '10px', fontSize: '10px', fontWeight: 700 }} />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
-                <div className={`bg-white dark:bg-slate-800/50 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-sm transition-all duration-500 ${viewMode === 'expenses' ? 'opacity-40 grayscale' : 'scale-100'}`}>
-                    <h4 className="text-sm font-black text-slate-700 dark:text-slate-300 mb-6 flex items-center justify-between">
-                        <span className="text-xs px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full font-black uppercase tracking-widest">Revenue Streams</span>
+                <div className={`bg-white dark:bg-slate-800/50 p-5 md:p-8 rounded-3xl md:rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-sm transition-all duration-500 ${viewMode === 'expenses' ? 'opacity-40 grayscale' : 'scale-100'}`}>
+                    <h4 className="text-xs md:text-sm font-black text-slate-700 dark:text-slate-300 mb-4 md:mb-6 flex items-center justify-between">
+                        <span className="text-[10px] px-2 md:px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full font-black uppercase tracking-widest">Revenue Streams</span>
                         <span>{t('chart_rev_streams')} {selectedYear}</span>
                     </h4>
-                    <div className="h-72 w-full">
+                    <div className="h-64 md:h-72 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
                                     data={financialStats.revenueAllocation}
                                     cx="50%" cy="50%"
-                                    innerRadius={70}
-                                    outerRadius={100}
+                                    innerRadius={60}
+                                    outerRadius={90}
                                     paddingAngle={5}
                                     dataKey="value"
                                     stroke="none"
@@ -305,7 +307,7 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                                     contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderRadius: '16px', border: 'none', color: isDark ? '#fff' : '#000', textAlign: language === 'ar' ? 'right' : 'left' }}
                                     formatter={(val: number) => formatCurrency(val)} 
                                 />
-                                <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ color: axisColor, paddingLeft: '20px', fontSize: '11px', fontWeight: 700 }} />
+                                <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ color: axisColor, paddingLeft: '10px', fontSize: '10px', fontWeight: 700 }} />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
@@ -313,14 +315,14 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
             </div>
 
             {/* Consolidated Performance Comparison (Bar Chart with Gradients and Labels) */}
-            <div className="bg-white dark:bg-slate-800/50 p-10 rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-sm mb-10">
-                <h4 className={`text-sm font-black text-slate-700 dark:text-slate-300 mb-8 flex items-center gap-3 ${language === 'ar' ? 'justify-end text-right' : 'justify-start text-left flex-row-reverse'}`}>
+            <div className="bg-white dark:bg-slate-800/50 p-5 md:p-10 rounded-3xl md:rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-sm mb-8 md:mb-10">
+                <h4 className={`text-xs md:text-sm font-black text-slate-700 dark:text-slate-300 mb-6 md:mb-8 flex items-center gap-3 ${language === 'ar' ? 'justify-end text-right' : 'justify-start text-left flex-row-reverse'}`}>
                     <span>{t('chart_area_comparison')}</span>
                     <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
                 </h4>
-                <div className="h-96 w-full">
+                <div className="h-72 md:h-96 w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={areaFinancials} margin={{ top: 30, right: 30, left: 20, bottom: 20 }}>
+                        <BarChart data={areaFinancials} margin={{ top: 30, right: 10, left: 0, bottom: 20 }}>
                             <defs>
                                 <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.9} />
@@ -332,28 +334,28 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                                 </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
-                            <XAxis dataKey="displayName" tick={{fontSize: 11, fontWeight: 800, fill: axisColor}} axisLine={false} tickLine={false} />
-                            <YAxis tick={{fontSize: 10, fill: axisColor}} axisLine={false} tickLine={false} />
+                            <XAxis dataKey="displayName" tick={{fontSize: 9, fontWeight: 800, fill: axisColor}} axisLine={false} tickLine={false} />
+                            <YAxis tick={{fontSize: 9, fill: axisColor}} axisLine={false} tickLine={false} />
                             <Tooltip 
                                 cursor={{fill: isDark ? '#334155' : '#f8fafc'}}
                                 contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', color: isDark ? '#fff' : '#000', textAlign: language === 'ar' ? 'right' : 'left' }}
                                 formatter={(val: number) => formatCurrency(val)} 
                             />
-                            <Legend verticalAlign="top" align="center" wrapperStyle={{paddingBottom: '30px', fontWeight: 700}} />
-                            <Bar dataKey="exp" name={t('lbl_total_expenses')} fill="url(#expenseGradient)" radius={[8, 8, 0, 0]} barSize={40}>
+                            <Legend verticalAlign="top" align="center" wrapperStyle={{paddingBottom: '20px', fontSize: '10px', fontWeight: 700}} />
+                            <Bar dataKey="exp" name={t('lbl_total_expenses')} fill="url(#expenseGradient)" radius={[6, 6, 0, 0]} barSize={window.innerWidth < 768 ? 15 : 40}>
                                 <LabelList 
                                     dataKey="exp" 
                                     position="top" 
                                     formatter={(val: number) => Math.round(val / 1000) + 'k'} 
-                                    style={{ fontSize: 10, fontWeight: 800, fill: isDark ? '#fb7185' : '#e11d48' }}
+                                    style={{ fontSize: 8, fontWeight: 800, fill: isDark ? '#fb7185' : '#e11d48' }}
                                 />
                             </Bar>
-                            <Bar dataKey="rev" name={t('th_total_revenue')} fill="url(#revenueGradient)" radius={[8, 8, 0, 0]} barSize={40}>
+                            <Bar dataKey="rev" name={t('th_total_revenue')} fill="url(#revenueGradient)" radius={[6, 6, 0, 0]} barSize={window.innerWidth < 768 ? 15 : 40}>
                                 <LabelList 
                                     dataKey="rev" 
                                     position="top" 
                                     formatter={(val: number) => Math.round(val / 1000) + 'k'} 
-                                    style={{ fontSize: 10, fontWeight: 800, fill: isDark ? '#34d399' : '#059669' }}
+                                    style={{ fontSize: 8, fontWeight: 800, fill: isDark ? '#34d399' : '#059669' }}
                                 />
                             </Bar>
                         </BarChart>
@@ -362,35 +364,35 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
             </div>
 
             {/* Advanced Consolidated Financial Table */}
-            <div className="overflow-x-auto rounded-[3rem] border border-slate-200 dark:border-slate-700 shadow-xl mb-12" ref={tableContainerRef}>
-                <table className="w-full text-[11px] text-center border-collapse bg-white dark:bg-slate-900 transition-colors">
+            <div className="overflow-x-auto rounded-3xl md:rounded-[3rem] border border-slate-200 dark:border-slate-700 shadow-xl mb-8 md:mb-12" ref={tableContainerRef}>
+                <table className="w-full text-[10px] md:text-[11px] text-center border-collapse bg-white dark:bg-slate-900 transition-colors">
                     <thead className="bg-slate-50 dark:bg-slate-800">
                         <tr>
-                            <th className={`p-5 border-b border-slate-200 dark:border-slate-700 text-slate-500 font-black uppercase ${language === 'ar' ? 'text-right pr-12' : 'text-left pl-12'}`}>{t('th_area')}</th>
-                            <th className="p-5 border-b border-slate-200 dark:border-slate-700 text-slate-500 font-black uppercase">{t('lbl_total_expenses')}</th>
-                            <th className="p-5 border-b border-slate-200 dark:border-slate-700 text-slate-500 font-black uppercase">{t('th_collected_revenue')}</th>
-                            <th className="p-5 border-b border-slate-200 dark:border-slate-700 text-slate-500 font-black uppercase">{t('th_net_profit')}</th>
-                            <th className="p-5 border-b border-slate-200 dark:border-slate-700 text-slate-500 font-black uppercase">{t('th_recovery_efficiency')} (%)</th>
+                            <th className={`p-3 md:p-5 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest ${language === 'ar' ? 'text-right pr-6 md:pr-12' : 'text-left pl-6 md:pl-12'}`}>{t('th_area')}</th>
+                            <th className="p-3 md:p-5 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">{t('lbl_total_expenses')}</th>
+                            <th className="p-3 md:p-5 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">{t('th_collected_revenue')}</th>
+                            <th className="p-3 md:p-5 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">{t('th_net_profit')}</th>
+                            <th className="p-3 md:p-5 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">{t('th_recovery_efficiency')} (%)</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {areaFinancials.map((area, idx) => (
-                            <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all duration-200 group">
-                                <td className={`p-5 font-black text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 ${language === 'ar' ? 'text-right pr-12' : 'text-left pl-12'}`}>{area.displayName}</td>
-                                <td className="p-5 text-rose-600 dark:text-rose-400 font-bold">{formatCurrency(area.exp)}</td>
-                                <td className="p-5 text-emerald-600 dark:text-emerald-400 font-bold">{formatCurrency(area.rev)}</td>
-                                <td className={`p-5 font-black ${area.balance >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
+                            <tr key={idx} className="hover:bg-indigo-50/30 dark:hover:bg-slate-800/80 transition-all duration-200 group">
+                                <td className={`p-3 md:p-5 font-black text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 ${language === 'ar' ? 'text-right pr-6 md:pr-12' : 'text-left pl-6 md:pl-12'}`}>{area.displayName}</td>
+                                <td className="p-3 md:p-5 text-rose-600 dark:text-rose-400 font-bold">{formatCurrency(area.exp)}</td>
+                                <td className="p-3 md:p-5 text-emerald-600 dark:text-emerald-400 font-bold">{formatCurrency(area.rev)}</td>
+                                <td className={`p-3 md:p-5 font-black ${area.balance >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
                                     {formatCurrency(area.balance)}
                                 </td>
-                                <td className="p-5">
-                                    <div className="flex items-center justify-center gap-3">
-                                        <div className="w-20 bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden shadow-inner">
+                                <td className="p-3 md:p-5">
+                                    <div className="flex items-center justify-center gap-2 md:gap-3">
+                                        <div className="w-12 md:w-20 bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden shadow-inner">
                                             <div 
                                                 className={`h-full transition-all duration-1000 ${area.recovery >= 100 ? 'bg-emerald-500' : area.recovery > 50 ? 'bg-amber-500' : 'bg-rose-500'}`}
                                                 style={{ width: `${Math.min(area.recovery, 100)}%` }}
                                             ></div>
                                         </div>
-                                        <span className="font-black w-10 text-slate-700 dark:text-slate-300">{formatNumber(area.recovery, 0)}%</span>
+                                        <span className="font-black w-8 md:w-10 text-slate-700 dark:text-slate-300">{formatNumber(area.recovery, 0)}%</span>
                                     </div>
                                 </td>
                             </tr>
@@ -398,43 +400,43 @@ const FinancialManagementSection: React.FC<FinancialManagementSectionProps> = ({
                     </tbody>
                     <tfoot className="bg-slate-900 dark:bg-black font-black text-white border-t-4 border-indigo-500">
                         <tr>
-                            <td className={`p-6 uppercase tracking-widest ${language === 'ar' ? 'text-right pr-12' : 'text-left pl-12'}`}>{t('footer_total_financials')} {selectedYear}</td>
-                            <td className="p-6 text-rose-300">{formatCurrency(financialStats.grandTotalExpenses)}</td>
-                            <td className="p-6 text-emerald-300">{formatCurrency(financialStats.totalRevenue)}</td>
-                            <td className="p-6 text-indigo-200">{formatCurrency(financialStats.totalRevenue - financialStats.grandTotalExpenses)}</td>
-                            <td className="p-6 text-amber-300">{formatNumber(financialStats.costRecovery, 1)}%</td>
+                            <td className={`p-4 md:p-6 uppercase tracking-widest ${language === 'ar' ? 'text-right pr-6 md:pr-12' : 'text-left pl-6 md:pl-12'}`}>{t('footer_total_financials')} {selectedYear}</td>
+                            <td className="p-4 md:p-6 text-rose-300">{formatCurrency(financialStats.grandTotalExpenses)}</td>
+                            <td className="p-4 md:p-6 text-emerald-300">{formatCurrency(financialStats.totalRevenue)}</td>
+                            <td className="p-4 md:p-6 text-indigo-200">{formatCurrency(financialStats.totalRevenue - financialStats.grandTotalExpenses)}</td>
+                            <td className="p-4 md:p-6 text-amber-300">{formatNumber(financialStats.costRecovery, 1)}%</td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
 
             {/* Non-Operational Costs Integration (Additional Costs) */}
-            <div className="bg-slate-950 p-12 rounded-[4rem] text-white relative overflow-hidden shadow-2xl">
+            <div className="bg-slate-950 p-6 md:p-12 rounded-3xl md:rounded-[4rem] text-white relative overflow-hidden shadow-2xl">
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] -mr-64 -mt-64"></div>
                 <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[100px] -ml-48 -mb-48"></div>
                 
                 <div className="relative z-10">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
-                        <h4 className="text-2xl font-black flex items-center gap-4">
-                            <span className="bg-white/10 p-4 rounded-[1.5rem] shadow-xl border border-white/10">🧾</span>
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 md:mb-10 gap-4 md:gap-6">
+                        <h4 className="text-xl md:text-2xl font-black flex items-center gap-3 md:gap-4">
+                            <span className="bg-white/10 p-3 md:p-4 rounded-xl md:rounded-[1.5rem] shadow-xl border border-white/10">🧾</span>
                             {t('lbl_admin_non_op_costs')}
                         </h4>
                         <div className="flex items-center gap-4">
-                            <div className="px-8 py-3 bg-white/5 rounded-2xl text-xs font-black border border-white/10 backdrop-blur-sm">
-                                {t('lbl_total_additions')}: <span className="text-indigo-400 text-lg ml-2">{formatCurrency(financialStats.extrasTotal)}</span>
+                            <div className="px-4 md:px-8 py-2 md:py-3 bg-white/5 rounded-2xl text-[10px] sm:text-xs font-black border border-white/10 backdrop-blur-sm">
+                                {t('lbl_total_additions')}: <span className="text-indigo-400 text-base md:text-lg ml-2">{formatCurrency(financialStats.extrasTotal)}</span>
                             </div>
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                         {[
                             { label: t('th_insurance'), val: financialStats.extrasRaw.insurance, color: 'text-blue-400', bg: 'bg-blue-400/5' },
                             { label: t('th_clothing'), val: financialStats.extrasRaw.clothing, color: 'text-emerald-400', bg: 'bg-emerald-400/5' },
                             { label: t('th_cleaning'), val: financialStats.extrasRaw.cleaning, color: 'text-amber-400', bg: 'bg-amber-400/5' },
                             { label: t('th_containers'), val: financialStats.extrasRaw.containers, color: 'text-pink-400', bg: 'bg-pink-400/5' }
                         ].map((item, i) => (
-                            <div key={i} className={`${item.bg} p-8 rounded-[2.5rem] border border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105 group cursor-default`}>
-                                <div className={`${item.color} text-[10px] font-black uppercase mb-3 tracking-[0.2em] group-hover:translate-x-1 transition-transform ${language === 'ar' ? 'text-right' : 'text-left'}`}>{item.label}</div>
-                                <div className="text-3xl font-black">{formatCurrency(item.val)}</div>
+                            <div key={i} className={`${item.bg} p-4 sm:p-8 rounded-3xl sm:rounded-[2.5rem] border border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105 group cursor-default`}>
+                                <div className={`${item.color} text-[8px] sm:text-[10px] font-black uppercase mb-2 sm:mb-3 tracking-[0.1em] sm:tracking-[0.2em] group-hover:translate-x-1 transition-transform ${language === 'ar' ? 'text-right' : 'text-left'}`}>{item.label}</div>
+                                <div className="text-lg sm:text-3xl font-black">{formatCurrency(item.val)}</div>
                             </div>
                         ))}
                     </div>

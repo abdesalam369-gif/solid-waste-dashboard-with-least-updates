@@ -113,31 +113,31 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
     };
 
     return (
-        <div id="annual-summary-content" ref={containerRef} className="space-y-10 animate-in fade-in duration-500">
-            <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] shadow-sm dark:shadow-none border border-slate-100 dark:border-slate-800 flex justify-between items-center transition-colors">
-                <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">{t('sec_annual_summary')} - {selectedYear}</h2>
-                <div className="flex gap-4">
+        <div id="annual-summary-content" ref={containerRef} className="space-y-6 md:space-y-10 animate-in fade-in duration-500">
+            <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-3xl md:rounded-[40px] shadow-sm dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 transition-colors">
+                <h2 className="text-lg md:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight text-center md:text-right">{t('sec_annual_summary')} - {selectedYear}</h2>
+                <div className="flex flex-wrap gap-3 md:gap-4 w-full md:w-auto justify-center md:justify-end">
                     <ExportDropdown 
                         onExportPdf={() => window.print()} 
                         onExportExcel={handleExportExcel}
                         onExportCsv={handleExportExcel}
                         onExportImage={() => exportToImage(containerRef, `Summary_${selectedYear}`)}
                     />
-                    <div className="px-6 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-2xl font-bold border border-blue-100 dark:border-blue-900/50 hidden md:block">
+                    <div className="px-4 md:px-6 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-xl md:rounded-2xl font-bold border border-blue-100 dark:border-blue-900/50 hidden md:block text-sm md:text-base">
                         {t('primary_kpi')}
                     </div>
                 </div>
             </div>
 
             {groups.map((group, gIdx) => (
-                <div key={gIdx} className="space-y-6">
-                    <div className="flex items-center gap-4 px-2">
-                        <div className="h-8 w-1.5 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
-                        <h3 className="text-lg font-bold text-slate-600 dark:text-slate-400 tracking-tight">{group.title}</h3>
+                <div key={gIdx} className="space-y-4 md:space-y-6">
+                    <div className="flex items-center gap-3 md:gap-4 px-1 md:px-2">
+                        <div className="h-6 md:h-8 w-1 md:w-1.5 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
+                        <h3 className="text-base md:text-lg font-bold text-slate-600 dark:text-slate-400 tracking-tight">{group.title}</h3>
                         <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800"></div>
                     </div>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-6">
                         {group.cards.map((kpi, kIdx) => (
                             <KpiCard 
                                 key={`${gIdx}-${kIdx}`}

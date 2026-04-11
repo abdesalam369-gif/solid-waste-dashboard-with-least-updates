@@ -79,50 +79,52 @@ const ChartSection: React.FC<ChartSectionProps> = ({ data, comparisonData, isLoa
 
     return (
         <CollapsibleSection title={t('sec_time_series')}>
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6 text-sm">
-                <div className="flex gap-4">
-                    <div>
-                        <label className="ml-2 font-semibold text-slate-700 dark:text-slate-300">{t('chart_grouping')}</label>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 text-sm">
+                <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                    <div className="w-full sm:w-auto flex items-center gap-2">
+                        <label className="font-black text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-widest">{t('chart_grouping')}</label>
                         <select value={groupBy} onChange={e => setGroupBy(e.target.value as 'month' | 'day')}
-                            className="p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                            className="p-2.5 border-2 border-indigo-50 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all w-full sm:w-auto">
                             <option value="month">{t('chart_monthly')}</option>
                             <option value="day">{t('chart_daily')}</option>
                         </select>
                     </div>
-                    <div>
-                        <label className="ml-2 font-semibold text-slate-700 dark:text-slate-300">{t('chart_value')}</label>
+                    <div className="w-full sm:w-auto flex items-center gap-2">
+                        <label className="font-black text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-widest">{t('chart_value')}</label>
                         <select value={metric} onChange={e => setMetric(e.target.value as 'trips' | 'tons')}
-                            className="p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                            className="p-2.5 border-2 border-indigo-50 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all w-full sm:w-auto">
                             <option value="trips">{t('chart_trips')}</option>
                             <option value="tons">{t('chart_tons')}</option>
                         </select>
                     </div>
                 </div>
-                <ExportDropdown 
-                    onExportPdf={handlePrint}
-                    onExportExcel={handleExportExcel}
-                    onExportCsv={handleExportExcel}
-                    onExportImage={() => exportToImage(chartRef, `Chart_${selectedYear}`)}
-                />
+                <div className="w-full sm:w-auto flex justify-end">
+                    <ExportDropdown 
+                        onExportPdf={handlePrint}
+                        onExportExcel={handleExportExcel}
+                        onExportCsv={handleExportExcel}
+                        onExportImage={() => exportToImage(chartRef, `Chart_${selectedYear}`)}
+                    />
+                </div>
             </div>
-            <div className="h-96 w-full relative" ref={chartRef}>
+            <div className="h-96 w-full relative bg-white dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-sm" ref={chartRef}>
                  {isLoading && (
-                    <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
-                        <div className="w-12 h-12 border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-[2rem]">
+                        <div className="w-12 h-12 border-4 border-slate-200 dark:border-slate-700 border-t-indigo-600 rounded-full animate-spin"></div>
                     </div>
                 )}
-                <ResponsiveContainer>
-                    <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                        <XAxis dataKey="name" tick={{ fill: axisColor }} stroke={gridColor} />
-                        <YAxis tick={{ fill: axisColor }} stroke={gridColor} />
+                <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
+                        <XAxis dataKey="name" tick={{ fill: axisColor, fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fill: axisColor, fontSize: 11 }} axisLine={false} tickLine={false} />
                         <Tooltip 
-                            contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderColor: isDark ? '#334155' : '#e2e8f0', color: isDark ? '#f1f5f9' : '#1e293b' }}
+                            contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', color: isDark ? '#f1f5f9' : '#1e293b' }}
                         />
-                        <Legend wrapperStyle={{ color: axisColor }} />
-                        <Line type="monotone" dataKey="current" name={`${selectedYear}`} stroke="#2563eb" strokeWidth={3} />
+                        <Legend wrapperStyle={{ color: axisColor, fontWeight: 700, fontSize: '11px' }} />
+                        <Line type="monotone" dataKey="current" name={`${selectedYear}`} stroke="#4f46e5" strokeWidth={4} dot={{r: 4, strokeWidth: 2}} activeDot={{r: 6}} />
                         {comparisonYear && (
-                            <Line type="monotone" dataKey="comparison" name={`${comparisonYear}`} stroke="#94a3b8" strokeWidth={2} strokeDasharray="5 5" />
+                            <Line type="monotone" dataKey="comparison" name={`${comparisonYear}`} stroke="#94a3b8" strokeWidth={3} strokeDasharray="5 5" dot={false} />
                         )}
                     </LineChart>
                 </ResponsiveContainer>

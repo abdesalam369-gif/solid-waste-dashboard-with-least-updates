@@ -181,22 +181,22 @@ const RevenueAnalysisSection: React.FC<RevenueAnalysisSectionProps> = ({
                 </div>
             </div>
 
-            <div className="overflow-x-auto rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm mb-10" ref={tableContainerRef}>
-                <table className="w-full text-sm text-center border-collapse bg-white dark:bg-slate-900 transition-colors">
+            <div className="overflow-x-auto rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm mb-10" ref={tableContainerRef}>
+                <table className="w-full text-[11px] text-center border-collapse bg-white dark:bg-slate-900 transition-colors">
                     <thead className="bg-slate-50 dark:bg-slate-800">
                         <tr>
-                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase text-right pr-10">{t('th_area')}</th>
-                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase">{t('th_hh_fees')}</th>
-                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase">{t('th_commercial_fees')}</th>
-                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase">{t('th_recycling_revenue')}</th>
-                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase">{t('th_total_revenue')}</th>
+                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest text-right pr-10">{t('th_area')}</th>
+                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">{t('th_hh_fees')}</th>
+                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">{t('th_commercial_fees')}</th>
+                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">{t('th_recycling_revenue')}</th>
+                            <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">{t('th_total_revenue')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {revenues.filter(r => r.year === selectedYear).map((rev, idx) => {
                             const areaTotal = rev.hhFees + rev.commercialFees + rev.recyclingRevenue;
                             return (
-                                <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                <tr key={idx} className="hover:bg-indigo-50/30 dark:hover:bg-slate-800/50 transition-colors">
                                     <td className="p-4 font-bold text-slate-800 dark:text-slate-200 text-right pr-10">{areaMapping[rev.area || ''] || rev.area || t('area_undefined')}</td>
                                     <td className="p-4 text-slate-600 dark:text-slate-400">{formatCurrency(rev.hhFees)}</td>
                                     <td className="p-4 text-slate-600 dark:text-slate-400">{formatCurrency(rev.commercialFees)}</td>

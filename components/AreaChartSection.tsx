@@ -58,13 +58,13 @@ const AreaChartSection: React.FC<AreaChartSectionProps> = ({ data, isLoading, fi
                     onExportImage={() => exportToImage(chartRef, "Waste_Distribution_Image")}
                 />
             </div>
-             <div className="h-96 w-full relative" ref={chartRef}>
+             <div className="h-96 w-full relative bg-white dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-sm" ref={chartRef}>
                  {isLoading && (
-                    <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
-                        <div className="w-12 h-12 border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-[2rem]">
+                        <div className="w-12 h-12 border-4 border-slate-200 dark:border-slate-700 border-t-indigo-600 rounded-full animate-spin"></div>
                     </div>
                 )}
-                <ResponsiveContainer>
+                <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie 
                             data={data} 
@@ -73,6 +73,8 @@ const AreaChartSection: React.FC<AreaChartSectionProps> = ({ data, isLoading, fi
                             labelLine={false} 
                             label={renderCustomizedLabel}
                             outerRadius={140} 
+                            innerRadius={60}
+                            paddingAngle={2}
                             dataKey="value" 
                             nameKey="name"
                             stroke="none"
@@ -82,12 +84,13 @@ const AreaChartSection: React.FC<AreaChartSectionProps> = ({ data, isLoading, fi
                         <Tooltip 
                             contentStyle={{ 
                                 backgroundColor: isDark ? '#1e293b' : '#fff', 
-                                borderColor: isDark ? '#334155' : '#e2e8f0',
-                                borderRadius: '12px',
+                                border: 'none',
+                                borderRadius: '16px',
+                                boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
                                 color: isDark ? '#f1f5f9' : '#1e293b'
                             }}
                         />
-                        <Legend wrapperStyle={{ color: isDark ? '#94a3b8' : '#64748b', paddingTop: '20px' }} />
+                        <Legend wrapperStyle={{ color: isDark ? '#94a3b8' : '#64748b', paddingTop: '20px', fontWeight: 700, fontSize: '11px' }} />
                     </PieChart>
                 </ResponsiveContainer>
              </div>

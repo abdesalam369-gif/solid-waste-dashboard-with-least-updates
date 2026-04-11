@@ -108,13 +108,13 @@ const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers, 
 
     return (
         <CollapsibleSection title={`${t('sec_salary_analysis')} (${monthsCount} ${t('months')})`}>
-            <div className="flex flex-wrap gap-4 mb-8 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 items-end shadow-inner text-right transition-colors">
-                <div className="flex flex-col gap-1.5 text-right">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-4 mb-8 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 items-start sm:items-end shadow-inner text-right transition-colors">
+                <div className="flex flex-col gap-1.5 text-right w-full sm:w-auto">
                     <label className="text-xs font-black text-slate-500 dark:text-slate-400 mr-1">{t('chart_grouping')}</label>
                     <select 
                         value={analysisMode} 
                         onChange={(e) => setAnalysisMode(e.target.value as any)}
-                        className="bg-white dark:bg-slate-800 border-2 border-indigo-100 dark:border-slate-700 rounded-2xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 min-w-[220px] transition-all text-slate-800 dark:text-slate-100"
+                        className="bg-white dark:bg-slate-800 border-2 border-indigo-100 dark:border-slate-700 rounded-2xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 min-w-[220px] w-full sm:w-auto transition-all text-slate-800 dark:text-slate-100"
                     >
                         <option value="all">{t('all_employees')}</option>
                         <option value="job">{t('by_job')}</option>
@@ -122,18 +122,18 @@ const SalaryAnalysisSection: React.FC<SalaryAnalysisSectionProps> = ({ workers, 
                     </select>
                 </div>
 
-                <div className="flex flex-col gap-1.5 text-right">
+                <div className="flex flex-col gap-1.5 text-right w-full sm:w-auto">
                     <label className="text-xs font-black text-slate-500 dark:text-slate-400 mr-1">{t('search_placeholder')}</label>
                     <input 
                         type="text"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         placeholder={t('search_placeholder')}
-                        className="bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 min-w-[300px] transition-all text-right text-slate-800 dark:text-slate-100"
+                        className="bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 min-w-[300px] w-full sm:w-auto transition-all text-right text-slate-800 dark:text-slate-100"
                     />
                 </div>
 
-                <div className="flex flex-1 justify-end">
+                <div className="flex flex-1 justify-end w-full sm:w-auto mt-4 sm:mt-0">
                     <ExportDropdown 
                         onExportPdf={handlePrint}
                         onExportExcel={handleExportExcel}

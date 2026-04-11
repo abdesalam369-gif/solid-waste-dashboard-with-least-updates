@@ -69,35 +69,42 @@ const UtilizationSection: React.FC<UtilizationSectionProps> = ({ tableData, filt
 
     return (
         <CollapsibleSection title={t('sec_utilization')}>
-            <div className="flex items-center justify-between gap-4 mb-6 text-sm">
-                <div>
-                    <label htmlFor="utilizationSort" className="ml-2 font-semibold text-slate-700 dark:text-slate-300">{t('chart_grouping')}</label>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 text-sm">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <label htmlFor="utilizationSort" className="font-black text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-widest">{t('chart_grouping')}</label>
                     <select id="utilizationSort" value={sortBy} onChange={e => setSortBy(e.target.value as keyof UtilizationData)}
-                        className="p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                        className="p-2.5 border-2 border-indigo-50 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all w-full sm:w-auto">
                         {headers.map(h => <option key={h.key} value={h.key}>{h.label}</option>)}
                     </select>
                 </div>
-                <ExportDropdown 
-                    onExportPdf={handlePrint}
-                    onExportExcel={handleExportExcel}
-                    onExportCsv={handleExportExcel}
-                    onExportImage={() => exportToImage(tableContainerRef, `Utilization_Export`)}
-                />
+                <div className="w-full sm:w-auto flex justify-end">
+                    <ExportDropdown 
+                        onExportPdf={handlePrint}
+                        onExportExcel={handleExportExcel}
+                        onExportCsv={handleExportExcel}
+                        onExportImage={() => exportToImage(tableContainerRef, `Utilization_Export`)}
+                    />
+                </div>
             </div>
-            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700" ref={tableContainerRef}>
-                <table id="utilization-table" className="w-full text-sm text-center border-collapse bg-white dark:bg-slate-900">
-                    <thead className="bg-slate-100 dark:bg-slate-800">
+            <div className="overflow-x-auto rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm" ref={tableContainerRef}>
+                <table id="utilization-table" className="w-full text-[11px] text-center border-collapse bg-white dark:bg-slate-900">
+                    <thead className="bg-slate-50 dark:bg-slate-800">
                         <tr>
-                            {headers.map(h => <th key={h.key} className="p-2 border-b border-slate-200 dark:border-slate-700 font-semibold text-slate-600 dark:text-slate-300">{h.label}</th>)}
+                            {headers.map(h => <th key={h.key} className="p-4 border-b border-slate-200 dark:border-slate-700 font-black text-slate-500 dark:text-slate-400 uppercase tracking-tighter">{h.label}</th>)}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {sortedData.map(row => (
-                            <tr key={row.veh} className={`hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${row.utilization < 50 ? 'bg-red-50 dark:bg-red-900/20' : ''}`}>
-                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200">{row.veh}</td>
-                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">{formatNumber(row.cap_ton, 1)}</td>
-                                <td className="p-2 border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">{formatNumber(row.avgTonsPerTrip, 1)}</td>
-                                <td className={`p-2 border-b border-slate-200 dark:border-slate-700 font-bold ${row.utilization < 50 ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-100'}`}>{formatNumber(row.utilization, 1)}%</td>
+                            <tr key={row.veh} className={`hover:bg-indigo-50/30 dark:hover:bg-slate-800/50 transition-colors ${row.utilization < 50 ? 'bg-rose-50/40 dark:bg-rose-900/10' : ''}`}>
+                                <td className="p-3 font-black text-slate-800 dark:text-slate-200">{row.veh}</td>
+                                <td className="p-3 text-slate-700 dark:text-slate-300">{formatNumber(row.cap_ton, 1)}</td>
+                                <td className="p-3 text-indigo-600 dark:text-indigo-400 font-bold">{formatNumber(row.avgTonsPerTrip, 1)}</td>
+                                <td className={`p-3 font-black ${row.utilization < 50 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                                    <div className="flex items-center justify-center gap-1">
+                                        {formatNumber(row.utilization, 1)}%
+                                        {row.utilization < 50 && <span title="Underutilized">⚠️</span>}
+                                    </div>
+                                </td>
                             </tr>
                         ))}
                     </tbody>

@@ -67,23 +67,23 @@ const AdditionalCostsSection: React.FC<AdditionalCostsSectionProps> = ({ costs, 
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
-                <div className="overflow-x-auto rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm" ref={tableContainerRef}>
-                    <table className="w-full text-sm text-center border-collapse bg-white dark:bg-slate-900">
+                <div className="overflow-x-auto rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm" ref={tableContainerRef}>
+                    <table className="w-full text-[11px] text-center border-collapse bg-white dark:bg-slate-900">
                         <thead className="bg-slate-50 dark:bg-slate-800">
                             <tr>
-                                <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase">{t('year')}</th>
-                                <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase">{t('th_insurance')}</th>
-                                <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase">{t('th_clothing')}</th>
-                                <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase">{t('th_cleaning')}</th>
-                                <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase">{t('th_containers')}</th>
-                                <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase">{t('th_total_extra')}</th>
+                                <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">{t('year')}</th>
+                                <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">{t('th_insurance')}</th>
+                                <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">{t('th_clothing')}</th>
+                                <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">{t('th_cleaning')}</th>
+                                <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">{t('th_containers')}</th>
+                                <th className="p-4 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">{t('th_total_extra')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {sortedCosts.map((item, idx) => {
                                 const total = item.insurance + item.clothing + item.cleaning + item.containers;
                                 return (
-                                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                    <tr key={idx} className="hover:bg-indigo-50/30 dark:hover:bg-slate-800/50 transition-colors">
                                         <td className="p-4 font-bold text-slate-800 dark:text-slate-200">{item.year}</td>
                                         <td className="p-4 text-slate-600 dark:text-slate-400">{formatNumber(item.insurance)}</td>
                                         <td className="p-4 text-slate-600 dark:text-slate-400">{formatNumber(item.clothing)}</td>
@@ -99,16 +99,16 @@ const AdditionalCostsSection: React.FC<AdditionalCostsSectionProps> = ({ costs, 
                     </table>
                 </div>
 
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-inner">
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-inner">
                     <h4 className="text-sm font-black text-slate-700 dark:text-slate-300 mb-6 text-right">توزيع التكاليف الإضافية (لأحدث سنة)</h4>
                     <div className="h-64 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={chartData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
-                                <XAxis dataKey="name" tick={{fontSize: 10, fill: axisColor}} />
-                                <YAxis tick={{fontSize: 10, fill: axisColor}} />
+                                <XAxis dataKey="name" tick={{fontSize: 11, fontWeight: 700, fill: axisColor}} axisLine={false} tickLine={false} />
+                                <YAxis tick={{fontSize: 11, fill: axisColor}} axisLine={false} tickLine={false} />
                                 <Tooltip 
-                                    contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderRadius: '12px', border: 'none', color: isDark ? '#fff' : '#000' }}
+                                    contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', color: isDark ? '#fff' : '#000' }}
                                 />
                                 <Bar dataKey="value" name={t('th_budget')} fill="#4f46e5" radius={[6, 6, 0, 0]} barSize={40}>
                                     {chartData.map((entry, index) => (

@@ -18,6 +18,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, setI
         { id: 'charts', label: t('menu_charts'), icon: '📈' },
         { id: 'route_planning', label: t('menu_route_planning'), icon: '🛣️' },
         { id: 'financial', label: t('menu_financial'), icon: '💰' },
+        { id: 'maint_analysis', label: t('sec_maint_analysis'), icon: '🛠️' },
+        { id: 'op_perf', label: t('sec_op_perf_analysis'), icon: '📈' },
         { id: 'intelligence', label: t('menu_intelligence'), icon: '🧠' },
         { id: 'population', label: t('menu_population'), icon: '👥' },
         { id: 'salaries', label: t('menu_salaries'), icon: '💵' },
@@ -29,43 +31,54 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, setI
     const isRtl = language === 'ar';
 
     return (
-        <aside 
-            className={`fixed ${isRtl ? 'right-0' : 'left-0'} top-0 h-screen bg-white dark:bg-slate-900 shadow-2xl z-40 transition-all duration-300 border-${isRtl ? 'l' : 'r'} border-slate-100 dark:border-slate-800 flex flex-col ${isOpen ? 'w-72' : 'w-20'}`}
-            dir={isRtl ? 'rtl' : 'ltr'}
-        >
-            <div className="p-6 flex items-center justify-between border-b border-slate-50 dark:border-slate-800">
-                {isOpen && (
-                    <div className="flex items-center gap-2 overflow-hidden">
-                        <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20 transition-transform hover:rotate-3">
+        <>
+            {/* Mobile Overlay */}
+            {isOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/50 z-30 md:hidden"
+                    onClick={() => setIsOpen(false)}
+                />
+            )}
+            <aside 
+                className={`fixed ${isRtl ? 'right-0' : 'left-0'} top-0 h-screen bg-white dark:bg-slate-900 shadow-2xl z-40 transition-all duration-300 border-${isRtl ? 'l' : 'r'} border-slate-100 dark:border-slate-800 flex flex-col ${isOpen ? 'translate-x-0 w-[80vw] sm:w-72' : `${isRtl ? 'translate-x-full' : '-translate-x-full'} md:translate-x-0 w-[80vw] sm:w-72 md:w-20`}`}
+                dir={isRtl ? 'rtl' : 'ltr'}
+            >
+                <div className="p-6 flex items-center justify-between border-b border-slate-50 dark:border-slate-800">
+                    <div className={`flex items-center gap-2 overflow-hidden ${!isOpen ? 'md:hidden' : ''}`}>
+                        <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20 transition-transform hover:rotate-3 shrink-0">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 7v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V7M4 7c0-1.1.9-2 2-2h12c1.1 0 2 .9 2 2M4 7l8 5 8-5M12 12l8-5M12 12l-8-5m4 9h8m-8 4h4"></path>
                             </svg>
                         </div>
-                        <span className="font-black text-slate-800 dark:text-slate-100 whitespace-nowrap tracking-tight">{t('data_portal')}</span>
+                        <span className="font-black text-slate-800 dark:text-slate-100 whitespace-nowrap tracking-tight text-sm sm:text-base">{t('data_portal')}</span>
                     </div>
-                )}
-                {!isOpen && (
-                    <div className="flex items-center justify-center w-full">
-                         <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 7v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V7M4 7c0-1.1.9-2 2-2h12c1.1 0 2 .9 2 2M4 7l8 5 8-5M12 12l8-5M12 12l-8-5m4 9h8m-8 4h4"></path>
-                            </svg>
+                    {!isOpen && (
+                        <div className="hidden md:flex items-center justify-center w-full">
+                             <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20 shrink-0">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 7v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V7M4 7c0-1.1.9-2 2-2h12c1.1 0 2 .9 2 2M4 7l8 5 8-5M12 12l8-5M12 12l-8-5m4 9h8m-8 4h4"></path>
+                                </svg>
+                            </div>
                         </div>
-                    </div>
-                )}
-                <button 
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg text-slate-400 transition-colors absolute top-6 right-2 md:relative md:top-auto md:right-auto"
-                >
-                    {isOpen ? (isRtl ? '◀' : '◀') : (isRtl ? '▶' : '▶')}
-                </button>
-            </div>
+                    )}
+                    <button 
+                        onClick={() => setIsOpen(!isOpen)}
+                        className={`p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg text-slate-400 transition-colors absolute top-5 ${isRtl ? 'left-2' : 'right-2'} md:relative md:top-auto md:left-auto md:right-auto ${!isOpen ? 'hidden md:block' : 'block'}`}
+                    >
+                        {isOpen ? (isRtl ? '▶' : '◀') : (isRtl ? '◀' : '▶')}
+                    </button>
+                </div>
 
             <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-2 custom-scrollbar">
                 {menuItems.map((item) => (
                     <button
                         key={item.id}
-                        onClick={() => setActiveTab(item.id)}
+                        onClick={() => {
+                            setActiveTab(item.id);
+                            if (window.innerWidth < 768) {
+                                setIsOpen(false);
+                            }
+                        }}
                         className={`tab-button w-full flex items-center gap-4 p-3.5 rounded-2xl transition-all duration-300 group relative border-2 ${
                             activeTab === item.id 
                             ? 'bg-blue-600 dark:bg-blue-700 text-white shadow-xl shadow-blue-600/20 border-blue-500 scale-[1.02]' 
@@ -104,6 +117,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, setI
                 )}
             </div>
         </aside>
+        </>
     );
 };
 
