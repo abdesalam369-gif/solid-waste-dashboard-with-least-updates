@@ -130,7 +130,7 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
             </div>
 
             {groups.map((group, gIdx) => (
-                <div key={gIdx} className="space-y-4 md:space-y-6">
+                <div key={gIdx} className="kpi-section space-y-4 md:space-y-6">
                     <div className="flex items-center gap-3 md:gap-4 px-1 md:px-2">
                         <div className="h-6 md:h-8 w-1 md:w-1.5 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
                         <h3 className="text-base md:text-lg font-bold text-slate-600 dark:text-slate-400 tracking-tight">{group.title}</h3>

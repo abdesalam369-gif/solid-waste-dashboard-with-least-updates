@@ -360,43 +360,46 @@ const OperationalPerformanceSection: React.FC<OperationalPerformanceSectionProps
 
     return (
         <CollapsibleSection title={t('sec_op_perf_analysis')}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-                <KpiCard 
-                    value={formatNumber(kpis.totalDist) + ' ' + t('unit_km')} 
-                    label={t('kpi_total_distance')} 
-                    icon="🛣️" 
-                    color="text-blue-600" 
-                />
-                <KpiCard 
-                    value={formatNumber(kpis.avgMaintPerKm, 3) + ' ' + t('unit_jd_km')} 
-                    label={t('kpi_maint_cost_km')} 
-                    icon="🔧" 
-                    color="text-orange-600" 
-                />
-                <KpiCard 
-                    value={formatNumber(kpis.avgFuelPerKm, 3) + ' ' + t('unit_liter_km')} 
-                    label={t('kpi_fuel_cons_km')} 
-                    icon="⛽" 
-                    color="text-green-600" 
-                />
-                <KpiCard 
-                    value={formatNumber(kpis.avgCostPerKm, 3) + ' ' + t('unit_jd_km')} 
-                    label={t('kpi_op_cost_km')} 
-                    icon="💰" 
-                    color="text-red-600" 
-                />
-                <KpiCard 
-                    value={kpis.mostEfficient} 
-                    label={t('kpi_most_efficient_veh')} 
-                    icon="✅" 
-                    color="text-emerald-600" 
-                />
-                <KpiCard 
-                    value={kpis.mostConsuming} 
-                    label={t('kpi_most_consuming_veh')} 
-                    icon="⚠️" 
-                    color="text-rose-600" 
-                />
+            <div id="op-perf-kpi-grid" className="kpi-section">
+                <h3 className="hidden">{t('sec_op_perf_analysis')}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+                    <KpiCard 
+                        value={formatNumber(kpis.totalDist) + ' ' + t('unit_km')} 
+                        label={t('kpi_total_distance')} 
+                        icon="🛣️" 
+                        color="text-blue-600" 
+                    />
+                    <KpiCard 
+                        value={formatNumber(kpis.avgMaintPerKm, 3) + ' ' + t('unit_jd_km')} 
+                        label={t('kpi_maint_cost_km')} 
+                        icon="🔧" 
+                        color="text-orange-600" 
+                    />
+                    <KpiCard 
+                        value={formatNumber(kpis.avgFuelPerKm, 3) + ' ' + t('unit_liter_km')} 
+                        label={t('kpi_fuel_cons_km')} 
+                        icon="⛽" 
+                        color="text-green-600" 
+                    />
+                    <KpiCard 
+                        value={formatNumber(kpis.avgCostPerKm, 3) + ' ' + t('unit_jd_km')} 
+                        label={t('kpi_op_cost_km')} 
+                        icon="💰" 
+                        color="text-red-600" 
+                    />
+                    <KpiCard 
+                        value={kpis.mostEfficient} 
+                        label={t('kpi_most_efficient_veh')} 
+                        icon="✅" 
+                        color="text-emerald-600" 
+                    />
+                    <KpiCard 
+                        value={kpis.mostConsuming} 
+                        label={t('kpi_most_consuming_veh')} 
+                        icon="⚠️" 
+                        color="text-rose-600" 
+                    />
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">

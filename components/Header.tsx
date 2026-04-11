@@ -106,6 +106,12 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
         } else if (activeTab === 'kpi') {
             targetId = 'kpi-grid';
             reportTitle = t('menu_kpi');
+        } else if (activeTab === 'op_perf') {
+            targetId = 'op-perf-kpi-grid';
+            reportTitle = t('sec_op_perf_analysis');
+        } else if (activeTab === 'maint_analysis') {
+            targetId = 'maint-kpi-grid';
+            reportTitle = t('sec_maint_analysis');
         } else {
             window.print();
             return;
@@ -126,7 +132,7 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
             });
 
             // الحصول على جميع الأقسام (المجموعات)
-            const sectionWrappers = container.querySelectorAll('.space-y-6');
+            const sectionWrappers = container.querySelectorAll('.kpi-section');
             let fullHtml = '';
 
             sectionWrappers.forEach(section => {
@@ -140,22 +146,22 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                 let sectionCardsHtml = '';
                 cardNodes.forEach(card => {
                     // استخراج الأيقونة
-                    const iconSpan = card.querySelector('.text-4xl');
+                    const iconSpan = card.querySelector('.kpi-icon');
                     const icon = iconSpan?.textContent || '';
 
-                    // استخراج القيمة (الرقم) - نستخدم كلاس text-3xl المحدث
-                    const valueNode = card.querySelector('.text-3xl');
+                    // استخراج القيمة (الرقم)
+                    const valueNode = card.querySelector('.kpi-value');
                     const value = valueNode?.textContent || '';
                     
                     // محاولة استخراج لون النص لتطبيقه في الطباعة
                     const colorClass = Array.from(valueNode?.classList || []).find(c => c.startsWith('text-')) || 'text-slate-800';
 
                     // استخراج العنوان
-                    const labelNode = card.querySelector('.text-\\[11px\\]');
+                    const labelNode = card.querySelector('.kpi-label');
                     const label = labelNode?.textContent || '';
 
                     // استخراج قيم المقارنة إن وجدت
-                    const compSpan = card.querySelector('.tracking-tight');
+                    const compSpan = card.querySelector('.kpi-comparison');
                     const compValue = compSpan?.textContent || '';
 
                     sectionCardsHtml += `
@@ -163,7 +169,7 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                             <div class="kpi-icon-print">${icon}</div>
                             <div class="kpi-value-print ${colorClass}">${value}</div>
                             <div class="kpi-label-print">${label}</div>
-                            ${compValue ? `<div class="kpi-comparison-print">${t('comparison')}: ${compValue}</div>` : ''}
+                            ${compValue ? `<div class="kpi-comparison-print">${compValue}</div>` : ''}
                         </div>
                     `;
                 });

@@ -129,31 +129,34 @@ const MaintenanceAnalysisSection: React.FC<MaintenanceAnalysisSectionProps> = ({
 
     return (
         <CollapsibleSection title={t('sec_maint_analysis')}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
-                <KpiCard 
-                    value={formatNumber(kpis.totalCost) + ' ' + t('unit_jd')} 
-                    label={t('kpi_total_maint_cost')} 
-                    icon="🔧" 
-                    color="text-red-600" 
-                />
-                <KpiCard 
-                    value={formatNumber(kpis.avgCostPerVehicle) + ' ' + t('unit_jd')} 
-                    label={t('kpi_avg_maint_veh')} 
-                    icon="📊" 
-                    color="text-orange-600" 
-                />
-                <KpiCard 
-                    value={kpis.topVehicle} 
-                    label={t('kpi_top_maint_veh')} 
-                    icon="🏆" 
-                    color="text-purple-600" 
-                />
-                <KpiCard 
-                    value={formatNumber(kpis.operationsCount)} 
-                    label={t('kpi_maint_ops_count')} 
-                    icon="🛠️" 
-                    color="text-blue-600" 
-                />
+            <div id="maint-kpi-grid" className="kpi-section">
+                <h3 className="hidden">{t('sec_maint_analysis')}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+                    <KpiCard 
+                        value={formatNumber(kpis.totalCost) + ' ' + t('unit_jd')} 
+                        label={t('kpi_total_maint_cost')} 
+                        icon="🔧" 
+                        color="text-red-600" 
+                    />
+                    <KpiCard 
+                        value={formatNumber(kpis.avgCostPerVehicle) + ' ' + t('unit_jd')} 
+                        label={t('kpi_avg_maint_veh')} 
+                        icon="📊" 
+                        color="text-orange-600" 
+                    />
+                    <KpiCard 
+                        value={kpis.topVehicle} 
+                        label={t('kpi_top_maint_veh')} 
+                        icon="🏆" 
+                        color="text-purple-600" 
+                    />
+                    <KpiCard 
+                        value={formatNumber(kpis.operationsCount)} 
+                        label={t('kpi_maint_ops_count')} 
+                        icon="🛠️" 
+                        color="text-blue-600" 
+                    />
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10 mb-8">

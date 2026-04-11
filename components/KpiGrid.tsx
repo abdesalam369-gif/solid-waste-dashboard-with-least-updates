@@ -292,7 +292,7 @@ const KpiGrid: React.FC<KpiGridProps> = ({
             </div>
 
             {sections.map((section, sIdx) => (
-                <div key={sIdx} className="space-y-4 md:space-y-6 bg-slate-50/40 dark:bg-slate-900/40 p-4 md:p-8 rounded-3xl md:rounded-[40px] border border-slate-100/50 dark:border-slate-800/50 shadow-sm transition-all duration-300">
+                <div key={sIdx} className="kpi-section space-y-4 md:space-y-6 bg-slate-50/40 dark:bg-slate-900/40 p-4 md:p-8 rounded-3xl md:rounded-[40px] border border-slate-100/50 dark:border-slate-800/50 shadow-sm transition-all duration-300">
                     <div className="flex items-center gap-3 md:gap-4 px-1 md:px-2">
                         <div className="h-8 md:h-10 w-1.5 md:w-2 bg-blue-600 rounded-full shadow-sm shadow-blue-200"></div>
                         <h3 className="text-lg md:text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
