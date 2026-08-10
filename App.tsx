@@ -417,6 +417,8 @@ const AppContent: React.FC = () => {
                             <MaintenanceAnalysisSection 
                                 maintRecords={maintRecords}
                                 selectedYear={selectedYear}
+                                comparisonYear={comparisonYear}
+                                onComparisonYearChange={handleComparisonYearChange}
                                 filters={filters}
                             />
                         )}
