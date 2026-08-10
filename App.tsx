@@ -18,6 +18,7 @@ import FinancialManagementSection from './components/FinancialManagementSection'
 import AnnualSummarySection from './components/AnnualSummarySection';
 import RoutePlanningSection from './components/RoutePlanningSection';
 import MaintenanceAnalysisSection from './components/MaintenanceAnalysisSection';
+import FuelAnalysisSection from './components/FuelAnalysisSection';
 import OperationalPerformanceSection from './components/OperationalPerformanceSection';
 import AiChat from './components/AiChat';
 import Sidebar from './components/Sidebar';
@@ -416,6 +417,17 @@ const AppContent: React.FC = () => {
                         {activeTab === 'maint_analysis' && (
                             <MaintenanceAnalysisSection 
                                 maintRecords={maintRecords}
+                                selectedYear={selectedYear}
+                                comparisonYear={comparisonYear}
+                                onComparisonYearChange={handleComparisonYearChange}
+                                filters={filters}
+                            />
+                        )}
+                        {activeTab === 'fuel_analysis' && (
+                            <FuelAnalysisSection
+                                fuelData={fuelData}
+                                fuelLitersData={fuelLitersData}
+                                vehicleData={filteredVehicleTableData}
                                 selectedYear={selectedYear}
                                 comparisonYear={comparisonYear}
                                 onComparisonYearChange={handleComparisonYearChange}
