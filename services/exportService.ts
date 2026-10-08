@@ -1,8 +1,26 @@
 
 import React from 'react';
+import { exportElementToPdf, printElementDirectly } from './pdfExportService';
 
 // Declare global from script tag
 declare var html2canvas: any;
+
+export const exportToPdf = async (
+    containerRef: React.RefObject<HTMLDivElement | null>,
+    fileName: string,
+    title?: string
+) => {
+    if (!containerRef.current) return;
+    try {
+        await exportElementToPdf(containerRef.current, {
+            fileName,
+            title,
+        });
+    } catch (err) {
+        console.error("Export to PDF failed, falling back to print:", err);
+        printElementDirectly(containerRef.current, title || fileName);
+    }
+};
 
 export const exportToExcel = (data: any[], fileName: string) => {
     const csvContent = "data:text/csv;charset=utf-8,\uFEFF" 

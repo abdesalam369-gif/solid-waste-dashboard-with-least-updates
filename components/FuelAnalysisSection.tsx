@@ -1,8 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { Fuel, VehicleTableData } from '../types';
 import { formatNumber } from '../services/dataService';
 import CollapsibleSection from './CollapsibleSection';
 import KpiCard from './KpiCard';
+import ExportDropdown from './ExportDropdown';
+import { exportToExcel, exportToImage, exportToPdf } from '../services/exportService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { MONTHS_ORDER } from '../constants';
@@ -328,8 +330,24 @@ const FuelAnalysisSection: React.FC<FuelAnalysisSectionProps> = ({
         return vehicleCostChartData.filter(d => d.cost > avgCost * 1.4);
     }, [vehicleCostChartData]);
 
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const handleExportPdf = () => {
+        exportToPdf(containerRef, `Fuel_Analysis_Report_${selectedYear}`, t('sec_fuel_analysis'));
+    };
+
+    const handleExportExcel = () => {
+        const data = vehicleCostChartData.map(v => ({
+            Vehicle: v.name,
+            FuelCost_JOD: v.cost,
+            FuelLiters_L: v.liters
+        }));
+        exportToExcel(data, `Fuel_Analysis_${selectedYear}`);
+    };
+
     return (
         <CollapsibleSection title={t('sec_fuel_analysis')}>
+            <div ref={containerRef} id="fuel-analysis-content">
             {/* Note callout banner about Liters comparison accuracy */}
             <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-2xl mb-6 flex items-center gap-3 text-emerald-800 dark:text-emerald-300 text-xs md:text-sm font-semibold">
                 <span className="text-xl">💡</span>
@@ -374,8 +392,15 @@ const FuelAnalysisSection: React.FC<FuelAnalysisSectionProps> = ({
                     </button>
                 </div>
 
-                {/* Year Comparison Control */}
-                <div className="flex items-center gap-3">
+                {/* Right tools: Export Dropdown + Year Comparison Control */}
+                <div className="flex flex-wrap items-center gap-3">
+                    <ExportDropdown 
+                        onExportPdf={handleExportPdf}
+                        onExportExcel={handleExportExcel}
+                        onExportCsv={handleExportExcel}
+                        onExportImage={() => exportToImage(containerRef, `Fuel_Analysis_${selectedYear}`)}
+                    />
+
                     <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-700/60 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300">
                         <span>📅 {selectedYear}</span>
                     </div>
@@ -827,6 +852,7 @@ const FuelAnalysisSection: React.FC<FuelAnalysisSectionProps> = ({
                         💡 {t('lbl_fuel_liters_advantage')}
                     </div>
                 </div>
+            </div>
             </div>
         </CollapsibleSection>
     );

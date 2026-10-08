@@ -22,6 +22,7 @@ import FuelAnalysisSection from './components/FuelAnalysisSection';
 import OperationalPerformanceSection from './components/OperationalPerformanceSection';
 import AiChat from './components/AiChat';
 import Sidebar from './components/Sidebar';
+import ManagementReportModal from './components/ManagementReportModal';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 
@@ -57,6 +58,20 @@ const AppContent: React.FC = () => {
     const [aiLoading, setAiLoading] = useState<boolean>(false);
     const [aiError, setAiError] = useState<string>('');
     
+    // Management PDF Report state
+    const [isManagementReportOpen, setIsManagementReportOpen] = useState(false);
+    const [managementReportScope, setManagementReportScope] = useState<'current_view' | 'specific_chart' | 'full_executive'>('full_executive');
+    const [managementReportChart, setManagementReportChart] = useState<string>('timeseries');
+
+    const handleOpenManagementReport = (
+        scope: 'current_view' | 'specific_chart' | 'full_executive' = 'full_executive',
+        chart: string = 'timeseries'
+    ) => {
+        setManagementReportScope(scope);
+        setManagementReportChart(chart);
+        setIsManagementReportOpen(true);
+    };
+
     const lineChartRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -154,7 +169,44 @@ const AppContent: React.FC = () => {
         return [...new Set(tripsData.map(r => r['رقم المركبة']).filter(Boolean))].sort();
     }, [tripsData]);
 
-    const getVehicleTableData = (trips: Trip[], year: string) => {
+    const getVehicleArea = useCallback((vehId: string, targetYear?: string): string => {
+        const cleanVeh = String(vehId || '').trim();
+        const cleanYear = String(targetYear || '').trim();
+        if (!cleanVeh) return '';
+
+        // 1. Exact match for vehicle and year
+        if (cleanYear) {
+            const exact = areasData.find(x => 
+                String(x['رقم المركبة'] || '').trim() === cleanVeh && 
+                String(x['السنة'] || '').trim() === cleanYear
+            );
+            if (exact && exact['المنطقة']) {
+                return String(exact['المنطقة']).trim();
+            }
+        }
+
+        // 2. Match vehicle with empty year (unspecified / universal)
+        const noYearMatch = areasData.find(x => 
+            String(x['رقم المركبة'] || '').trim() === cleanVeh && 
+            !String(x['السنة'] || '').trim()
+        );
+        if (noYearMatch && noYearMatch['المنطقة']) {
+            return String(noYearMatch['المنطقة']).trim();
+        }
+
+        // 3. Fallback to latest entry available for this vehicle
+        const matches = areasData.filter(x => 
+            String(x['رقم المركبة'] || '').trim() === cleanVeh &&
+            Boolean(String(x['المنطقة'] || '').trim())
+        );
+        if (matches.length > 0) {
+            return String(matches[matches.length - 1]['المنطقة'] || '').trim();
+        }
+
+        return '';
+    }, [areasData]);
+
+    const getVehicleTableData = useCallback((trips: Trip[], year: string) => {
         const vehGroups: { [key: string]: { trips: number; tons: number; drivers: Set<string> } } = {};
         
         trips.forEach(r => {
@@ -168,12 +220,13 @@ const AppContent: React.FC = () => {
 
         return Object.keys(vehGroups).map(v => {
             const { trips, tons, drivers } = vehGroups[v];
-            const vehRow = vehiclesData.find(x => x['رقم المركبة'] === v) || {};
-            const areaRow = areasData.find(x => x['رقم المركبة'] === v && (x['السنة'] === year || !x['السنة'])) || {};
-            const fuelRow = fuelData.find(x => x['رقم المركبة'] === v && x['السنة'] === year) || {};
-            const fuelLitersRow = fuelLitersData.find(x => x['رقم المركبة'] === v && x['السنة'] === year) || {};
-            const vehicleMaint = maintData.filter(x => x['رقم المركبة'] === v && x['السنة'] === year);
-            const distRow = distanceData.find(x => x['رقم المركبة'] === v && x['السنة'] === year);
+            const cleanVeh = v.trim();
+            const vehRow = vehiclesData.find(x => String(x['رقم المركبة'] || '').trim() === cleanVeh) || {};
+            const assignedArea = getVehicleArea(cleanVeh, year);
+            const fuelRow = fuelData.find(x => String(x['رقم المركبة'] || '').trim() === cleanVeh && String(x['السنة'] || '').trim() === year) || {};
+            const fuelLitersRow = fuelLitersData.find(x => String(x['رقم المركبة'] || '').trim() === cleanVeh && String(x['السنة'] || '').trim() === year) || {};
+            const vehicleMaint = maintData.filter(x => String(x['رقم المركبة'] || '').trim() === cleanVeh && String(x['السنة'] || '').trim() === year);
+            const distRow = distanceData.find(x => String(x['رقم المركبة'] || '').trim() === cleanVeh && String(x['السنة'] || '').trim() === year);
 
             let fuel = 0;
             let fuelLiters = 0;
@@ -220,20 +273,20 @@ const AppContent: React.FC = () => {
             const km_per_trip = trips ? distance / trips : 0;
 
             return {
-                veh: v, area: areaRow['المنطقة'] || '', drivers: [...drivers].join(', '), year: vehRow['سنة التصنيع'] || '',
+                veh: v, area: assignedArea || '', drivers: [...drivers].join(', '), year: vehRow['سنة التصنيع'] || '',
                 cap_m3, cap_ton, actual_daily_cap, trips, tons, fuel, fuelLiters, maint, cost_trip, cost_ton, distance, km_per_trip,
                 liters_per_trip, liters_per_ton
             };
         });
-    };
+    }, [vehiclesData, getVehicleArea, fuelData, fuelLitersData, maintData, distanceData, filters.months]);
 
     const filteredVehicleTableData = useMemo<VehicleTableData[]>(() => 
         getVehicleTableData(filteredTrips, selectedYear), 
-    [filteredTrips, vehiclesData, areasData, fuelData, fuelLitersData, maintData, filters.months, selectedYear, distanceData]);
+    [getVehicleTableData, filteredTrips, selectedYear]);
 
     const comparisonVehicleTableData = useMemo<VehicleTableData[]>(() => 
         comparisonYear ? getVehicleTableData(comparisonTrips, comparisonYear) : [], 
-    [comparisonTrips, vehiclesData, areasData, fuelData, fuelLitersData, maintData, filters.months, comparisonYear, distanceData]);
+    [getVehicleTableData, comparisonTrips, comparisonYear]);
 
     const driverStatsData = useMemo<DriverStatsData[]>(() => {
         const groups: { [key: string]: { trips: number; tons: number; vehicles: Set<string> } } = {};
@@ -280,21 +333,17 @@ const AppContent: React.FC = () => {
     }, [revenuesData, comparisonYear]);
 
     const areaPopulationStats = useMemo<AreaPopulationStats[]>(() => {
-        const vehAreaMap = new Map<string, string>();
-        areasData.forEach(a => {
-            if (a['رقم المركبة'] && a['المنطقة'] && (a['السنة'] === selectedYear || !a['السنة'])) {
-                vehAreaMap.set(a['رقم المركبة'].trim(), a['المنطقة'].trim());
-            }
-        });
         const tonsByArea: { [key: string]: number } = {};
         filteredTrips.forEach(trip => {
             const vehicleId = (trip['رقم المركبة'] || '').trim();
-            const area = vehAreaMap.get(vehicleId) || 'غير محدد';
+            let area = getVehicleArea(vehicleId, selectedYear) || 'غير محدد';
+            if (area === 'مؤتة') area = 'مؤته';
             tonsByArea[area] = (tonsByArea[area] || 0) + (Number(trip['صافي التحميل'] || 0) / 1000);
         });
         const popDataForYear = populationData.filter(p => p.year === selectedYear);
         return popDataForYear.map(pop => {
-            const areaName = pop.area.trim();
+            let areaName = pop.area.trim();
+            if (areaName === 'مؤتة') areaName = 'مؤته';
             const tons = tonsByArea[areaName] || 0;
             const population = pop.population || 0;
             const served = pop.served || 0;
@@ -304,7 +353,7 @@ const AppContent: React.FC = () => {
                 coverageRate: population > 0 ? (served / population) * 100 : 0
             };
         }).sort((a, b) => b.kgPerCapita - a.kgPerCapita);
-    }, [filteredTrips, areasData, populationData, selectedYear]);
+    }, [filteredTrips, populationData, selectedYear, getVehicleArea]);
 
     const populationTotals = useMemo(() => {
         let targetData = areaPopulationStats;
@@ -352,10 +401,11 @@ const AppContent: React.FC = () => {
                     comparisonYear={comparisonYear} activeTab={activeTab} onYearChange={handleYearChange} 
                     onComparisonYearChange={handleComparisonYearChange} onFilterToggle={handleFilterToggle} onResetFilters={resetFilters} 
                     toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+                    onOpenManagementReport={() => handleOpenManagementReport('full_executive')}
                 />
                 
                 {loading || isFiltering ? <Loader /> : (
-                    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+                    <div id="current-dashboard-view" className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
                         {activeTab === 'summary' && (
                             <AnnualSummarySection 
                                 filteredTrips={filteredTrips} 
@@ -409,10 +459,20 @@ const AppContent: React.FC = () => {
                             />
                         )}
                         {activeTab === 'intelligence' && (
-                            <AreaIntelligenceSection workers={workersData} vehicleData={filteredVehicleTableData} population={populationData.filter(p => p.year === selectedYear)} selectedYear={selectedYear} filters={filters} />
+                            <AreaIntelligenceSection 
+                                workers={workersData} 
+                                vehicleData={filteredVehicleTableData} 
+                                population={populationData.filter(p => p.year === selectedYear)} 
+                                selectedYear={selectedYear} 
+                                areasData={areasData}
+                                filters={filters} 
+                            />
                         )}
                         {activeTab === 'route_planning' && (
-                            <RoutePlanningSection vehicles={filteredVehicleTableData} />
+                            <RoutePlanningSection 
+                                vehicles={filteredVehicleTableData} 
+                                selectedYear={selectedYear}
+                            />
                         )}
                         {activeTab === 'maint_analysis' && (
                             <MaintenanceAnalysisSection 
@@ -454,6 +514,38 @@ const AppContent: React.FC = () => {
                     </div>
                 )}
                 <AiChat currentData={filteredVehicleTableData} comparisonData={comparisonVehicleTableData} selectedYear={selectedYear} comparisonYear={comparisonYear} />
+
+                {/* Floating Quick Action for Management PDF Export */}
+                <button
+                    onClick={() => handleOpenManagementReport('full_executive')}
+                    className="fixed bottom-6 start-6 z-40 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-extrabold px-4 py-3 rounded-2xl shadow-xl shadow-amber-500/30 flex items-center gap-2 transition-all hover:scale-105 active:scale-95 border border-amber-300/30 cursor-pointer"
+                    title={t('export_management_pdf')}
+                >
+                    <span className="text-xl">📄</span>
+                    <span className="text-xs md:text-sm font-black">{t('management_report')}</span>
+                </button>
+
+                {/* Management Report PDF Modal */}
+                <ManagementReportModal
+                    isOpen={isManagementReportOpen}
+                    onClose={() => setIsManagementReportOpen(false)}
+                    selectedYear={selectedYear}
+                    comparisonYear={comparisonYear}
+                    filters={filters}
+                    tripsData={tripsData}
+                    vehicleTableData={filteredVehicleTableData}
+                    fuelData={fuelData}
+                    fuelLitersData={fuelLitersData}
+                    maintData={maintData}
+                    workersData={workersData}
+                    revenuesData={revenuesData}
+                    populationData={populationData}
+                    additionalCosts={additionalCosts}
+                    areasData={areasData}
+                    activeTab={activeTab}
+                    initialScope={managementReportScope}
+                    initialChart={managementReportChart}
+                />
             </main>
         </div>
     );

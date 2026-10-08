@@ -7,9 +7,10 @@ import { getOptimalRoute } from '../services/geminiService';
 
 interface RoutePlanningSectionProps {
     vehicles: VehicleTableData[];
+    selectedYear?: string;
 }
 
-const RoutePlanningSection: React.FC<RoutePlanningSectionProps> = ({ vehicles }) => {
+const RoutePlanningSection: React.FC<RoutePlanningSectionProps> = ({ vehicles, selectedYear }) => {
     const { t, language } = useLanguage();
     const [selectedVehId, setSelectedVehId] = useState<string>('');
     const [customStart, setCustomStart] = useState<string>('');
@@ -85,18 +86,49 @@ const RoutePlanningSection: React.FC<RoutePlanningSectionProps> = ({ vehicles })
                     <div className="flex flex-col lg:flex-row gap-8 items-start">
                         {/* Preset Selection */}
                         <div className={`flex-1 w-full space-y-4 ${isCustomMode ? 'opacity-40 grayscale' : ''} transition-all`}>
-                            <h5 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">توجيه حسب منطقة الضاغطة</h5>
+                            <div className="flex items-center justify-between mb-2">
+                                <h5 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                                    {language === 'ar' ? 'توجيه حسب منطقة الضاغطة' : 'Route by Compactor Zone'}
+                                </h5>
+                                {selectedYear && (
+                                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-black">
+                                        {language === 'ar' ? `سنة ${selectedYear}` : `Year ${selectedYear}`}
+                                    </span>
+                                )}
+                            </div>
                             <select
                                 value={selectedVehId}
                                 onChange={handleVehicleChange}
                                 disabled={isCustomMode}
                                 className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-700 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-100"
                             >
-                                <option value="">— اختر الضاغطة —</option>
+                                <option value="">— {language === 'ar' ? 'اختر الضاغطة' : 'Select Compactor'} —</option>
                                 {vehicles.map(v => (
-                                    <option key={v.veh} value={v.veh}>{v.veh} ({v.area})</option>
+                                    <option key={v.veh} value={v.veh}>
+                                        {v.veh} — {v.area ? (language === 'ar' ? `منطقة العمل: ${v.area}` : `Zone: ${v.area}`) : (language === 'ar' ? 'بدون منطقة' : 'Unassigned')}
+                                    </option>
                                 ))}
                             </select>
+                            {selectedVehId && !isCustomMode && (
+                                <div className="mt-2 text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2 bg-indigo-50/60 dark:bg-slate-900/60 p-3 rounded-2xl border border-indigo-100 dark:border-slate-700">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span>
+                                        {language === 'ar' ? (
+                                            <>
+                                                الضاغطة: <strong className="text-indigo-600 dark:text-indigo-400">{selectedVehId}</strong>
+                                                {' 📍 '}
+                                                منطقة العمل ({selectedYear || ''}): <strong className="text-emerald-600 dark:text-emerald-400">{vehicles.find(v => v.veh === selectedVehId)?.area || 'غير محدد'}</strong>
+                                            </>
+                                        ) : (
+                                            <>
+                                                Compactor: <strong className="text-indigo-600 dark:text-indigo-400">{selectedVehId}</strong>
+                                                {' 📍 '}
+                                                Zone ({selectedYear || ''}): <strong className="text-emerald-600 dark:text-emerald-400">{vehicles.find(v => v.veh === selectedVehId)?.area || 'Unassigned'}</strong>
+                                            </>
+                                        )}
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         {/* Divider or Switch */}

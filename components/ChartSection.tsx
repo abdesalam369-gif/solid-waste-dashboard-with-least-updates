@@ -5,7 +5,7 @@ import { Trip } from '../types';
 import { MONTHS_ORDER } from '../constants';
 import CollapsibleSection from './CollapsibleSection';
 import ExportDropdown from './ExportDropdown';
-import { exportToExcel, exportToImage } from '../services/exportService';
+import { exportToExcel, exportToImage, exportToPdf } from '../services/exportService';
 import { printChart } from '../services/printService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -68,6 +68,11 @@ const ChartSection: React.FC<ChartSectionProps> = ({ data, comparisonData, isLoa
         return merged;
     }, [data, comparisonData, groupBy, metric]);
 
+    const handleExportPdf = () => {
+        const chartTitle = `${t('sec_time_series')} - ${metric === 'trips' ? t('chart_trips') : t('chart_tons')} (${groupBy === 'month' ? t('chart_monthly') : t('chart_daily')})`;
+        exportToPdf(chartRef, `Time_Series_Chart_${selectedYear}`, chartTitle);
+    };
+
     const handlePrint = () => {
         const chartTitle = `${t('sec_time_series')} - ${metric === 'trips' ? t('chart_trips') : t('chart_tons')} (${groupBy === 'month' ? t('chart_monthly') : t('chart_daily')})`;
         printChart(chartRef, chartTitle, filters, t, language);
@@ -100,7 +105,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({ data, comparisonData, isLoa
                 </div>
                 <div className="w-full sm:w-auto flex justify-end">
                     <ExportDropdown 
-                        onExportPdf={handlePrint}
+                        onExportPdf={handleExportPdf}
                         onExportExcel={handleExportExcel}
                         onExportCsv={handleExportExcel}
                         onExportImage={() => exportToImage(chartRef, `Chart_${selectedYear}`)}

@@ -33,8 +33,10 @@ const generatePrintWindow = (title: string, subtitle: string, bodyContent: strin
     });
 
     const printContent = `
-        <html>
+        <!DOCTYPE html>
+        <html lang="${isAr ? 'ar' : 'en'}" dir="${isAr ? 'rtl' : 'ltr'}">
         <head>
+            <meta charset="UTF-8">
             <title>${t('print')} | ${title}</title>
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -87,48 +89,60 @@ const generatePrintWindow = (title: string, subtitle: string, bodyContent: strin
                     ${bodyContent}
                 </div>
             </div>
-            <script>
-                // تأكيد الطباعة بعد تحميل جميع الصور (خاصة الـ Base64)
-                window.onload = function() {
-                    const images = document.getElementsByTagName('img');
-                    let loadedCount = 0;
-                    if (images.length === 0) {
-                        window.print();
-                        setTimeout(() => window.close(), 500);
-                    } else {
-                        for (let i = 0; i < images.length; i++) {
-                            if (images[i].complete) {
-                                loadedCount++;
-                                if (loadedCount === images.length) {
-                                    window.print();
-                                    setTimeout(() => window.close(), 500);
-                                }
-                            } else {
-                                images[i].onload = function() {
-                                    loadedCount++;
-                                    if (loadedCount === images.length) {
-                                        window.print();
-                                        setTimeout(() => window.close(), 500);
-                                    }
-                                };
-                            }
-                        }
-                    }
-                };
-            </script>
         </body>
         </html>
     `;
     
-    const printWindow = window.open('', '', 'height=800,width=1000');
-    if (!printWindow) {
-        alert(isAr ? 'يرجى السماح بالنوافذ المنبثقة للطباعة.' : 'Please allow popups for printing.');
-        return null;
+    // Use hidden iframe to avoid popup blockers and window.open issues
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow?.document;
+    if (!doc) return null;
+
+    doc.open();
+    doc.write(printContent);
+    doc.close();
+
+    const triggerPrint = () => {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+        setTimeout(() => {
+            if (document.body.contains(iframe)) {
+                document.body.removeChild(iframe);
+            }
+        }, 1500);
+    };
+
+    // Wait for images to load before printing
+    const images = doc.getElementsByTagName('img');
+    if (images.length === 0) {
+        setTimeout(triggerPrint, 300);
+    } else {
+        let loaded = 0;
+        const total = images.length;
+        const checkDone = () => {
+            loaded++;
+            if (loaded >= total) setTimeout(triggerPrint, 200);
+        };
+        for (let i = 0; i < total; i++) {
+            if (images[i].complete) {
+                checkDone();
+            } else {
+                images[i].onload = checkDone;
+                images[i].onerror = checkDone;
+            }
+        }
+        setTimeout(triggerPrint, 1500); // safety fallback timeout
     }
 
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    return printWindow;
+    return null;
 };
 
 /**

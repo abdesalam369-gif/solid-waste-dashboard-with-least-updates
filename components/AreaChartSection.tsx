@@ -4,7 +4,7 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recha
 import CollapsibleSection from './CollapsibleSection';
 import ExportDropdown from './ExportDropdown';
 import { printChart } from '../services/printService';
-import { exportToExcel, exportToImage } from '../services/exportService';
+import { exportToExcel, exportToImage, exportToPdf } from '../services/exportService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -21,6 +21,10 @@ const AreaChartSection: React.FC<AreaChartSectionProps> = ({ data, isLoading, fi
     const { t, language } = useLanguage();
     const { theme } = useTheme();
     const isDark = theme === 'dark';
+
+    const handleExportPdf = () => {
+        exportToPdf(chartRef, 'Waste_Distribution_Area_Chart', t('sec_waste_dist'));
+    };
 
     const handlePrint = () => {
         printChart(chartRef, t('sec_waste_dist'), filters, t, language);
@@ -52,7 +56,7 @@ const AreaChartSection: React.FC<AreaChartSectionProps> = ({ data, isLoading, fi
         <CollapsibleSection title={t('sec_waste_dist')}>
              <div className="flex items-center justify-end gap-4 mb-6 text-sm">
                 <ExportDropdown 
-                    onExportPdf={handlePrint}
+                    onExportPdf={handleExportPdf}
                     onExportExcel={() => exportToExcel(data, "Waste_Distribution")}
                     onExportCsv={() => exportToExcel(data, "Waste_Distribution")}
                     onExportImage={() => exportToImage(chartRef, "Waste_Distribution_Image")}

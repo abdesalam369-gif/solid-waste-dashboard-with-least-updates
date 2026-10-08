@@ -7,8 +7,9 @@ declare var Papa: any;
 
 async function fetchCSV<T>(url: string): Promise<T[]> {
     const response = await fetch(url);
-    const text = await response.text();
-    const lines = text.trim().split(/\r?\n/);
+    const rawText = await response.text();
+    const text = rawText.replace(/^\uFEFF/, '').trim();
+    const lines = text.split(/\r?\n/);
     if (lines.length < 2) return [];
     
     // Improved CSV parsing for comma handling within quotes
@@ -93,17 +94,30 @@ export async function loadWorkersData(): Promise<Worker[]> {
 }
 
 export async function loadAllData() {
-    const [trips, vehicles, fuel, fuelLiters, maintRaw, areas, workers, distance, additionalCostsRaw] = await Promise.all([
+    const [trips, vehicles, fuel, fuelLiters, maintRaw, areasRaw, workers, distance, additionalCostsRaw] = await Promise.all([
         fetchCSV<Trip>(CONFIG.trips),
         fetchCSV<Vehicle>(CONFIG.vehicles),
         fetchCSV<Fuel>(CONFIG.fuel),
         fetchCSV<Fuel>(CONFIG.fuelLiters),
         fetchCSV<any>(CONFIG.maint),
-        fetchCSV<Area>(CONFIG.areas),
+        fetchCSV<any>(CONFIG.areas),
         loadWorkersData(),
         fetchCSV<Distance>(CONFIG.distance),
         fetchCSV<any>(CONFIG.additionalCosts)
     ]);
+
+    // Parse Areas Data (Vehicle Locations by Year)
+    const areas: Area[] = areasRaw.map(row => {
+        const veh = String(row["رقم المركبة"] || "").trim();
+        let area = String(row["المنطقة"] || "").trim();
+        if (area === "مؤتة") area = "مؤته";
+        const year = String(row["السنة"] || "").trim();
+        return {
+            'رقم المركبة': veh,
+            'المنطقة': area,
+            'السنة': year
+        };
+    }).filter(a => a['رقم المركبة'] !== "");
 
     // Parse Maintenance Data
     const maintMap = new Map<string, { total: number; count: number }>();

@@ -6,7 +6,7 @@ import { formatNumber } from '../services/dataService';
 import KpiCard from './KpiCard';
 import KpiExplanationModal from './KpiExplanationModal';
 import ExportDropdown from './ExportDropdown';
-import { exportToExcel, exportToImage } from '../services/exportService';
+import { exportToExcel, exportToImage, exportToPdf } from '../services/exportService';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface KpiGridProps {
@@ -283,7 +283,7 @@ const KpiGrid: React.FC<KpiGridProps> = ({
                 </h2>
                 <div className="flex gap-4 w-full md:w-auto justify-center md:justify-end">
                     <ExportDropdown 
-                        onExportPdf={() => window.print()}
+                        onExportPdf={() => exportToPdf(containerRef, `Detailed_KPIs_Report_${selectedYear}`, `${t('sec_kpi_main')} - ${selectedYear}`)}
                         onExportExcel={handleExportExcel}
                         onExportCsv={handleExportExcel}
                         onExportImage={() => exportToImage(containerRef, `KPIs_${selectedYear}`)}

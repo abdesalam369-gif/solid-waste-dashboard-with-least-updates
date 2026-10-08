@@ -5,7 +5,7 @@ import { formatNumber } from '../services/dataService';
 import KpiCard from './KpiCard';
 import KpiExplanationModal from './KpiExplanationModal';
 import ExportDropdown from './ExportDropdown';
-import { exportToExcel, exportToImage } from '../services/exportService';
+import { exportToExcel, exportToImage, exportToPdf } from '../services/exportService';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface AnnualSummarySectionProps {
@@ -118,7 +118,7 @@ const AnnualSummarySection: React.FC<AnnualSummarySectionProps> = ({
                 <h2 className="text-lg md:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight text-center md:text-right">{t('sec_annual_summary')} - {selectedYear}</h2>
                 <div className="flex flex-wrap gap-3 md:gap-4 w-full md:w-auto justify-center md:justify-end">
                     <ExportDropdown 
-                        onExportPdf={() => window.print()} 
+                        onExportPdf={() => exportToPdf(containerRef, `Annual_Summary_Report_${selectedYear}`, `${t('sec_annual_summary')} - ${selectedYear}`)} 
                         onExportExcel={handleExportExcel}
                         onExportCsv={handleExportExcel}
                         onExportImage={() => exportToImage(containerRef, `Summary_${selectedYear}`)}

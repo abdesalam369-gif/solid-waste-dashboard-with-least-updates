@@ -16,6 +16,7 @@ interface HeaderProps {
     onFilterToggle: (type: 'vehicles' | 'months', value: string) => void;
     onResetFilters: () => void;
     toggleSidebar: () => void;
+    onOpenManagementReport?: () => void;
 }
 
 const FilterDropdown: React.FC<{
@@ -85,7 +86,7 @@ const FilterDropdown: React.FC<{
     );
 };
 
-const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, comparisonYear, activeTab, onYearChange, onComparisonYearChange, onFilterToggle, onResetFilters, toggleSidebar }) => {
+const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, comparisonYear, activeTab, onYearChange, onComparisonYearChange, onFilterToggle, onResetFilters, toggleSidebar, onOpenManagementReport }) => {
     const { t, language, setLanguage } = useLanguage();
     const { theme, toggleTheme } = useTheme();
     
@@ -389,6 +390,16 @@ const Header: React.FC<HeaderProps> = ({ tripsData, filters, selectedYear, compa
                 >
                     {t('reset')}
                 </button>
+                {onOpenManagementReport && (
+                    <button
+                        onClick={onOpenManagementReport}
+                        className="px-3.5 py-2 border-none rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold cursor-pointer shadow-md transition flex items-center gap-1.5 active:scale-95"
+                        title={t('management_report')}
+                    >
+                        <span>📄</span>
+                        <span>{t('management_report')}</span>
+                    </button>
+                )}
                 <button
                     onClick={printKPIs}
                     className="px-3 py-2 border-none rounded-lg bg-emerald-500 text-white text-sm font-semibold cursor-pointer shadow-md transition hover:bg-emerald-600"

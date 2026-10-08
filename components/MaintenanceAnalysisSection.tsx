@@ -1,8 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { MaintenanceRecord } from '../types';
 import { formatNumber } from '../services/dataService';
 import CollapsibleSection from './CollapsibleSection';
 import KpiCard from './KpiCard';
+import ExportDropdown from './ExportDropdown';
+import { exportToExcel, exportToImage, exportToPdf } from '../services/exportService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { MONTHS_ORDER } from '../constants';
@@ -217,8 +219,25 @@ const MaintenanceAnalysisSection: React.FC<MaintenanceAnalysisSectionProps> = ({
         return efficiencyData.filter(d => d.cost > avgCost * 1.5);
     }, [efficiencyData]);
 
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const handleExportPdf = () => {
+        exportToPdf(containerRef, `Maintenance_Analysis_Report_${selectedYear}`, t('sec_maint_analysis'));
+    };
+
+    const handleExportExcel = () => {
+        const data = efficiencyData.map(v => ({
+            Vehicle: v.name,
+            MaintenanceCost_JOD: v.cost,
+            OperationsCount: v.count,
+            AvgCostPerOp_JOD: v.avgPerOp
+        }));
+        exportToExcel(data, `Maintenance_Analysis_${selectedYear}`);
+    };
+
     return (
         <CollapsibleSection title={t('sec_maint_analysis')}>
+            <div ref={containerRef} id="maint-analysis-content">
             {/* Year Comparison Control Toolbar */}
             <div className="bg-white dark:bg-slate-800/80 p-4 md:p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm mb-6 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -233,7 +252,14 @@ const MaintenanceAnalysisSection: React.FC<MaintenanceAnalysisSectionProps> = ({
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
+                    <ExportDropdown 
+                        onExportPdf={handleExportPdf}
+                        onExportExcel={handleExportExcel}
+                        onExportCsv={handleExportExcel}
+                        onExportImage={() => exportToImage(containerRef, `Maintenance_Analysis_${selectedYear}`)}
+                    />
+
                     <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-700/60 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300">
                         <span>📅 {selectedYear}</span>
                     </div>
@@ -512,6 +538,7 @@ const MaintenanceAnalysisSection: React.FC<MaintenanceAnalysisSectionProps> = ({
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
         </CollapsibleSection>
     );

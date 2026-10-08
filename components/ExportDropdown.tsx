@@ -7,11 +7,12 @@ interface ExportDropdownProps {
     onExportExcel?: () => void;
     onExportCsv?: () => void;
     onExportImage?: () => void;
+    onExportManagementReport?: () => void;
     title?: string;
 }
 
 const ExportDropdown: React.FC<ExportDropdownProps> = ({ 
-    onExportPdf, onExportExcel, onExportCsv, onExportImage, title 
+    onExportPdf, onExportExcel, onExportCsv, onExportImage, onExportManagementReport, title 
 }) => {
     const { t } = useLanguage();
     const [isOpen, setIsOpen] = useState(false);
@@ -29,6 +30,7 @@ const ExportDropdown: React.FC<ExportDropdownProps> = ({
 
     const options = [
         { id: 'pdf', label: t('export_pdf'), icon: '📄', action: onExportPdf },
+        { id: 'mgmt_report', label: t('management_report'), icon: '🏛️', action: onExportManagementReport },
         { id: 'excel', label: t('export_excel'), icon: '📊', action: onExportExcel },
         { id: 'csv', label: t('export_csv'), icon: '📝', action: onExportCsv },
         { id: 'image', label: t('export_image'), icon: '🖼️', action: onExportImage },

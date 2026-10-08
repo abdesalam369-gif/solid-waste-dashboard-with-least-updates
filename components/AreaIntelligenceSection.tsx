@@ -1,6 +1,6 @@
 
 import React, { useMemo, useRef, useState } from 'react';
-import { Worker, VehicleTableData, Population } from '../types';
+import { Worker, VehicleTableData, Population, Area } from '../types';
 import { formatNumber } from '../services/dataService';
 import { printTable } from '../services/printService';
 import { exportToExcel, exportToImage, extractTableData } from '../services/exportService';
@@ -18,12 +18,13 @@ interface AreaIntelligenceSectionProps {
     vehicleData: VehicleTableData[];
     population: Population[];
     selectedYear: string;
+    areasData?: Area[];
     filters: { vehicles: Set<string>; months: Set<string> };
 }
 
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#3b82f6'];
 
-const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ workers, vehicleData, population, selectedYear, filters }) => {
+const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ workers, vehicleData, population, selectedYear, areasData, filters }) => {
     const { t, language } = useLanguage();
     const { theme } = useTheme();
     const isDark = theme === 'dark';
@@ -65,6 +66,22 @@ const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ worke
                 vehicles: new Set<string>() 
             });
         });
+
+        // Seed with all compactors officially assigned to the area for selectedYear
+        if (areasData && areasData.length > 0) {
+            areasData.forEach(row => {
+                const veh = String(row['رقم المركبة'] || '').trim();
+                let area = String(row['المنطقة'] || '').trim();
+                if (area === 'مؤتة') area = 'مؤته';
+                const rowYear = String(row['السنة'] || '').trim();
+
+                if (filters.vehicles.size > 0 && !filters.vehicles.has(veh)) return;
+
+                if (rowYear === selectedYear && ALLOWED_AREAS.includes(area)) {
+                    statsMap.get(area)?.vehicles.add(veh);
+                }
+            });
+        }
 
         vehicleData.forEach(v => {
             let area = (v.area || '').trim();
@@ -294,9 +311,19 @@ const AreaIntelligenceSection: React.FC<AreaIntelligenceSectionProps> = ({ worke
                                 <td className="p-3 md:p-4 font-black text-slate-800 dark:text-slate-200 text-right pr-6 md:pr-10">{area.displayName}</td>
                                 <td className="p-3 md:p-4 text-slate-600 dark:text-slate-300 font-bold">{formatNumber(area.population)}</td>
                                 <td className="p-3 md:p-4 font-black text-blue-800 dark:text-blue-300">
-                                    <span className="bg-slate-100 dark:bg-slate-800 px-2 md:px-3 py-1 rounded-lg">
-                                        {area.vehiclesCount}
-                                    </span>
+                                    <div className="flex flex-col items-center justify-center gap-1">
+                                        <span className="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 px-2.5 md:px-3 py-1 rounded-lg font-black text-xs inline-block">
+                                            {area.vehiclesCount} {language === 'ar' ? 'ضاغطة' : 'compactors'}
+                                        </span>
+                                        {area.vehicles.size > 0 && (
+                                            <span 
+                                                className="text-[9px] text-slate-500 dark:text-slate-400 font-semibold max-w-[140px] truncate block" 
+                                                title={Array.from(area.vehicles).join(', ')}
+                                            >
+                                                {Array.from(area.vehicles).join(', ')}
+                                            </span>
+                                        )}
+                                    </div>
                                 </td>
                                 <td className="p-3 md:p-4">
                                     <span className="bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-2 md:px-3 py-1 rounded-full font-black">

@@ -3,7 +3,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import { VehicleTableData } from '../types';
 import { formatNumber } from '../services/dataService';
 import { printTable } from '../services/printService';
-import { exportToExcel, exportToImage, extractTableData } from '../services/exportService';
+import { exportToExcel, exportToImage, exportToPdf, extractTableData } from '../services/exportService';
 import ExportDropdown from './ExportDropdown';
 import CollapsibleSection from './CollapsibleSection';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -99,7 +99,7 @@ const TableSection: React.FC<TableSectionProps> = ({ tableData, filters, title }
                 </div>
                 <div className="w-full sm:w-auto flex justify-end">
                     <ExportDropdown 
-                        onExportPdf={() => printTable(tableContainerRef, title || t('sec_veh_eff'), filters, t, language)}
+                        onExportPdf={() => exportToPdf(tableContainerRef, 'Fleet_Efficiency_Report', title || t('sec_veh_eff'))}
                         onExportExcel={handleExportExcel}
                         onExportCsv={handleExportExcel}
                         onExportImage={() => exportToImage(tableContainerRef, `Efficiency_Table`)}
@@ -121,7 +121,16 @@ const TableSection: React.FC<TableSectionProps> = ({ tableData, filters, title }
                         {sortedData.map(row => (
                             <tr key={row.veh} className={`hover:bg-indigo-50/30 dark:hover:bg-slate-800/50 transition-colors ${row.utilization < 50 ? 'bg-rose-50/40 dark:bg-rose-900/10' : ''}`}>
                                 <td className="p-3 font-black text-slate-800 dark:text-slate-200">{row.veh}</td>
-                                <td className="p-3 text-slate-600 dark:text-slate-400 font-bold">{row.area}</td>
+                                <td className="p-3 font-bold">
+                                    {row.area ? (
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300">
+                                            <span>📍</span>
+                                            <span>{row.area}</span>
+                                        </span>
+                                    ) : (
+                                        <span className="text-slate-400">—</span>
+                                    )}
+                                </td>
                                 <td className="p-3 text-slate-500 dark:text-slate-500">{row.year}</td>
                                 <td className="p-3 text-slate-700 dark:text-slate-300">{formatNumber(row.cap_ton, 1)}</td>
                                 <td className="p-3 text-slate-500 dark:text-slate-500">{formatNumber(row.trips)}</td>
