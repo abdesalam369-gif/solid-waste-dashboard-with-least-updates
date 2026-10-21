@@ -93,6 +93,8 @@ export const ManagementReportTemplate: React.FC<ManagementReportTemplateProps> =
         const totalSalaries = workersData.reduce((sum, w) => sum + (w.salary / 12) * monthsCount, 0);
         const totalFuelCost = vehicleTableData.reduce((sum, v) => sum + v.fuel, 0);
         const totalFuelLiters = vehicleTableData.reduce((sum, v) => sum + (v.fuelLiters || 0), 0);
+        const totalDistance = vehicleTableData.reduce((sum, v) => sum + (v.distance || 0), 0);
+        const avgKmPerTrip = totalTrips > 0 ? totalDistance / totalTrips : 0;
         const totalMaint = vehicleTableData.reduce((sum, v) => sum + v.maint, 0);
 
         const currentExtra = additionalCosts.find(c => c.year === selectedYear);
@@ -117,6 +119,8 @@ export const ManagementReportTemplate: React.FC<ManagementReportTemplateProps> =
             totalSalaries,
             totalFuelCost,
             totalFuelLiters,
+            totalDistance,
+            avgKmPerTrip,
             totalMaint,
             extraCosts,
             totalExpenditures,
@@ -189,6 +193,7 @@ export const ManagementReportTemplate: React.FC<ManagementReportTemplateProps> =
                 area: v.area || (isAr ? 'غير محدد' : 'N/A'),
                 fuelCost: Math.round(v.fuel),
                 fuelLiters: Math.round(v.fuelLiters || 0),
+                distance: Math.round(v.distance || 0),
                 trips: v.trips,
                 tons: Math.round(v.tons)
             };
@@ -206,6 +211,7 @@ export const ManagementReportTemplate: React.FC<ManagementReportTemplateProps> =
                 trips: veh?.trips || 0,
                 tons: veh ? Math.round(veh.tons) : 0,
                 fuelLiters: veh ? Math.round(veh.fuelLiters || 0) : 0,
+                distance: veh ? Math.round(veh.distance || 0) : 0,
                 maintCost: veh ? Math.round(veh.maint) : 0
             };
         });
@@ -296,11 +302,13 @@ export const ManagementReportTemplate: React.FC<ManagementReportTemplateProps> =
                         </div>
 
                         <div className="bg-amber-50/80 rounded-xl p-3 border border-amber-100 text-center">
-                            <div className="text-xs font-bold text-amber-700">{isAr ? 'استهلاك وقود الأسطول' : 'Total Fleet Fuel'}</div>
+                            <div className="text-xs font-bold text-amber-700">{isAr ? 'الوقود والمسافات المقطوعة' : 'Fleet Fuel & Distance'}</div>
                             <div className="text-lg font-black text-slate-900 mt-1">
                                 {formatNumber(metrics.totalFuelLiters)} <span className="text-xs font-normal">{isAr ? 'لتر' : 'L'}</span>
+                                <span className="text-xs text-slate-400 mx-1">|</span>
+                                <span className="text-sm font-black text-blue-700">{formatNumber(Math.round(metrics.totalDistance))} <span className="text-[10px] font-normal">{isAr ? 'كم' : 'km'}</span></span>
                             </div>
-                            <div className="text-[11px] text-slate-500 font-semibold">{formatNumber(metrics.totalFuelCost)} {isAr ? 'دينار كلفة الوقود' : 'JOD'}</div>
+                            <div className="text-[11px] text-slate-500 font-semibold">{formatNumber(metrics.totalFuelCost)} {isAr ? 'دينار' : 'JOD'} • {formatNumber(metrics.avgKmPerTrip, 1)} {isAr ? 'كم/رحلة' : 'km/trip'}</div>
                         </div>
 
                         <div className="bg-indigo-50/80 rounded-xl p-3 border border-indigo-100 text-center">
@@ -418,6 +426,7 @@ export const ManagementReportTemplate: React.FC<ManagementReportTemplateProps> =
                                         <tr>
                                             <th className="border border-slate-200 p-2">{isAr ? 'رقم الضاغطة' : 'Compactor'}</th>
                                             <th className="border border-slate-200 p-2">{isAr ? 'منطقة العمل' : 'Workplace Area'}</th>
+                                            <th className="border border-slate-200 p-2">{isAr ? 'المسافة (كم)' : 'Distance (km)'}</th>
                                             <th className="border border-slate-200 p-2">{isAr ? 'استهلاك اللترات' : 'Liters'}</th>
                                             <th className="border border-slate-200 p-2">{isAr ? 'كلفة الوقود (دينار)' : 'Fuel Cost (JOD)'}</th>
                                             <th className="border border-slate-200 p-2">{isAr ? 'عدد الرحلات' : 'Trips'}</th>
@@ -429,8 +438,9 @@ export const ManagementReportTemplate: React.FC<ManagementReportTemplateProps> =
                                             <tr key={v.veh} className="hover:bg-slate-50">
                                                 <td className="border border-slate-200 p-2 font-bold">{v.veh}</td>
                                                 <td className="border border-slate-200 p-2">{v.area}</td>
+                                                <td className="border border-slate-200 p-2 font-mono font-bold text-blue-700">{formatNumber(v.distance)}</td>
                                                 <td className="border border-slate-200 p-2 font-bold text-emerald-700">{formatNumber(v.fuelLiters)}</td>
-                                                <td className="border border-slate-200 p-2 font-bold text-blue-700">{formatNumber(v.fuelCost)}</td>
+                                                <td className="border border-slate-200 p-2 font-bold text-slate-800">{formatNumber(v.fuelCost)}</td>
                                                 <td className="border border-slate-200 p-2">{v.trips}</td>
                                                 <td className="border border-slate-200 p-2">{formatNumber(v.tons)}</td>
                                             </tr>

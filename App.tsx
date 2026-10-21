@@ -269,7 +269,17 @@ const AppContent: React.FC = () => {
             const liters_per_trip = trips ? fuelLiters / trips : 0;
             const liters_per_ton = tons ? fuelLiters / tons : 0;
 
-            const distance = distRow ? (Number(distRow['المسافة المقطوعة (كم)']) || 0) : 0;
+            let distance = 0;
+            if (distRow) {
+                monthsToSum.forEach(m => {
+                    const valStr = distRow[m as keyof Distance] || '';
+                    const cleanVal = Number(String(valStr).replace(/,/g, '').trim()) || 0;
+                    distance += cleanVal;
+                });
+                if (distance === 0 && distRow['المسافة المقطوعة (كم)']) {
+                    distance = Number(String(distRow['المسافة المقطوعة (كم)']).replace(/,/g, '').trim()) || 0;
+                }
+            }
             const km_per_trip = trips ? distance / trips : 0;
 
             return {

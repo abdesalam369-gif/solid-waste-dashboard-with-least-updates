@@ -83,8 +83,21 @@ export interface WasteTreatment {
 
 export interface Distance {
     'رقم المركبة': string;
-    'المسافة المقطوعة (كم)': string;
     'السنة': string;
+    jan?: string;
+    feb?: string;
+    mar?: string;
+    apr?: string;
+    may?: string;
+    jun?: string;
+    july?: string;
+    aug?: string;
+    sep?: string;
+    oct?: string;
+    nov?: string;
+    dec?: string;
+    'المسافة المقطوعة (كم)'?: string;
+    [key: string]: any;
 }
 
 export interface Worker {

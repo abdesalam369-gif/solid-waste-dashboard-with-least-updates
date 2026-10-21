@@ -1,6 +1,6 @@
 
 import { Trip, Vehicle, Fuel, Maintenance, Area, Population, Worker, Revenue, WasteTreatment, Distance, AdditionalCost, MaintenanceRecord } from '../types';
-import { CONFIG } from '../constants';
+import { CONFIG, MONTHS_ORDER } from '../constants';
 
 // Declare global Papa from script tag
 declare var Papa: any;
@@ -94,7 +94,7 @@ export async function loadWorkersData(): Promise<Worker[]> {
 }
 
 export async function loadAllData() {
-    const [trips, vehicles, fuel, fuelLiters, maintRaw, areasRaw, workers, distance, additionalCostsRaw] = await Promise.all([
+    const [trips, vehicles, fuel, fuelLiters, maintRaw, areasRaw, workers, distanceRaw, additionalCostsRaw] = await Promise.all([
         fetchCSV<Trip>(CONFIG.trips),
         fetchCSV<Vehicle>(CONFIG.vehicles),
         fetchCSV<Fuel>(CONFIG.fuel),
@@ -102,9 +102,41 @@ export async function loadAllData() {
         fetchCSV<any>(CONFIG.maint),
         fetchCSV<any>(CONFIG.areas),
         loadWorkersData(),
-        fetchCSV<Distance>(CONFIG.distance),
+        fetchCSV<any>(CONFIG.distance),
         fetchCSV<any>(CONFIG.additionalCosts)
     ]);
+
+    // Parse Distance Data (Monthly Distance by Vehicle and Year)
+    const distance: Distance[] = (distanceRaw || []).map((row: any) => {
+        const veh = String(row["رقم المركبة"] || "").trim();
+        const year = String(row["السنة"] || "").trim();
+        const distObj: Distance = {
+            'رقم المركبة': veh,
+            'السنة': year,
+        };
+        let sumKm = 0;
+        let hasMonthly = false;
+
+        MONTHS_ORDER.forEach(m => {
+            const rawVal = row[m] !== undefined ? row[m] : (row[m.toLowerCase()] || "");
+            const cleanStr = String(rawVal || "").trim().replace(/,/g, '');
+            distObj[m as keyof Distance] = cleanStr;
+            const num = Number(cleanStr);
+            if (!isNaN(num) && num > 0) {
+                sumKm += num;
+                hasMonthly = true;
+            }
+        });
+
+        if (!hasMonthly && row['المسافة المقطوعة (كم)']) {
+            const oldTotal = String(row['المسافة المقطوعة (كم)']).trim().replace(/,/g, '');
+            distObj['المسافة المقطوعة (كم)'] = oldTotal;
+        } else {
+            distObj['المسافة المقطوعة (كم)'] = String(sumKm);
+        }
+
+        return distObj;
+    }).filter(d => d['رقم المركبة'] !== "");
 
     // Parse Areas Data (Vehicle Locations by Year)
     const areas: Area[] = areasRaw.map(row => {
